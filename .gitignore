@@ -5,9 +5,6 @@ out/
 # Ignore Gradle GUI config
 gradle-app.setting
 
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-
 # Cache of project
 .gradletasknamecache
 
@@ -28,7 +25,7 @@ gradle-app.setting
 *.sar
 *.class
 
-# IntelliJ project files 
+# IntelliJ project files
 *.iml
 *.iws
 *.ipr
@@ -48,6 +45,8 @@ nbdist/
 nbactions.xml
 nb-configuration.xml
 
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
 
 # OS
 .DS_Store
