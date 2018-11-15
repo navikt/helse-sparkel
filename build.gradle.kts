@@ -1,6 +1,7 @@
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.0.0-beta-3"
 val prometheusVersion = "0.5.0"
+val cxfVersion = "3.2.6"
 
 val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
@@ -20,6 +21,11 @@ application {
     mainClassName = "$mainClass"
 }
 
+sourceSets {
+    getByName("main").java.srcDirs("src/main/java", "src/main/kotlin")
+    getByName("test").java.srcDirs("src/test/kotlin")
+}
+
 dependencies {
     compile(kotlin("stdlib"))
     compile("ch.qos.logback:logback-classic:1.2.3")
@@ -27,6 +33,14 @@ dependencies {
     compile("io.ktor:ktor-server-netty:$ktorVersion")
     compile("io.prometheus:simpleclient_common:$prometheusVersion")
     compile("io.prometheus:simpleclient_hotspot:$prometheusVersion")
+
+    implementation("com.sun.xml.ws:jaxws-tools:2.3.0.2")
+    implementation("javax.xml.ws:jaxws-api:2.3.1")
+    implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
+    implementation("org.apache.cxf:cxf-rt-ws-policy:$cxfVersion")
+    implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
+    implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
+    implementation("org.apache.cxf:cxf-rt-transports-http-jetty:$cxfVersion")
 
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
@@ -42,7 +56,30 @@ repositories {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_10
     targetCompatibility = JavaVersion.VERSION_1_10
+
+    val mainJavaSourceSet: SourceDirectorySet = sourceSets.getByName("main").java
+    mainJavaSourceSet.srcDir("$projectDir/build/generated-sources")
 }
+
+val wsdlDir = "$projectDir/src/main/resources/wsdl"
+val wsdlsToGenerate = listOf("$wsdlDir/person/Binding.wsdl")
+val generatedDir = "$projectDir/build/generated-sources"
+
+tasks {
+    register("wsimport") {
+        group = "other"
+        doLast {
+            mkdir(generatedDir)
+            wsdlsToGenerate.forEach {
+                ant.withGroovyBuilder {
+                    "taskdef"("name" to "wsimport", "classname" to "com.sun.tools.ws.ant.WsImport", "classpath" to sourceSets.getAt("main").runtimeClasspath.asPath)
+                    "wsimport"("wsdl" to it, "sourcedestdir" to generatedDir, "xnocompile" to true) {}
+                }
+            }
+        }
+    }
+}
+tasks.getByName("compileKotlin").dependsOn("wsimport")
 
 tasks.withType<Test> {
     useJUnitPlatform()
