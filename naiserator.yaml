@@ -26,6 +26,8 @@ spec:
       requests:
         cpu: 50m
         memory: 128Mi
+   ingresses:
+      - https://helse-oppslag.nais.preprod.local
    replicas:
       min: 1
       max: 1
