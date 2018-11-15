@@ -54,8 +54,8 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_10
-    targetCompatibility = JavaVersion.VERSION_1_10
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
     val mainJavaSourceSet: SourceDirectorySet = sourceSets.getByName("main").java
     mainJavaSourceSet.srcDir("$projectDir/build/generated-sources")
