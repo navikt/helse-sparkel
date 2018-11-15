@@ -7,11 +7,11 @@ import io.ktor.routing.Routing
 import io.ktor.routing.post
 
 fun Routing.person(personClient: PersonClient) {
-    post("api/person/geografisk-tilknytning") {
+    post("api/person") {
         val fødselsnummer = call.receive<String>()
 
-        val geografiskTilknytningResponse = personClient.getGeografiskTilknytning(fødselsnummer)
+        val person = personClient.personInfo(Fødselsnummer(fødselsnummer))
 
-        call.respond(geografiskTilknytningResponse)
+        call.respond(person)
     }
 }
