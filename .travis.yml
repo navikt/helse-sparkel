@@ -1,0 +1,32 @@
+sudo: required
+language: java
+services:
+- docker
+before_install:
+- openssl aes-256-cbc -K $encrypted_29e822f9d625_key -iv $encrypted_29e822f9d625_iv
+  -in travis/helseci.2018-10-26.private-key.pem.enc -out travis/helseci.2018-10-26.private-key.pem
+  -d
+- git clone https://github.com/navikt/github-apps-support.git
+- export PATH=`pwd`/github-apps-support/bin:$PATH
+- export INSTALLATION_TOKEN=$(generate-installation-token.sh `generate-jwt.sh ./travis/helseci.2018-10-26.private-key.pem
+  $GITHUB_APP_ID`)
+script:
+- make bump-version
+- make
+after_success:
+- echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+- git config user.name team-helse[bot]
+- git config user.email team-helse[bot]@users.noreply.github.com
+- "./travis/deploy.sh"
+before_cache:
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+env:
+  global:
+  - secure: j4irpt/Tmhcq2J4d3zOd0NzvqtxqQsUHugujU7qzgU69rEANx45fwhAz4mPMtv+5QGV9khQiHRyK2goIf1wmz+329I7syRlgE3esY8EBi/3/d0KE26/T94Qs06isXrrFjBwAUDQT7dFmhNcGHsrQuGFYV49onyU9bgbClXmurM0fzgUL/E6KJ4e1pMT/0jMveYj7Zk5pxD9fE8KLMw1rvqE8DNkOyJgOFrO6oAXKObPMEDAyanrkYe/VPaE2X1VosB4Da2eTt5icyq3c042Mmj6AUIw6jFNOWSJSnWtn4ox/eRMT2zi3hNApAvrNE7ejekkIg9yyTuiziipfRM0K0tN9O/+GsFGzNkzbTIeRBB8bmmIjC4My7GUBuINLE9clRnFFfy89Hzgv2EWCPbtd8KCqD4sYAQzdSP7IutDLlyrNaj+Wrhts0B0C1VYQNRjpiTgwKP9efAm2c/OrzGVXBn9UUvjzEPRm6lm3C7ECPxSYz94PqrnKP0koTVQwZzrjMvay2BJ0VKU8gnO9thexhe53+NWQeMfX9bYklQ7nYndtpb4WTLmzlAI+WMuk3NH83oq5rJNJCwlIXPEHbBv5+rU6h2WnGjo/Z1EokLkkb3QHjKX1Avt8LK9omPqk7gAuZKf5qgMomN+C7iHY3uanDfWwvxGalEZ0Ov+v5aqfR58=
+  - secure: Pu5BWhY8ZH7lMSkRM/7ota5lkeh5IuXgn9Ur6OwuY9Q3c9oK9Y6doPGKixSTjAz9It93HXXTKDD/TQOtV1RvaC/ONxk3mUjxKMhJVYij/yEQ5PhWEPWAaSiPEDjR79RbBxf1ZkCy/pyhopVibEmfezj/1AOdbPtM0fZzSMFHc7qBBewBv387E+afox99QFZOofmfa0i/oRJB92zN7tsiEERazP09wWPHwntEtvZo+3oFTC81NuFOh5lfnWpFpEYH43T2eajw89xAoI1Ru7YzLIpx1Jq45KbqULmnlBRXA2llcetgmOV02HJlcSIM0lPQlRO2jk+Vt/ZEAgUG883Sx368yb8Df/ALxj9S5C0rPKa/VDvJLpP/hEwpJRX05tTPF2SGr6aI/DzAcRd2QgDw534Ix7mAJNCG573j0NkU7H+jKFtkD0mZjzz4N5OFtmI8dq4GUu5xROBn2grRy/pDRFT2AebfHiT0skloAUG4egXXWSk/9EOjCGaCiIuSLkB9uYhTaIPKQxcEyJJeeKKqVQehbTPssVNGzEEwzwOAE+P7ZCqJzhJKKijxb5OUkbe5IXvHmKSTW1tMtxEXtWCBCIE1pPsUV96AUg6Yxd/VoGytL9oo5i5NYfIpRUpjrH/KuXZApbGdV5q3uGauHiZpcP7d4Z5y4BBqfe8DBWmCm9c=
+  - secure: H7XBmEtstK5jApOip74/w9kOHAVFwqpUkmkL92o6FIZBd2q3INfgBPrY5m5BbBQeDU2pWOi6VBfqP5jPTOI7/6/C8tyJxFdk0ip15MkFQabUccrfC0cKDlQIDys0QpWNu5IqAuXf8YCqt5OBS7TzsVDYJfL8fv439gCVnsEBDWVQDClJlFfDXqvQdxSD8GhCEhc0GgijliRYzn5iK/zN1RWnZ1iXwhlXToHMYbKl089zZvYRoeADlLm1mSV5BXjS3Q2y3iqw1bZUuQOlTMxufFmTv4H/0WgGWL7RURK4Z8HtUmhm7s676sIEQNkCg0fNQ7wDoCzbx7EF7iuU/8o24YvjJnlxjWP56DSObI2jGXuEjuAhU//feuiOaTFq9cQ2jGwbB4LRm2i3Qbj+DStseRF0Zukj8roo/Jbr2vJZQKCvsOe0r6UHhao20S3SPh2DPy4byW5zJsqrRTsBuhBdvMebYRtT1R025az1T513tH9epWzGzHEeeNVmTNFTMMA7EWjtlrkKGRmeBOfAgCo4+9DWYCrte3JVGzu05E1BystliLyKRfgfSwKj2bkw5ZEXPCwrOJlOKtOzH6JWXOsMlzICEDUMplOrzFGB0XAzsBXMrF2tguj8B2AaeMvK56SWPzr+ShoT8vl6rKZQeDPAAjXc1S9k4yVnVO8rfop3q+Y=
