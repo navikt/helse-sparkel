@@ -21,8 +21,8 @@ import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sts.STSClientBuilder
 import no.nav.helse.ws.sts.STSProperties
-import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -51,7 +51,7 @@ fun main() {
 
     val inntektV3 = wsClientBuilder.createPort(getEnvVar("INNTEKT_ENDPOINTURL"), InntektV3::class.java)
     endpointSTSClientConfig.configureRequestSamlToken(inntektV3, EndpointSTSClientConfig.STS_SAML_POLICY)
-    val inntektClient = InntektClient(inntektV3
+    val inntektClient = InntektClient(inntektV3)
 
     val arbeidsforholdV3: ArbeidsforholdV3 = wsClientBuilder.createPort(getEnvVar("AAREG_ENDPOINTURL"), ArbeidsforholdV3::class.java)
     endpointSTSClientConfig.configureRequestSamlToken(arbeidsforholdV3, EndpointSTSClientConfig.STS_SAML_POLICY)
