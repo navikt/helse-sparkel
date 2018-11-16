@@ -1,6 +1,7 @@
 package no.nav.helse.ws.person
 
 import no.nav.helse.*
+import no.nav.helse.ws.Fødselsnummer
 import no.nav.helse.ws.person.Kjønn.*
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
@@ -46,16 +47,6 @@ object PersonMapper {
                 personnavn.etternavn,
                 if (response.person.kjoenn.kjoenn.value == "M") MANN else KVINNE
         )
-    }
-}
-
-data class Fødselsnummer(val value: String) {
-    val elevenDigits = Regex("\\d{11}")
-
-    init {
-        if (!elevenDigits.matches(value)) {
-            throw IllegalArgumentException("$value is not a valid fnr")
-        }
     }
 }
 

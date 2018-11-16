@@ -1,5 +1,6 @@
 package no.nav.helse.ws.arbeidsforhold
 
+import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
@@ -8,16 +9,15 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforhold
 
 class ArbeidsforholdClient(private val arbeidsforhold: ArbeidsforholdV3) {
 
-    fun finnArbeidsforholdForFnr(fnr: String): Collection<Arbeidsforhold> {
+    fun finnArbeidsforholdForFnr(fnr: Fødselsnummer): Collection<Arbeidsforhold> {
         val request = FinnArbeidsforholdPrArbeidstakerRequest()
-                .apply { ident = NorskIdent().apply { ident = fnr } }
+                .apply { ident = NorskIdent().apply { ident = fnr.value } }
                 .apply { arbeidsforholdIPeriode = null } // optional, håper at null betyr _alle_ arbeidsforhold
                 .apply { rapportertSomRegelverk = Regelverker().apply { kodeverksRef = RegelverkerValues.ALLE.name } }
 
 
         return arbeidsforhold.finnArbeidsforholdPrArbeidstaker(request)!!.arbeidsforhold!!
     }
-
 }
 
 enum class RegelverkerValues {
