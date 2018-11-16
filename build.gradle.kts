@@ -2,6 +2,9 @@ val slf4jVersion = "1.7.25"
 val ktorVersion = "1.0.0-beta-3"
 val prometheusVersion = "0.5.0"
 val cxfVersion = "3.2.6"
+val orgJsonVersion = "20180813"
+val fuelVersion = "1.15.1"
+val wireMockVersion = "2.19.0"
 
 val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
@@ -34,14 +37,17 @@ dependencies {
     compile("io.prometheus:simpleclient_common:$prometheusVersion")
     compile("io.prometheus:simpleclient_hotspot:$prometheusVersion")
 
+    compile("org.json:json:$orgJsonVersion")
+    compile("com.github.kittinunf.fuel:fuel:$fuelVersion")
+
     implementation("com.sun.xml.ws:jaxws-tools:2.3.0.2")
     implementation("javax.xml.ws:jaxws-api:2.3.1")
     implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-ws-policy:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
-    implementation("org.apache.cxf:cxf-rt-transports-http-jetty:$cxfVersion")
 
+    testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -62,7 +68,7 @@ java {
 }
 
 val wsdlDir = "$projectDir/src/main/resources/wsdl"
-val wsdlsToGenerate = listOf("$wsdlDir/person/Binding.wsdl")
+val wsdlsToGenerate = listOf("$wsdlDir/person/Binding.wsdl", "$wsdlDir/inntekt/Binding.wsdl")
 val generatedDir = "$projectDir/build/generated-sources"
 
 tasks {

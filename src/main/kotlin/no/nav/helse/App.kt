@@ -13,10 +13,13 @@ import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.ws.EndpointSTSClientConfig
 import no.nav.helse.ws.WsClientBuilder
+import no.nav.helse.ws.inntekt.InntektClient
+import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sts.STSClientBuilder
 import no.nav.helse.ws.sts.STSProperties
+import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -41,11 +44,15 @@ fun main() {
 
     val personV3 = wsClientBuilder.createPort(getEnvVar("PERSON_ENDPOINTURL"), PersonV3::class.java)
     endpointSTSClientConfig.configureRequestSamlToken(personV3, EndpointSTSClientConfig.STS_SAML_POLICY)
-
     val personClient = PersonClient(personV3)
+
+    val inntektV3 = wsClientBuilder.createPort(getEnvVar("INNTEKT_ENDPOINTURL"), InntektV3::class.java)
+    endpointSTSClientConfig.configureRequestSamlToken(inntektV3, EndpointSTSClientConfig.STS_SAML_POLICY)
+    val inntektClient = InntektClient(inntektV3)
 
     embeddedServer(Netty, 8080) {
         routing {
+            inntekt(inntektClient)
             person(personClient)
 
             get("/isalive") {
