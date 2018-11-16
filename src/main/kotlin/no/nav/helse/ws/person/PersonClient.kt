@@ -1,14 +1,18 @@
 package no.nav.helse.ws.person
 
+import no.nav.helse.*
 import no.nav.helse.ws.person.Kjønn.*
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
+import org.slf4j.*
 
 
 class PersonClient(private val personV3: PersonV3) {
 
-    fun personInfo(id: Fødselsnummer): Person {
+    val log = LoggerFactory.getLogger(PersonClient::class.java)
+
+    fun personInfo(id: Fødselsnummer): OppslagResult {
         val aktør = PersonIdent().apply {
             ident = NorskIdent().apply {
                 ident = id.value
@@ -19,9 +23,15 @@ class PersonClient(private val personV3: PersonV3) {
             aktoer = aktør
         }
 
-        val tpsPerson = personV3.hentPerson(request)
+        val tpsPerson: HentPersonResponse?
+        try {
+            tpsPerson = personV3.hentPerson(request)
+        } catch (ex: Exception) {
+            log.error("Error during person lookup", ex)
+            return Failure(listOf(ex.message ?: "unknown error"))
+        }
 
-        return PersonMapper.toPerson(id, tpsPerson)
+        return Success(PersonMapper.toPerson(id, tpsPerson))
 
     }
 }

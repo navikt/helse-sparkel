@@ -1,5 +1,6 @@
 package no.nav.helse.ws.person
 
+import no.nav.helse.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
@@ -15,7 +16,10 @@ class ComponentTest {
                 kjønn = Kjønn.MANN
         )
         val actual = personClient.personInfo(Fødselsnummer("12345678910"))
-        assertEquals(expected, actual)
+        when (actual) {
+            is Success<*> -> assertEquals(expected, actual.data)
+            is Failure -> fail { "PersonClient erred: ${actual.errors}" }
+        }
     }
 
 }
