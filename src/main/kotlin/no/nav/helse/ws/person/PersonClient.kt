@@ -23,15 +23,13 @@ class PersonClient(private val personV3: PersonV3) {
             aktoer = aktør
         }
 
-        val tpsPerson: HentPersonResponse?
-        try {
-            tpsPerson = personV3.hentPerson(request)
+        return try {
+            val tpsResponse = personV3.hentPerson(request)
+            Success(PersonMapper.toPerson(id, tpsResponse))
         } catch (ex: Exception) {
             log.error("Error during person lookup", ex)
-            return Failure(listOf(ex.message ?: "unknown error"))
+            Failure(listOf(ex.message ?: "unknown error"))
         }
-
-        return Success(PersonMapper.toPerson(id, tpsPerson))
 
     }
 }
