@@ -1,16 +1,19 @@
 package no.nav.helse.ws.person
 
+import io.prometheus.client.*
 import no.nav.helse.*
 import no.nav.helse.ws.person.Kjønn.*
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
-import org.slf4j.*
-
 
 class PersonClient(private val personV3: PersonV3) {
 
-    val log = LoggerFactory.getLogger(PersonClient::class.java)
+    private val counter = Counter.build()
+            .name("oppslag_person")
+            .labelNames("status")
+            .help("Antall registeroppslag av personer")
+            .register()
 
     fun personInfo(id: Fødselsnummer): OppslagResult {
         val aktør = PersonIdent().apply {
@@ -25,9 +28,10 @@ class PersonClient(private val personV3: PersonV3) {
 
         return try {
             val tpsResponse = personV3.hentPerson(request)
+            counter.labels("success").inc()
             Success(PersonMapper.toPerson(id, tpsResponse))
         } catch (ex: Exception) {
-            log.error("Error during person lookup", ex)
+            counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
         }
 
