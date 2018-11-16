@@ -5,6 +5,7 @@ val cxfVersion = "3.2.6"
 val orgJsonVersion = "20180813"
 val fuelVersion = "1.15.1"
 val wireMockVersion = "2.19.0"
+val mockkVersion = "1.8.12.kotlin13"
 
 val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
@@ -47,6 +48,7 @@ dependencies {
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
 
+    testImplementation("io.mockk:mockk:$mockkVersion")
     testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
