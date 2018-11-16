@@ -50,6 +50,7 @@ dependencies {
     compile("com.google.protobuf:protobuf-java:$grcpProtocVersion")
     compile("io.grpc:grpc-stub:$grpcCoreVersion")
     compile("io.grpc:grpc-protobuf:$grpcCoreVersion")
+    compile("io.grpc:grpc-netty:$grpcCoreVersion")
 
     implementation("com.sun.xml.ws:jaxws-tools:2.3.0.2")
     implementation("javax.xml.ws:jaxws-api:2.3.1")
@@ -117,15 +118,21 @@ protobuf {
     }
     plugins {
         id("grpc") {
-
             artifact = "io.grpc:protoc-gen-grpc-java:$grpcCoreVersion"
         }
     }
+    /*
+    the "outputSubDir"-hullabaloo is to make everything be put in a sane folder
+    where intellij can see them and that fits somewhat with the declared packages.
+     */
     generateProtoTasks {
         ofSourceSet("main").forEach {
             it.plugins {
-                id("grpc")
+                id("grpc") {
+                    outputSubDir = ""
+                }
             }
+            it.builtins.forEach{it.outputSubDir = ""}
         }
     }
 }
