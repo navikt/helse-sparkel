@@ -1,5 +1,6 @@
 package no.nav.helse.ws.person
 
+import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.*

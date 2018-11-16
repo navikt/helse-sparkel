@@ -1,5 +1,6 @@
-package no.nav.helse.ws.person
+package no.nav.helse.ws
 
+import no.nav.helse.ws.Fødselsnummer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.lang.IllegalArgumentException

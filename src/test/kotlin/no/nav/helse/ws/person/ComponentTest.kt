@@ -1,6 +1,7 @@
 package no.nav.helse.ws.person
 
 import no.nav.helse.*
+import no.nav.helse.ws.Fødselsnummer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
