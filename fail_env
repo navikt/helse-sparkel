@@ -1,0 +1,7 @@
+export SECURITY_TOKEN_SERVICE_URL=https://example.org
+export SECURITY_TOKEN_SERVICE_USERNAME=example
+export SECURITY_TOKEN_SERVICE_PASSWORD=example
+export PERSON_ENDPOINTURL=http://example.org
+export INNTEKT_ENDPOINTURL=http://example.org
+export AAREG_ENDPOINTURL=http://example.org
+
