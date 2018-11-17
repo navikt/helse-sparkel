@@ -13,7 +13,8 @@ class PersonMapperTest {
     fun personMappingMann() {
         val tpsMann = mannResponse()
         val id = Fødselsnummer("12345678910")
-        val expected = no.nav.helse.ws.person.Person(id = id,
+        val expected = no.nav.helse.ws.person.Person(
+                id = id,
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
                 kjønn = Kjønn.MANN)
@@ -25,7 +26,8 @@ class PersonMapperTest {
     fun personMappingKvinne() {
         val tpsKvinne = kvinneResponse()
         val id = Fødselsnummer("12345678910")
-        val expected = no.nav.helse.ws.person.Person(id = id,
+        val expected = no.nav.helse.ws.person.Person(
+                id = id,
                 fornavn = "Leonora",
                 mellomnavn = "Dorothea",
                 etternavn = "Dahl",
