@@ -1,7 +1,7 @@
 import com.google.protobuf.gradle.*
 
 val slf4jVersion = "1.7.25"
-val ktorVersion = "1.0.0-beta-3"
+val ktorVersion = "1.0.0"
 val prometheusVersion = "0.5.0"
 val cxfVersion = "3.2.6"
 val orgJsonVersion = "20180813"
