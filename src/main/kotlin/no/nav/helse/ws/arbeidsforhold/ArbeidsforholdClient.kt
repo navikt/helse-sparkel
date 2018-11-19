@@ -28,14 +28,14 @@ class ArbeidsforholdClient(private val arbeidsforhold: ArbeidsforholdV3) {
                 .apply { arbeidsforholdIPeriode = null } // optional, håper at null betyr _alle_ arbeidsforhold
                 .apply { rapportertSomRegelverk = Regelverker().apply { kodeverksRef = RegelverkerValues.ALLE.name } }
 
-        try {
+        return try {
             val remoteResult: FinnArbeidsforholdPrArbeidstakerResponse = arbeidsforhold.finnArbeidsforholdPrArbeidstaker(request)
             counter.labels("success").inc()
-            return Success(remoteResult)
+            Success(remoteResult)
         } catch (ex: Exception) {
             log.error("Error while doing arbeidsforhold lookup", ex)
             counter.labels("failure").inc()
-            return Failure(listOf(ex.message ?: "unknown error"))
+            Failure(listOf(ex.message ?: "unknown error"))
         }
     }
 }
