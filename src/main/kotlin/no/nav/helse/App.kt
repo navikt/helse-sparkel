@@ -22,13 +22,16 @@ import no.nav.helse.ws.inntekt.InntektClient
 import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
+import no.nav.helse.ws.arbeidsforhold.sakOgBehandling
 import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
+import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sts.STSClientBuilder
 import no.nav.helse.ws.sts.STSProperties
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.Collections.emptySet
@@ -62,11 +65,17 @@ fun main() {
     endpointSTSClientConfig.configureRequestSamlToken(arbeidsforholdV3, EndpointSTSClientConfig.STS_SAML_POLICY)
     val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
 
+    val sakOgBehandlingV1: SakOgBehandlingV1 = wsClientBuilder.createPort(getEnvVar("SAK_OG_BEHANDLING_ENDPOINTURL"), SakOgBehandlingV1::class.java)
+    endpointSTSClientConfig.configureRequestSamlToken(sakOgBehandlingV1, EndpointSTSClientConfig.STS_SAML_POLICY)
+    val sakOgBehandlingClient = SakOgBehandlingClient(sakOgBehandlingV1)
+
+
     embeddedServer(Netty, 8080) {
         routing {
             inntekt(inntektClient)
             person(personClient)
             arbeidsforhold(arbeidsforholdClient)
+            sakOgBehandling(sakOgBehandlingClient)
 
             get("/isalive") {
                 call.respondText("ALIVE", ContentType.Text.Plain)
