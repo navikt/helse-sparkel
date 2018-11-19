@@ -4,6 +4,7 @@ import no.nav.tjeneste.virksomhet.person.v3.binding.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
+import javax.xml.datatype.*
 
 class PersonV3Stub: PersonV3 {
     override fun hentPerson(request: HentPersonRequest?): HentPersonResponse {
@@ -19,6 +20,13 @@ class PersonV3Stub: PersonV3 {
                     kjoenn = Kjoennstyper().apply {
                         value = "M"
                     }
+                }
+            }
+            foedselsdato = Foedselsdato().apply {
+                foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                    year = 2018
+                    month = 11
+                    day = 19
                 }
             }
         }

@@ -5,6 +5,7 @@ import no.nav.helse.*
 import no.nav.helse.ws.Fødselsnummer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import java.time.*
 
 class ComponentTest {
 
@@ -22,6 +23,7 @@ class ComponentTest {
                 id = Fødselsnummer("12345678910"),
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
+                fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.MANN
         )
         val actual = personClient.personInfo(Fødselsnummer("12345678910"))

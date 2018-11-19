@@ -6,6 +6,8 @@ import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import java.time.*
+import javax.xml.datatype.*
 
 class PersonMapperTest {
 
@@ -17,6 +19,7 @@ class PersonMapperTest {
                 id = id,
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
+                fdato = LocalDate.of(2018, 11, 20),
                 kjønn = Kjønn.MANN)
         val actual = PersonMapper.toPerson(id, tpsMann)
         assertEquals(expected, actual)
@@ -31,6 +34,7 @@ class PersonMapperTest {
                 fornavn = "Leonora",
                 mellomnavn = "Dorothea",
                 etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.KVINNE)
         val actual = PersonMapper.toPerson(id, tpsKvinne)
         assertEquals(expected, actual)
@@ -47,6 +51,13 @@ class PersonMapperTest {
                     }
                 }
             }
+            foedselsdato = Foedselsdato().apply {
+                foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                    year = 2018
+                    month = 11
+                    day = 20
+                }
+            }
         }
 
         return HentPersonResponse().apply { person = mannen }
@@ -61,6 +72,13 @@ class PersonMapperTest {
                 kjoenn = Kjoenn().apply {
                     kjoenn = Kjoennstyper().apply {
                         value = "K"
+                    }
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                        year = 2018
+                        month = 11
+                        day = 19
                     }
                 }
             }
