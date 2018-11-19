@@ -1,3 +1,5 @@
+import com.google.protobuf.gradle.*
+
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.0.0-beta-3"
 val prometheusVersion = "0.5.0"
@@ -10,9 +12,13 @@ val mockkVersion = "1.8.12.kotlin13"
 val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
 
+val grpcCoreVersion = "1.15.1"
+val grcpProtocVersion = "3.6.1"
+
 plugins {
     application
     kotlin("jvm") version "1.3.10"
+    id("com.google.protobuf") version "0.8.7"
 }
 
 buildscript {
@@ -41,6 +47,11 @@ dependencies {
     compile("org.json:json:$orgJsonVersion")
     compile("com.github.kittinunf.fuel:fuel:$fuelVersion")
 
+    compile("com.google.protobuf:protobuf-java:$grcpProtocVersion")
+    compile("io.grpc:grpc-stub:$grpcCoreVersion")
+    compile("io.grpc:grpc-protobuf:$grpcCoreVersion")
+    compile("io.grpc:grpc-netty:$grpcCoreVersion")
+
     implementation("com.sun.xml.ws:jaxws-tools:2.3.0.2")
     implementation("javax.xml.ws:jaxws-api:2.3.1")
     implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
@@ -66,7 +77,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 
     val mainJavaSourceSet: SourceDirectorySet = sourceSets.getByName("main").java
-    mainJavaSourceSet.srcDir("$projectDir/build/generated-sources")
+    mainJavaSourceSet.srcDir("$projectDir/build/generated-sources/main")
 }
 
 val wsdlDir = "$projectDir/src/main/resources/wsdl"
@@ -77,11 +88,11 @@ tasks {
     register("wsimport") {
         group = "other"
         doLast {
-            mkdir(generatedDir)
+            mkdir("$generatedDir/main")
             wsdlsToGenerate.forEach {
                 ant.withGroovyBuilder {
                     "taskdef"("name" to "wsimport", "classname" to "com.sun.tools.ws.ant.WsImport", "classpath" to sourceSets.getAt("main").runtimeClasspath.asPath)
-                    "wsimport"("wsdl" to it, "sourcedestdir" to generatedDir, "xnocompile" to true) {}
+                    "wsimport"("wsdl" to it, "sourcedestdir" to "$generatedDir/main", "xnocompile" to true) {}
                 }
             }
         }
@@ -98,4 +109,30 @@ tasks.withType<Test> {
 
 tasks.withType<Wrapper> {
     gradleVersion = "4.10.2"
+}
+
+protobuf {
+    this.generatedFilesBaseDir = generatedDir
+    protoc {
+        artifact = "com.google.protobuf:protoc:$grcpProtocVersion"
+    }
+    plugins {
+        id("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcCoreVersion"
+        }
+    }
+    /*
+    the "outputSubDir"-hullabaloo is to make everything be put in a sane folder
+    where intellij can see them and that fits somewhat with the declared packages.
+     */
+    generateProtoTasks {
+        ofSourceSet("main").forEach {
+            it.plugins {
+                id("grpc") {
+                    outputSubDir = ""
+                }
+            }
+            it.builtins.forEach{it.outputSubDir = ""}
+        }
+    }
 }

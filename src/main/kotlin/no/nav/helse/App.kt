@@ -1,5 +1,10 @@
 package no.nav.helse
 
+import io.grpc.ServerBuilder
+import io.grpc.examples.helloworld.GreeterGrpc
+import io.grpc.examples.helloworld.HelloReply
+import io.grpc.examples.helloworld.HelloRequest
+import io.grpc.stub.StreamObserver
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.response.respondText
@@ -79,4 +84,16 @@ fun main() {
             }
         }
     }.start(wait = false)
+
+    ServerBuilder.forPort(8081)
+            .addService(HelloGRPCService())
+            .build().start()
+
+}
+
+class HelloGRPCService : GreeterGrpc.GreeterImplBase() {
+    override fun sayHello(request: HelloRequest?, responseObserver: StreamObserver<HelloReply>?) {
+        responseObserver!!.onNext(HelloReply.newBuilder().setMessage("Hello ${request!!.name}").build())
+        responseObserver.onCompleted()
+    }
 }
