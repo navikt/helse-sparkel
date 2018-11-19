@@ -22,10 +22,10 @@ import no.nav.helse.ws.inntekt.InntektClient
 import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
-import no.nav.helse.ws.arbeidsforhold.sakOgBehandling
 import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
+import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import no.nav.helse.ws.sts.STSClientBuilder
 import no.nav.helse.ws.sts.STSProperties
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3

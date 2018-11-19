@@ -36,7 +36,7 @@ class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandlingV1) {
             counter.labels("success").inc()
             Success(remoteResult)
         } catch (ex: Exception) {
-            log.error("Error while doing arbeidsforhold lookup", ex)
+            log.error("Error while doing sak og behndling lookup", ex)
             counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
         }
