@@ -9,7 +9,7 @@ import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 
 fun Routing.arbeidsforhold(arbeidsforholdClient: ArbeidsforholdClient) {
-    post("api/person/arbeidsforhold") {
+    post("api/arbeidsforhold") {
         val fnr = call.receive<String>()
         val arbeidsforhold: Collection<Arbeidsforhold> = arbeidsforholdClient.finnArbeidsforholdForFnr(Fødselsnummer(fnr))
         call.respond(arbeidsforhold)

@@ -7,6 +7,7 @@ import no.nav.helse.ws.person.Kjønn.*
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
+import org.slf4j.*
 import java.time.*
 import javax.xml.datatype.*
 
@@ -17,6 +18,8 @@ class PersonClient(private val personV3: PersonV3) {
             .labelNames("status")
             .help("Antall registeroppslag av personer")
             .register()
+
+    private val log = LoggerFactory.getLogger("PersonClient")
 
     fun personInfo(id: Fødselsnummer): OppslagResult {
         val aktør = PersonIdent().apply {
@@ -34,6 +37,7 @@ class PersonClient(private val personV3: PersonV3) {
             counter.labels("success").inc()
             Success(PersonMapper.toPerson(id, tpsResponse))
         } catch (ex: Exception) {
+            log.error("Error while doing person lookup", ex)
             counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
         }
