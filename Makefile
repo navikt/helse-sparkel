@@ -1,11 +1,25 @@
-DOCKER  := docker
-GRADLE  := ./gradlew -Dorg.gradle.internal.http.socketTimeout=60000 -Dorg.gradle.internal.http.connectionTimeout=60000
-VERSION := $(shell cat ./VERSION)
+DOCKER   := docker
+GRADLE   := ./gradlew -Dorg.gradle.internal.http.socketTimeout=60000 -Dorg.gradle.internal.http.connectionTimeout=60000
+VERSION  := $(shell git rev-parse --short HEAD)
+IMG_NAME := navikt/helse-oppslag
 
-.PHONY: all build test docker docker-push bump-version release
+.PHONY: all build test docker docker-push release
 
 all: build test docker
-release: tag docker-push
+release: docker-push
+	git clone https://x-access-token:$INSTALLATION_TOKEN@github.com/navikt/helse-iac.git
+	pushd helse-iac
+
+	./set-version preprod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION)
+	git add preprod/helse-oppslag/naiserator.yaml
+
+	./set-version prod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION)
+	git add prod/helse-oppslag/naiserator.yaml
+
+	git commit -m "Bump version"
+	git push origin master
+
+	popd
 
 build:
 	$(GRADLE) installDist
@@ -14,16 +28,7 @@ test:
 	$(GRADLE) check
 
 docker:
-	$(DOCKER) build --pull -t navikt/helse-oppslag -t navikt/helse-oppslag:$(VERSION) .
+	$(DOCKER) build --pull -t $(IMG_NAME) -t $(IMG_NAME):$(VERSION) .
 
 docker-push:
-	$(DOCKER) push navikt/helse-oppslag:$(VERSION)
-
-bump-version:
-	sed 's/navikt\/helse-oppslag:.*/navikt\/helse-oppslag:'$$(($$(cat ./VERSION) + 1))'/' naiserator.yaml > naiserator.yaml.new && mv naiserator.yaml.new naiserator.yaml
-	@echo $$(($$(cat ./VERSION) + 1)) > ./VERSION
-
-tag:
-	git add VERSION naiserator.yaml
-	git commit -m "Bump version to $(VERSION) [skip ci]"
-	git tag -a $(VERSION) -m "auto-tag from Makefile"
+	$(DOCKER) push $(IMG_NAME):$(VERSION)

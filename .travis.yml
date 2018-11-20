@@ -13,7 +13,6 @@ before_install:
 - export INSTALLATION_TOKEN=$(generate-installation-token.sh `generate-jwt.sh ./travis/helseci.2018-10-26.private-key.pem
   $GITHUB_APP_ID`)
 script:
-- make bump-version
 - make
 - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 - git config user.name team-helse[bot]
