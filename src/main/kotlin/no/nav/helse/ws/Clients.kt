@@ -58,5 +58,6 @@ class Clients(env: Environment) {
 fun <S, T> WsClientBuilder.createSOAPClient(sts: EndpointSTSClientConfig, serviceLocation: String, soapInterface: Class<S>, clientInterface: Class<T>): T {
     val port: S = createPort(serviceLocation, soapInterface)
     sts.configureRequestSamlToken(port, EndpointSTSClientConfig.STS_SAML_POLICY)
+    @Suppress("UNCHECKED_CAST") // if T's constructor doesn't produce a T, then we have bigger problems than a class cast exception
     return clientInterface.constructors[0].newInstance(port) as T
 }

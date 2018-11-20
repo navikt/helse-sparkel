@@ -4,4 +4,5 @@ export SECURITY_TOKEN_SERVICE_PASSWORD=example
 export PERSON_ENDPOINTURL=http://example.org
 export INNTEKT_ENDPOINTURL=http://example.org
 export AAREG_ENDPOINTURL=http://example.org
-
+export ORGANISASJON_ENDPOINTURL=http://example.org
+export SAK_OG_BEHANDLING_ENDPOINTURL=http://example.org
