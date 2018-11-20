@@ -16,7 +16,7 @@ release: docker-push
 	git config user.email team-helse[bot]@users.noreply.github.com; \
 	git add preprod/helse-oppslag/naiserator.yaml; \
 	git add prod/helse-oppslag/naiserator.yaml; \
-	git commit -m "Bump version" -m "Caused by $(TRAVIS_BUILD_WEB_URL)" --author "$(shell git log -1 --pretty=format:'%an <%ae>')"; \
+	git commit -m "Bump helse-oppslag" -m "Caused by $(TRAVIS_BUILD_WEB_URL)" --author "$(shell git log -1 --pretty=format:'%an <%ae>')"; \
 	git push https://x-access-token:$(INSTALLATION_TOKEN)@github.com/navikt/helse-iac.git master;
 
 build:
