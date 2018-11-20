@@ -7,19 +7,14 @@ IMG_NAME := navikt/helse-oppslag
 
 all: build test docker
 release: docker-push
-	git clone https://x-access-token:$INSTALLATION_TOKEN@github.com/navikt/helse-iac.git
-	pushd helse-iac
+	git clone https://github.com/navikt/helse-iac.git
 
-	./set-version preprod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION)
-	git add preprod/helse-oppslag/naiserator.yaml
-
-	./set-version prod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION)
-	git add prod/helse-oppslag/naiserator.yaml
-
-	git commit -m "Bump version"
-	git push origin master
-
-	popd
+	cd helse-iac; \
+	./set-image.sh preprod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION); \
+	git add preprod/helse-oppslag/naiserator.yaml; \
+	./set-image.sh prod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION); \
+	git add prod/helse-oppslag/naiserator.yaml; \
+	git commit -m "Bump version";
 
 build:
 	$(GRADLE) installDist
