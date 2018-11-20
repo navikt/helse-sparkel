@@ -14,7 +14,8 @@ release: docker-push
 	git add preprod/helse-oppslag/naiserator.yaml; \
 	./set-image.sh prod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION); \
 	git add prod/helse-oppslag/naiserator.yaml; \
-	git commit -m "Bump version";
+	git commit -m "Bump version\nTriggered by $(TRAVIS_BUILD_WEB_URL)"; \
+	git push origin master;
 
 build:
 	$(GRADLE) installDist
