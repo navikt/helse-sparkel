@@ -15,8 +15,6 @@ before_install:
 script:
 - make
 - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-- git config user.name team-helse[bot]
-- git config user.email team-helse[bot]@users.noreply.github.com
 - "./travis/push-tag.sh"
 before_cache:
 - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock

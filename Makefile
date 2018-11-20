@@ -11,10 +11,12 @@ release: docker-push
 
 	cd helse-iac; \
 	./set-image.sh preprod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION); \
-	git add preprod/helse-oppslag/naiserator.yaml; \
 	./set-image.sh prod/helse-oppslag/naiserator.yaml $(IMG_NAME):$(VERSION); \
+	git config user.name team-helse[bot]; \
+	git config user.email team-helse[bot]@users.noreply.github.com; \
+	git add preprod/helse-oppslag/naiserator.yaml; \
 	git add prod/helse-oppslag/naiserator.yaml; \
-	git commit -m "Bump version\nCaused by $(TRAVIS_BUILD_WEB_URL)"; \
+	git commit -m "Bump version, caused by $(TRAVIS_BUILD_WEB_URL)"; \
 	git push https://x-access-token:$(INSTALLATION_TOKEN)@github.com/navikt/helse-iac.git master;
 
 build:
