@@ -2,5 +2,5 @@
 set -ev
 
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then
-    make release
+    make -s release
 fi
