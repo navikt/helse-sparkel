@@ -21,6 +21,7 @@ import no.nav.helse.ws.WsClientBuilder
 import no.nav.helse.ws.inntekt.InntektClient
 import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdGrpc
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.organisasjon.*
 import no.nav.helse.ws.person.PersonClient
@@ -101,14 +102,6 @@ fun main() {
     }.start(wait = false)
 
     ServerBuilder.forPort(8081)
-            .addService(HelloGRPCService())
+            .addService(ArbeidsforholdGrpc(arbeidsforholdClient))
             .build().start()
-
-}
-
-class HelloGRPCService : GreeterGrpc.GreeterImplBase() {
-    override fun sayHello(request: HelloRequest?, responseObserver: StreamObserver<HelloReply>?) {
-        responseObserver!!.onNext(HelloReply.newBuilder().setMessage("Hello ${request!!.name}").build())
-        responseObserver.onCompleted()
-    }
 }
