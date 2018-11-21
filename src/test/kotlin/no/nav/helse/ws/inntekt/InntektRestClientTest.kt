@@ -46,7 +46,7 @@ class InntektRestClientTest {
     @Test
     fun `should return json`() {
         WireMock.stubFor(WireMock.post(WireMock.urlPathEqualTo("/api/v1/hentinntektliste"))
-                .withHeader("Nav-Consumer-Id", WireMock.equalTo("helse-oppslag"))
+                .withHeader("Nav-Consumer-Id", WireMock.equalTo("sparkel"))
                 .withHeader("Nav-Call-Id", WireMock.equalTo("anything"))
                 .withHeader("Authorization", WireMock.equalTo("Bearer foobar"))
                 .withHeader("Accept", WireMock.equalTo("application/json"))

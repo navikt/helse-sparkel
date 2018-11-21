@@ -25,7 +25,7 @@ class InntektRestClient(val baseUrl: String, val stsRestClient: StsRestClient) {
                         "Authorization" to "Bearer $bearer",
                         "Accept" to "application/json",
                         "Nav-Call-Id" to "anything",
-                        "Nav-Consumer-Id" to "helse-oppslag"
+                        "Nav-Consumer-Id" to "sparkel"
                 ))
                 .responseString()
 

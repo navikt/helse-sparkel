@@ -1,5 +1,7 @@
-Oppslag for Helse
-=================
+Sparkel
+=======
+
+Oppslagstjeneste for ulike registre og tjenester.
 
 # Henvendelser
 
