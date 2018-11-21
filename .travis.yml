@@ -36,7 +36,7 @@ script:
     git add prod/$APP_NAME/naiserator.yaml
     git commit -m "Bump $APP_NAME" -m "Caused by $TRAVIS_BUILD_WEB_URL" --author "$ORIGINAL_COMMITTER"
 
-    git push origin master
+    git push https://x-access-token:$GH_TOKEN@github.com/navikt/helse-iac.git master
 
     cd ..
     fi
