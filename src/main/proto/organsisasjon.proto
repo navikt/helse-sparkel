@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "no.nav.helse.oppslag.organisasjon";
+
+package organisasjon;
+
+service OrganisasjonService {
+    rpc FinnOrganisasjon (FinnOrganisasjonRequest) returns (FinnOrganisasjonResponse) {}
+}
+
+message FinnOrganisasjonRequest {
+    string orgNr = 1;
+}
+
+message FinnOrganisasjonResponse {
+    string orgNr = 1;
+    string name = 2;
+}

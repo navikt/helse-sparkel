@@ -18,6 +18,7 @@ import no.nav.helse.ws.Clients
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdGrpc
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.inntekt.inntekt
+import no.nav.helse.ws.organisasjon.OrganisasjonGrpc
 import no.nav.helse.ws.organisasjon.organisasjon
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
@@ -87,6 +88,7 @@ class App(env: Environment = Environment()) {
 
         grpcServer = ServerBuilder.forPort(8081)
                 .addService(ArbeidsforholdGrpc(clients.arbeidsforholdClient))
+                .addService(OrganisasjonGrpc(clients.organisasjonClient))
                 .build()
     }
 
