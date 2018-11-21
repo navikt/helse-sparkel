@@ -23,7 +23,7 @@ script:
     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
     docker push $DOCKER_IMG_NAME:$COMMIT_SHORT
 
-    git clone https://github.com/navikt/helse-iac.git
+    git clone https://x-access-token:$GH_TOKEN@github.com/navikt/helse-iac.git
 
     cd helse-iac
     ./set-image.sh preprod/$APP_NAME/naiserator.yaml $DOCKER_IMG_NAME:$COMMIT_SHORT
