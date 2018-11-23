@@ -1,31 +1,26 @@
 package no.nav.helse
 
-import io.ktor.application.call
-import io.ktor.http.ContentType
-import io.ktor.response.respondText
-import io.ktor.response.respondTextWriter
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.netty.NettyApplicationEngine
-import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.exporter.common.TextFormat
-import io.prometheus.client.hotspot.DefaultExports
-import no.nav.helse.ws.Clients
-import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
-import no.nav.helse.ws.inntekt.inntekt
-import no.nav.helse.ws.organisasjon.organisasjon
-import no.nav.helse.ws.person.person
-import no.nav.helse.ws.sakogbehandling.sakOgBehandling
-import org.slf4j.LoggerFactory
-import java.util.Collections.emptySet
-import java.util.concurrent.TimeUnit
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.prometheus.client.*
+import io.prometheus.client.exporter.common.*
+import io.prometheus.client.hotspot.*
+import no.nav.helse.ws.*
+import no.nav.helse.ws.arbeidsforhold.*
+import no.nav.helse.ws.inntekt.*
+import no.nav.helse.ws.organisasjon.*
+import no.nav.helse.ws.person.*
+import no.nav.helse.ws.sakogbehandling.*
+import java.util.Collections.*
+import java.util.concurrent.*
 
 fun getEnvVar(varName: String, defaultValue: String? = null) =
         System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable \"$varName\"")
 
-private val log = LoggerFactory.getLogger("App")
 private val collectorRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
 
 data class Environment(val securityTokenServiceEndpointUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL"),
@@ -57,6 +52,11 @@ class App(env: Environment = Environment()) {
         DefaultExports.initialize()
 
         nettyServer = embeddedServer(Netty, 8080) {
+
+            install(SparkelAuth) {
+                someProperty = "good stuff"
+            }
+
             routing {
                 inntekt(clients.inntektClient)
                 person(clients.personClient)
