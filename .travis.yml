@@ -16,7 +16,7 @@ before_install:
 - echo -e "machine github.com\n  login $GH_TOKEN" > ~/.netrc
 script:
 - "./gradlew check"
-- "./gradlew installDist"
+- "./gradlew build"
 - docker build --pull -t $DOCKER_IMG_NAME:$COMMIT_SHORT .
 - |
   if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then
