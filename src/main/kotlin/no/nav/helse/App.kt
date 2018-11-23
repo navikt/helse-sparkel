@@ -1,7 +1,5 @@
 package no.nav.helse
 
-import io.grpc.Server
-import io.grpc.ServerBuilder
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.response.respondText
@@ -15,10 +13,8 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.ws.Clients
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdGrpc
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.inntekt.inntekt
-import no.nav.helse.ws.organisasjon.OrganisasjonGrpc
 import no.nav.helse.ws.organisasjon.organisasjon
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
@@ -55,7 +51,6 @@ fun main() {
 
 class App(env: Environment = Environment()) {
     private val nettyServer: NettyApplicationEngine
-    private val grpcServer: Server
     private val clients: Clients = Clients(env)
 
     init {
@@ -85,21 +80,13 @@ class App(env: Environment = Environment()) {
                 }
             }
         }
-
-        grpcServer = ServerBuilder.forPort(8081)
-                .addService(ArbeidsforholdGrpc(clients.arbeidsforholdClient))
-                .addService(OrganisasjonGrpc(clients.organisasjonClient))
-                .build()
     }
 
     fun start() {
         nettyServer.start(wait = false)
-        grpcServer.start()
     }
 
     fun stop() {
-        grpcServer.shutdownNow()
         nettyServer.stop(5, 60, TimeUnit.SECONDS)
-        grpcServer.awaitTermination(5, TimeUnit.SECONDS)
     }
 }
