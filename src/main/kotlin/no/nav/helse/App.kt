@@ -1,36 +1,25 @@
 package no.nav.helse
 
+import com.auth0.jwk.*
 import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
+import io.ktor.features.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.prometheus.client.*
-import io.prometheus.client.exporter.common.*
 import io.prometheus.client.hotspot.*
+import no.nav.helse.nais.*
 import no.nav.helse.ws.*
 import no.nav.helse.ws.arbeidsforhold.*
 import no.nav.helse.ws.inntekt.*
 import no.nav.helse.ws.organisasjon.*
 import no.nav.helse.ws.person.*
 import no.nav.helse.ws.sakogbehandling.*
-import java.util.Collections.*
 import java.util.concurrent.*
 
-fun getEnvVar(varName: String, defaultValue: String? = null) =
-        System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable \"$varName\"")
-
 private val collectorRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
-
-data class Environment(val securityTokenServiceEndpointUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL"),
-                       val securityTokenUsername: String = getEnvVar("SECURITY_TOKEN_SERVICE_USERNAME"),
-                       val securityTokenPassword: String = getEnvVar("SECURITY_TOKEN_SERVICE_PASSWORD"),
-                       val personEndpointUrl: String = getEnvVar("PERSON_ENDPOINTURL"),
-                       val inntektEndpointUrl: String = getEnvVar("INNTEKT_ENDPOINTURL"),
-                       val arbeidsforholdEndpointUrl: String = getEnvVar("AAREG_ENDPOINTURL"),
-                       val organisasjonEndpointUrl: String = getEnvVar("ORGANISASJON_ENDPOINTURL"),
-                       val sakOgBehandlingEndpointUrl: String = getEnvVar("SAK_OG_BEHANDLING_ENDPOINTURL"))
 
 fun main() {
     val env = Environment()
@@ -48,36 +37,38 @@ class App(env: Environment = Environment()) {
     private val nettyServer: NettyApplicationEngine
     private val clients: Clients = Clients(env)
 
+    val jwkProvider = JwkProviderBuilder(env.jwtIssuer)
+            .cached(10, 24, TimeUnit.HOURS)
+            .rateLimited(10, 1, TimeUnit.MINUTES)
+            .build()
+
     init {
         DefaultExports.initialize()
 
         nettyServer = embeddedServer(Netty, 8080) {
 
-            install(SparkelAuth) {
-                someProperty = "good stuff"
+            install(CallLogging)
+
+            install(Authentication) {
+                jwt {
+                    verifier(jwkProvider, env.jwtIssuer)
+                    realm = "Helse Sparkel"
+                    validate { credentials ->
+                        if (credentials.payload.audience.contains(env.jwtAudience)) JWTPrincipal(credentials.payload) else null
+                    }
+                }
             }
 
             routing {
-                inntekt(clients.inntektClient)
-                person(clients.personClient)
-                arbeidsforhold(clients.arbeidsforholdClient)
-                organisasjon(clients.organisasjonClient)
-                sakOgBehandling(clients.sakOgBehandlingClient)
-
-                get("/isalive") {
-                    call.respondText("ALIVE", ContentType.Text.Plain)
+                authenticate {
+                    inntekt(clients.inntektClient)
+                    person(clients.personClient)
+                    arbeidsforhold(clients.arbeidsforholdClient)
+                    organisasjon(clients.organisasjonClient)
+                    sakOgBehandling(clients.sakOgBehandlingClient)
                 }
 
-                get("/isready") {
-                    call.respondText("READY", ContentType.Text.Plain)
-                }
-
-                get("/metrics") {
-                    val names = call.request.queryParameters.getAll("name[]")?.toSet() ?: emptySet()
-                    call.respondTextWriter(ContentType.parse(TextFormat.CONTENT_TYPE_004)) {
-                        TextFormat.write004(this, collectorRegistry.filteredMetricFamilySamples(names))
-                    }
-                }
+                nais(collectorRegistry)
             }
         }
     }

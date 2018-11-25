@@ -8,7 +8,7 @@ import io.ktor.routing.*
 import no.nav.helse.*
 import no.nav.helse.ws.*
 
-fun Routing.person(personClient: PersonClient) {
+fun Route.person(personClient: PersonClient) {
     post("api/person") {
         call.receiveParameters()["fnr"]?.let { fnr ->
             val lookupResult: OppslagResult = personClient.personInfo(Fødselsnummer(fnr))
@@ -20,3 +20,4 @@ fun Routing.person(personClient: PersonClient) {
 
     }
 }
+

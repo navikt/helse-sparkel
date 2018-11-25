@@ -4,14 +4,13 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveParameters
 import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.post
+import io.ktor.routing.*
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
 import no.nav.helse.ws.Fødselsnummer
 
-fun Routing.arbeidsforhold(arbeidsforholdClient: ArbeidsforholdClient) {
+fun Route.arbeidsforhold(arbeidsforholdClient: ArbeidsforholdClient) {
     post("api/arbeidsforhold") {
         call.receiveParameters()["fnr"]?.let { fnr ->
             val lookupResult: OppslagResult = arbeidsforholdClient.finnArbeidsforholdForFnr(Fødselsnummer(fnr))

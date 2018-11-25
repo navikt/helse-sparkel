@@ -6,7 +6,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import no.nav.helse.*
 
-fun Routing.organisasjon(orgClient: OrganisasjonClient) {
+fun Route.organisasjon(orgClient: OrganisasjonClient) {
     get("api/organisasjon") {
         call.parameters["orgnr"]?.let { orgnr ->
             val lookupResult: OppslagResult = orgClient.orgNavn(orgnr)
