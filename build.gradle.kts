@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.0.0"
 val prometheusVersion = "0.5.0"
@@ -112,6 +114,14 @@ tasks.named<JavaCompile>("compileJava"){
     dependsOn("wsimport")
 }
 
+tasks.named<KotlinCompile>("compileKotlin") {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+tasks.named<KotlinCompile>("compileTestKotlin") {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
@@ -120,5 +130,5 @@ tasks.withType<Test> {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "4.10.2"
+    gradleVersion = "5.0"
 }
