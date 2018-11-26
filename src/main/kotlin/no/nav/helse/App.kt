@@ -1,23 +1,26 @@
 package no.nav.helse
 
-import com.auth0.jwk.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
-import io.ktor.features.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.prometheus.client.*
-import io.prometheus.client.hotspot.*
-import no.nav.helse.nais.*
-import no.nav.helse.ws.*
-import no.nav.helse.ws.arbeidsforhold.*
-import no.nav.helse.ws.inntekt.*
-import no.nav.helse.ws.organisasjon.*
-import no.nav.helse.ws.person.*
-import no.nav.helse.ws.sakogbehandling.*
-import java.util.concurrent.*
+import com.auth0.jwk.JwkProviderBuilder
+import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.authenticate
+import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.auth.jwt.jwt
+import io.ktor.features.CallLogging
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.netty.NettyApplicationEngine
+import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.hotspot.DefaultExports
+import no.nav.helse.nais.nais
+import no.nav.helse.ws.Clients
+import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
+import no.nav.helse.ws.inntekt.inntekt
+import no.nav.helse.ws.organisasjon.organisasjon
+import no.nav.helse.ws.person.person
+import no.nav.helse.ws.sakogbehandling.sakOgBehandling
+import java.util.concurrent.TimeUnit
 
 private val collectorRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
 
@@ -37,7 +40,7 @@ class App(env: Environment = Environment()) {
     private val nettyServer: NettyApplicationEngine
     private val clients: Clients = Clients(env)
 
-    val jwkProvider = JwkProviderBuilder(env.jwtIssuer)
+    val jwkProvider = JwkProviderBuilder(env.jwksUrl)
             .cached(10, 24, TimeUnit.HOURS)
             .rateLimited(10, 1, TimeUnit.MINUTES)
             .build()
@@ -54,7 +57,10 @@ class App(env: Environment = Environment()) {
                     verifier(jwkProvider, env.jwtIssuer)
                     realm = "Helse Sparkel"
                     validate { credentials ->
-                        if (credentials.payload.audience.contains(env.jwtAudience)) JWTPrincipal(credentials.payload) else null
+                        if (credentials.payload.subject in listOf("srvspinne", "srvsplitt")) {
+                            JWTPrincipal(credentials.payload)
+                        }
+                        null
                     }
                 }
             }
