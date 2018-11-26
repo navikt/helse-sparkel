@@ -110,11 +110,8 @@ tasks.register("wsimport") {
     }
 }
 
-tasks.named<JavaCompile>("compileJava"){
-    dependsOn("wsimport")
-}
-
 tasks.named<KotlinCompile>("compileKotlin") {
+    dependsOn("wsimport")
     kotlinOptions.jvmTarget = "1.8"
 }
 
