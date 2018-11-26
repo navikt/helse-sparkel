@@ -26,11 +26,6 @@ application {
     mainClassName = "$mainClass"
 }
 
-sourceSets {
-    getByName("main").java.srcDirs("src/main/java", "src/main/kotlin")
-    getByName("test").java.srcDirs("src/test/kotlin")
-}
-
 dependencies {
     compile(kotlin("stdlib"))
     compile("ch.qos.logback:logback-classic:1.2.3")
