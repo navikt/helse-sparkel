@@ -1,7 +1,8 @@
 package no.nav.helse.ws.organisasjon
 
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.*
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.*
+import no.nav.tjeneste.virksomhet.organisasjon.v5.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.*
 
 class OrganisasjonV5Stub: OrganisasjonV5 {

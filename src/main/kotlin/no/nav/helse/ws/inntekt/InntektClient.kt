@@ -3,7 +3,7 @@ package no.nav.helse.ws.inntekt
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
-import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.hentinntektliste.ArbeidsInntektInformasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Aktoer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent

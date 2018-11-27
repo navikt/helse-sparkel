@@ -1,11 +1,14 @@
 package no.nav.helse.ws.organisasjon
 
-import io.prometheus.client.*
-import no.nav.helse.*
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.*
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.*
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.*
-import org.slf4j.*
+import io.prometheus.client.Counter
+import no.nav.helse.Failure
+import no.nav.helse.OppslagResult
+import no.nav.helse.Success
+import no.nav.tjeneste.virksomhet.organisasjon.v5.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.SammensattNavn
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonRequest
+import org.slf4j.LoggerFactory
 
 class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
 

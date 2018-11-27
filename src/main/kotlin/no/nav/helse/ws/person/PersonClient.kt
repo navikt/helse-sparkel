@@ -1,15 +1,20 @@
 package no.nav.helse.ws.person
 
-import io.prometheus.client.*
-import no.nav.helse.*
+import io.prometheus.client.Counter
+import no.nav.helse.Failure
+import no.nav.helse.OppslagResult
+import no.nav.helse.Success
 import no.nav.helse.ws.Fødselsnummer
-import no.nav.helse.ws.person.Kjønn.*
-import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
-import org.slf4j.*
-import java.time.*
-import javax.xml.datatype.*
+import no.nav.helse.ws.person.Kjønn.KVINNE
+import no.nav.helse.ws.person.Kjønn.MANN
+import no.nav.tjeneste.virksomhet.person.v3.PersonV3
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.WSNorskIdent
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.WSPersonIdent
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.WSHentPersonRequest
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.WSHentPersonResponse
+import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import javax.xml.datatype.XMLGregorianCalendar
 
 class PersonClient(private val personV3: PersonV3) {
 
@@ -22,13 +27,13 @@ class PersonClient(private val personV3: PersonV3) {
     private val log = LoggerFactory.getLogger("PersonClient")
 
     fun personInfo(id: Fødselsnummer): OppslagResult {
-        val aktør = PersonIdent().apply {
-            ident = NorskIdent().apply {
+        val aktør = WSPersonIdent().apply {
+            ident = WSNorskIdent().apply {
                 ident = id.value
             }
         }
 
-        val request = HentPersonRequest().apply {
+        val request = WSHentPersonRequest().apply {
             aktoer = aktør
         }
 
@@ -46,7 +51,7 @@ class PersonClient(private val personV3: PersonV3) {
 }
 
 object PersonMapper {
-    fun toPerson(id: Fødselsnummer, response: HentPersonResponse): Person {
+    fun toPerson(id: Fødselsnummer, response: WSHentPersonResponse): Person {
         val tpsPerson = response.person
         response.person.foedselsdato.foedselsdato
         return Person(

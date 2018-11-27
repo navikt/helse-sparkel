@@ -5,11 +5,10 @@ import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
 import no.nav.helse.ws.Fødselsnummer
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Regelverker
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.ArbeidsforholdV3
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.WSFinnArbeidsforholdPrArbeidstakerRequest
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.WSNorskIdent
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.WSRegelverker
 import org.slf4j.LoggerFactory
 
 class ArbeidsforholdClient(private val arbeidsforhold: ArbeidsforholdV3) {
@@ -23,13 +22,13 @@ class ArbeidsforholdClient(private val arbeidsforhold: ArbeidsforholdV3) {
             .register()
 
     fun finnArbeidsforholdForFnr(fnr: Fødselsnummer): OppslagResult {
-        val request = FinnArbeidsforholdPrArbeidstakerRequest()
-                .apply { ident = NorskIdent().apply { ident = fnr.value } }
+        val request = WSFinnArbeidsforholdPrArbeidstakerRequest()
+                .apply { ident = WSNorskIdent().apply { ident = fnr.value } }
                 .apply { arbeidsforholdIPeriode = null } // optional, håper at null betyr _alle_ arbeidsforhold
-                .apply { rapportertSomRegelverk = Regelverker().apply { kodeverksRef = RegelverkerValues.ALLE.name } }
+                .apply { rapportertSomRegelverk = WSRegelverker().apply { kodeverksRef = RegelverkerValues.ALLE.name } }
 
         return try {
-            val remoteResult: FinnArbeidsforholdPrArbeidstakerResponse = arbeidsforhold.finnArbeidsforholdPrArbeidstaker(request)
+            val remoteResult = arbeidsforhold.finnArbeidsforholdPrArbeidstaker(request)
             counter.labels("success").inc()
             Success(remoteResult)
         } catch (ex: Exception) {

@@ -2,12 +2,11 @@ package no.nav.helse.ws.person
 
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
-import java.time.*
-import javax.xml.datatype.*
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.WSHentPersonResponse
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import javax.xml.datatype.DatatypeFactory
 
 class PersonMapperTest {
 
@@ -40,18 +39,18 @@ class PersonMapperTest {
         assertEquals(expected, actual)
     }
 
-    private fun mannResponse(): HentPersonResponse {
-        val mannen = Person().apply {
-            personnavn = Personnavn().apply {
+    private fun mannResponse(): WSHentPersonResponse {
+        val mannen = WSPerson().apply {
+            personnavn = WSPersonnavn().apply {
                 fornavn = "Bjarne"
                 etternavn = "Betjent"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
+                kjoenn = WSKjoenn().apply {
+                    kjoenn = WSKjoennstyper().apply {
                         value = "M"
                     }
                 }
             }
-            foedselsdato = Foedselsdato().apply {
+            foedselsdato = WSFoedselsdato().apply {
                 foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
                     year = 2018
                     month = 11
@@ -60,21 +59,21 @@ class PersonMapperTest {
             }
         }
 
-        return HentPersonResponse().apply { person = mannen }
+        return WSHentPersonResponse().apply { person = mannen }
     }
 
-    private fun kvinneResponse(): HentPersonResponse {
-        val kvinnen = Person().apply {
-            personnavn = Personnavn().apply {
+    private fun kvinneResponse(): WSHentPersonResponse {
+        val kvinnen = WSPerson().apply {
+            personnavn = WSPersonnavn().apply {
                 fornavn = "Leonora"
                 mellomnavn = "Dorothea"
                 etternavn = "Dahl"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
+                kjoenn = WSKjoenn().apply {
+                    kjoenn = WSKjoennstyper().apply {
                         value = "K"
                     }
                 }
-                foedselsdato = Foedselsdato().apply {
+                foedselsdato = WSFoedselsdato().apply {
                     foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
                         year = 2018
                         month = 11
@@ -84,7 +83,7 @@ class PersonMapperTest {
             }
         }
 
-        return HentPersonResponse().apply { person = kvinnen }
+        return WSHentPersonResponse().apply { person = kvinnen }
     }
 
 }

@@ -4,19 +4,12 @@ import io.prometheus.client.Counter
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
-import no.nav.helse.ws.Fødselsnummer
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Regelverker
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
-import no.nav.tjeneste.virksomhet.sakogbehandling.v1.FinnSakOgBehandlingskjedeListe
-import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.SakOgBehandling_v1PortType
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.meldinger.FinnSakOgBehandlingskjedeListeRequest
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.meldinger.FinnSakOgBehandlingskjedeListeResponse
 import org.slf4j.LoggerFactory
 
-class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandlingV1) {
+class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandling_v1PortType) {
 
     private val log = LoggerFactory.getLogger("SakOgBehandlingClient")
 
