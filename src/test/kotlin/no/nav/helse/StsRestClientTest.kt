@@ -37,7 +37,7 @@ class StsRestClientTest {
     @Test
     fun `should parse a token successfully`() {
         stubFor(stsRequestMapping
-                .willReturn(ok(auth_token))
+                .willReturn(ok(default_token))
                 .inScenario("default")
                 .whenScenarioStateIs(STARTED)
                 .willSetStateTo("token acquired"))
@@ -49,7 +49,7 @@ class StsRestClientTest {
     @Test
     fun `should cache tokens`() {
         stubFor(stsRequestMapping
-                .willReturn(ok(auth_token))
+                .willReturn(ok(default_token))
                 .inScenario("caching")
                 .whenScenarioStateIs(STARTED)
                 .willSetStateTo("token acquired"))
@@ -61,10 +61,12 @@ class StsRestClientTest {
         )
 
         val authHelper = StsRestClient(baseUrl = server.baseUrl(), username = "foo", password = "bar")
-        authHelper.token()
+        val first = authHelper.token()
 
-        val token: String = authHelper.token()
-        assertEquals("default access token", token)
+        val second: String = authHelper.token()
+
+        assertEquals(first, second)
+        assertEquals("default access token", second)
     }
 
     @Test
@@ -76,7 +78,7 @@ class StsRestClientTest {
                 .willSetStateTo("expired token sent"))
 
         stubFor(stsRequestMapping
-                .willReturn(ok(auth_token))
+                .willReturn(ok(default_token))
                 .inScenario("expiry")
                 .whenScenarioStateIs("expired token sent")
         )
@@ -98,7 +100,7 @@ private val stsRequestMapping: MappingBuilder = get(urlPathEqualTo("/rest/v1/sts
         .withBasicAuth("foo", "bar")
         .withHeader("Accept", equalTo("application/json"))
 
-private val auth_token = """{
+private val default_token = """{
   "access_token": "default access token",
   "token_type": "Bearer",
   "expires_in": 3600
