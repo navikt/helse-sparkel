@@ -1,5 +1,6 @@
 package no.nav.helse.ws.sts
 
+import org.apache.cxf.Bus
 import org.apache.cxf.BusFactory
 import org.apache.cxf.binding.soap.Soap12
 import org.apache.cxf.binding.soap.SoapMessage
@@ -18,7 +19,8 @@ val STS_SAML_POLICY = "classpath:ws/requestSamlPolicy.xml"
 val STS_SAML_POLICY_NO_TRANSPORT_BINDING = "classpath:ws/requestSamlPolicyNoTransportBinding.xml";
 
 fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
-    return STSClient(BusFactory.getDefaultBus()).apply {
+    val bus = BusFactory.getDefaultBus()
+    return STSClient(bus).apply {
         isEnableAppliesTo = false
         isAllowRenewing = false
 
@@ -30,7 +32,7 @@ fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
                 SecurityConstants.PASSWORD to credentials.second
         )
 
-        setPolicy(STS_CLIENT_AUTHENTICATION_POLICY)
+        setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
     }
 }
 
@@ -43,13 +45,17 @@ fun Client.configureSTS(stsClient: STSClient, policyUri: String = STS_SAML_POLIC
     requestContext[SecurityConstants.STS_CLIENT] = stsClient
     requestContext[SecurityConstants.CACHE_ISSUED_TOKEN_IN_ENDPOINT] = true
 
-    setClientEndpointPolicy(resolvePolicy(policyUri))
+    setClientEndpointPolicy(bus.resolvePolicy(policyUri))
 }
 
-private fun Client.resolvePolicy(policyUri: String): Policy {
-    val policyBuilder = bus.getExtension(PolicyBuilder::class.java)
+private fun Bus.resolvePolicy(policyUri: String): Policy {
+    val registry = getExtension(PolicyEngine::class.java).registry
+    val resolved = registry.lookup(policyUri)
+
+    val policyBuilder = getExtension(PolicyBuilder::class.java)
     val referenceResolver = RemoteReferenceResolver("", policyBuilder)
-    return referenceResolver.resolveReference(policyUri)
+
+    return resolved ?: referenceResolver.resolveReference(policyUri)
 }
 
 private fun Client.setClientEndpointPolicy(policy: Policy) {
