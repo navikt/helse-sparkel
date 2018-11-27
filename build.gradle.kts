@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.0.0"
 val prometheusVersion = "0.5.0"
@@ -14,6 +16,7 @@ plugins {
     application
     kotlin("jvm") version "1.3.10"
     id("com.github.johnrengelman.shadow") version "4.0.3"
+    idea
 }
 
 buildscript {
@@ -26,10 +29,7 @@ application {
     mainClassName = "$mainClass"
 }
 
-sourceSets {
-    getByName("main").java.srcDirs("src/main/java", "src/main/kotlin")
-    getByName("test").java.srcDirs("src/test/kotlin")
-}
+val jaxws by configurations.creating
 
 dependencies {
     compile(kotlin("stdlib"))
@@ -43,8 +43,10 @@ dependencies {
     compile("org.json:json:$orgJsonVersion")
     compile("com.github.kittinunf.fuel:fuel:$fuelVersion")
 
-    implementation("com.sun.xml.ws:jaxws-tools:2.3.0.2")
-    implementation("javax.xml.ws:jaxws-api:2.3.1")
+    jaxws("com.sun.xml.ws:jaxws-tools:2.3.0.2")
+    compile("javax.jws:javax.jws-api:1.1")
+    compile("javax.xml.ws:jaxws-api:2.3.1")
+
     implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-ws-policy:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
@@ -71,6 +73,13 @@ java {
     mainJavaSourceSet.srcDir("$projectDir/build/generated-sources/main")
 }
 
+idea {
+    module {
+        // Marks the already(!) added srcDir as "generated"
+        generatedSourceDirs.add(file("$projectDir/build/generated-sources/main"))
+    }
+}
+
 val wsdlDir = "$projectDir/src/main/resources/wsdl"
 
 val wsdlsToGenerate = listOf(
@@ -83,21 +92,32 @@ val wsdlsToGenerate = listOf(
 
 val generatedDir = "$projectDir/build/generated-sources"
 
-tasks {
-    register("wsimport") {
-        group = "other"
-        doLast {
-            mkdir("$generatedDir/main")
-            wsdlsToGenerate.forEach {
-                ant.withGroovyBuilder {
-                    "taskdef"("name" to "wsimport", "classname" to "com.sun.tools.ws.ant.WsImport", "classpath" to sourceSets.getAt("main").runtimeClasspath.asPath)
-                    "wsimport"("wsdl" to it, "sourcedestdir" to "$generatedDir/main", "xnocompile" to true) {}
-                }
+tasks.register("wsimport") {
+    group = "other"
+    doLast {
+        mkdir("$generatedDir/main")
+        wsdlsToGenerate.forEach {
+            ant.withGroovyBuilder {
+                "taskdef"("name" to "wsimport",
+                        "classname" to "com.sun.tools.ws.ant.WsImport",
+                        "classpath" to configurations.getAt("jaxws").asPath)
+
+                "wsimport"("wsdl" to it,
+                        "sourcedestdir" to "$generatedDir/main",
+                        "xnocompile" to true) {}
             }
         }
     }
 }
-tasks.getByName("compileKotlin").dependsOn("wsimport")
+
+tasks.named<KotlinCompile>("compileKotlin") {
+    dependsOn("wsimport")
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+tasks.named<KotlinCompile>("compileTestKotlin") {
+    kotlinOptions.jvmTarget = "1.8"
+}
 
 tasks.withType<Test> {
     useJUnitPlatform()
@@ -107,5 +127,5 @@ tasks.withType<Test> {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "4.10.2"
+    gradleVersion = "5.0"
 }
