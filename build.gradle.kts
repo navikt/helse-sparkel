@@ -40,10 +40,10 @@ dependencies {
     compile("org.json:json:$orgJsonVersion")
     compile("com.github.kittinunf.fuel:fuel:$fuelVersion")
 
-    implementation("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
-    implementation("org.apache.cxf:cxf-rt-ws-policy:$cxfVersion")
-    implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
-    implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
+    compile("org.apache.cxf:cxf-rt-ws-security:$cxfVersion")
+    compile("org.apache.cxf:cxf-rt-ws-policy:$cxfVersion")
+    compile("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
+    compile("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
 
     compile("javax.xml.ws:jaxws-api:2.3.1")
     compile("no.nav.tjenestespesifikasjoner:arbeidsforholdv3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
@@ -52,7 +52,7 @@ dependencies {
     compile("no.nav.tjenestespesifikasjoner:nav-fim-organisasjon-v5-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
     compile("no.nav.tjenestespesifikasjoner:nav-fim-inntekt-v3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
 
-    testImplementation("io.mockk:mockk:$mockkVersion")
+    testCompile("io.mockk:mockk:$mockkVersion")
     testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
