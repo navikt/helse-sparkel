@@ -45,7 +45,7 @@ dependencies {
     compile("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     compile("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
 
-    compile("javax.xml.ws:jaxws-api:2.3.1")
+    compile("com.sun.xml.ws:jaxws-rt:2.3.0")
     compile("no.nav.tjenestespesifikasjoner:arbeidsforholdv3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
     compile("no.nav.tjenestespesifikasjoner:person-v3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
     compile("no.nav.tjenestespesifikasjoner:sakogbehandling-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
