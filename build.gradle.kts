@@ -13,19 +13,13 @@ val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
 
 plugins {
-    application
     kotlin("jvm") version "1.3.10"
-    id("com.github.johnrengelman.shadow") version "4.0.3"
 }
 
 buildscript {
     dependencies {
         classpath("org.junit.platform:junit-platform-gradle-plugin:1.2.0")
     }
-}
-
-application {
-    mainClassName = "$mainClass"
 }
 
 dependencies {
@@ -69,6 +63,23 @@ repositories {
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.named<Jar>("jar") {
+    baseName = "app"
+
+    manifest {
+        attributes["Main-Class"] = mainClass
+        attributes["Class-Path"] = configurations["compile"].map {
+            it.name
+        }.joinToString(separator = " ")
+    }
+
+    configurations["compile"].forEach {
+        val file = File("$buildDir/libs/${it.name}")
+        if (!file.exists())
+            it.copyTo(file)
+    }
 }
 
 tasks.named<KotlinCompile>("compileKotlin") {
