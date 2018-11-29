@@ -20,6 +20,7 @@ import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.organisasjon.organisasjon
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
+import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
@@ -40,6 +41,8 @@ class App(env: Environment = Environment()) {
     private val nettyServer: NettyApplicationEngine
     private val clients: Clients = Clients(env)
 
+    private val log = LoggerFactory.getLogger("App")
+
     val jwkProvider = JwkProviderBuilder(env.jwksUrl)
             .cached(10, 24, TimeUnit.HOURS)
             .rateLimited(10, 1, TimeUnit.MINUTES)
@@ -57,6 +60,7 @@ class App(env: Environment = Environment()) {
                     verifier(jwkProvider, env.jwtIssuer)
                     realm = "Helse Sparkel"
                     validate { credentials ->
+                        log.info("authorization attempt for ${credentials.payload.subject}")
                         if (credentials.payload.subject in listOf("srvspinne", "srvsplitt")) {
                             JWTPrincipal(credentials.payload)
                         }
