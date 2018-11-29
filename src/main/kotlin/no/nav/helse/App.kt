@@ -6,6 +6,7 @@ import io.ktor.auth.Authentication
 import io.ktor.auth.authenticate
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
+import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
@@ -21,6 +22,7 @@ import no.nav.helse.ws.organisasjon.organisasjon
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import org.slf4j.LoggerFactory
+import org.slf4j.event.Level
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -54,7 +56,13 @@ class App(env: Environment = Environment()) {
 
         nettyServer = embeddedServer(Netty, 8080) {
 
-            install(CallLogging)
+            install(CallId) {
+                header("Nav-Call-Id")
+            }
+
+            install(CallLogging) {
+                level = Level.INFO
+            }
 
             install(Authentication) {
                 jwt {
