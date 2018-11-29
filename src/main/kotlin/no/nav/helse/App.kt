@@ -71,9 +71,11 @@ class App(env: Environment = Environment()) {
                     validate { credentials ->
                         log.info("authorization attempt for ${credentials.payload.subject}")
                         if (credentials.payload.subject in listOf("srvspinne", "srvsplitt")) {
-                            JWTPrincipal(credentials.payload)
+                            log.info("authorization ok")
+                            return@validate JWTPrincipal(credentials.payload)
                         }
-                        null
+                        log.info("authorization failed")
+                        return@validate null
                     }
                 }
             }
