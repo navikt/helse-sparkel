@@ -21,6 +21,7 @@ import no.nav.helse.ws.organisasjon.organisasjon
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import org.slf4j.LoggerFactory
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
@@ -43,7 +44,7 @@ class App(env: Environment = Environment()) {
 
     private val log = LoggerFactory.getLogger("App")
 
-    val jwkProvider = JwkProviderBuilder(env.jwksUrl)
+    val jwkProvider = JwkProviderBuilder(URL(env.jwksUrl))
             .cached(10, 24, TimeUnit.HOURS)
             .rateLimited(10, 1, TimeUnit.MINUTES)
             .build()
