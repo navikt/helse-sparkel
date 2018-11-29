@@ -25,6 +25,7 @@ import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.net.URL
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
@@ -59,11 +60,13 @@ class App(env: Environment = Environment()) {
 
             install(CallId) {
                 header("Nav-Call-Id")
+
+                generate { UUID.randomUUID().toString() }
             }
 
             install(CallLogging) {
                 level = Level.INFO
-                callIdMdc()
+                callIdMdc("call_id")
             }
 
             install(Authentication) {
