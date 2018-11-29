@@ -13,21 +13,26 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.io.jvm.javaio.toInputStream
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 
 class JsonContentConverter : ContentConverter {
+    private val log = LoggerFactory.getLogger("JsonContentConverter")
+
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
         val channel = request.value as? ByteReadChannel ?: return null
-
-        if (!request.type.javaObjectType.isAssignableFrom(JSONObject::class.java)) {
-            return null
-        }
 
         return JSONObject(channel.toInputStream().bufferedReader().readText())
     }
 
     override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
-        return TextContent(JSONObject(value).toString(), contentType.withCharset(context.call.suitableCharset()))
+        val json = when (value) {
+            is Map<*, *> -> JSONObject(value)
+            else -> JSONObject(value)
+        }.toString()
+
+        log.info("sending json, {} to {}", value, json)
+        return TextContent(json, contentType.withCharset(context.call.suitableCharset()))
     }
 
 }
