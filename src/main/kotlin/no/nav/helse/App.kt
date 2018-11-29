@@ -8,7 +8,9 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
+import io.ktor.features.ContentNegotiation
 import io.ktor.features.callIdMdc
+import io.ktor.http.ContentType
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -57,7 +59,6 @@ class App(env: Environment = Environment()) {
         DefaultExports.initialize()
 
         nettyServer = embeddedServer(Netty, 8080) {
-
             install(CallId) {
                 header("Nav-Call-Id")
 
@@ -67,6 +68,10 @@ class App(env: Environment = Environment()) {
             install(CallLogging) {
                 level = Level.INFO
                 callIdMdc("call_id")
+            }
+
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, JsonContentConverter())
             }
 
             install(Authentication) {
