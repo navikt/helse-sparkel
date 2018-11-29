@@ -20,7 +20,7 @@ fun Route.person(personClient: PersonClient) {
                 val lookupResult: OppslagResult = personClient.personInfo(Fødselsnummer(json.getString("fnr")))
                 when (lookupResult) {
                     is Success<*> -> call.respond(lookupResult.data!!)
-                    is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
+                    is Failure -> call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "that didn't go so well..."))
                 }
             }
         }
