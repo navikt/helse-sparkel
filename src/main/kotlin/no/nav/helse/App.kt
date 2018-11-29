@@ -8,6 +8,7 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
+import io.ktor.features.callIdMdc
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -62,6 +63,7 @@ class App(env: Environment = Environment()) {
 
             install(CallLogging) {
                 level = Level.INFO
+                callIdMdc()
             }
 
             install(Authentication) {
