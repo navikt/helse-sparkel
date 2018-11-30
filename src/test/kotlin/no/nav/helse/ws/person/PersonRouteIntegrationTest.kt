@@ -3,7 +3,6 @@ package no.nav.helse.ws.person
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -17,6 +16,7 @@ import no.nav.helse.sparkel
 import no.nav.helse.ws.Clients
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.stsStub
+import org.json.JSONObject
 import org.junit.jupiter.api.*
 
 class PersonRouteIntegrationTest {
@@ -52,15 +52,9 @@ class PersonRouteIntegrationTest {
         val jwtStub = JwtStub("test issuer")
         val token = jwtStub.createTokenFor("srvspinne")
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                    .inScenario("default")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("token acquired"))
+        WireMock.stubFor(stsStub("stsUsername", "stsPassword"))
         WireMock.stubFor(personStub("08078422069")
-                    .willReturn(WireMock.ok(hentPerson_response))
-                    .inScenario("default")
-                    .whenScenarioStateIs("token acquired")
-                    .willSetStateTo("personInfo called"))
+                .willReturn(WireMock.ok(hentPerson_response)))
 
         val env = Environment(mapOf(
                 "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
@@ -78,11 +72,24 @@ class PersonRouteIntegrationTest {
                 setBody("{\"fnr\": \"08078422069\"}")
             }.apply {
                 Assertions.assertEquals(200, response.status()?.value)
-                Assertions.assertEquals("{\"fdato\":\"1984-07-08\",\"etternavn\":\"LOLNES\",\"mellomnavn\":\"PIKENES\",\"id\":{\"value\":\"08078422069\"},\"fornavn\":\"JENNY\",\"kjønn\":\"KVINNE\"}", response.content)
+                assertJsonEquals(JSONObject("{\"fdato\":\"1984-07-08\",\"etternavn\":\"LOLNES\",\"mellomnavn\":\"PIKENES\",\"id\":{\"value\":\"08078422069\"},\"fornavn\":\"JENNY\",\"kjønn\":\"KVINNE\"}"), JSONObject(response.content))
             }
         }
     }
+}
 
+fun assertJsonEquals(expected: JSONObject, actual: JSONObject) {
+    Assertions.assertEquals(expected.length(), actual.length())
+
+    expected.keys().forEach {
+        Assertions.assertTrue(actual.has(it))
+
+        val expectedValue = expected.get(it)
+        when(expectedValue) {
+            is JSONObject -> assertJsonEquals(expectedValue, actual.get(it) as JSONObject)
+            else -> Assertions.assertEquals(expectedValue, actual.get(it))
+        }
+    }
 }
 
 private val hentPerson_response = """
