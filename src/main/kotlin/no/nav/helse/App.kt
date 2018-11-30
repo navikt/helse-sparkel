@@ -38,7 +38,7 @@ fun main() {
     DefaultExports.initialize()
 
     val app = embeddedServer(Netty, 8080) {
-        sparkel(env)
+        sparkel(env, URL(env.jwksUrl))
     }
 
     app.start(wait = false)
@@ -48,8 +48,8 @@ fun main() {
     })
 }
 
-fun Application.sparkel(env: Environment) {
-    val jwkProvider = JwkProviderBuilder(URL(env.jwksUrl))
+fun Application.sparkel(env: Environment, jwksUrl: URL) {
+    val jwkProvider = JwkProviderBuilder(jwksUrl)
             .cached(10, 24, TimeUnit.HOURS)
             .rateLimited(10, 1, TimeUnit.MINUTES)
             .build()
