@@ -53,7 +53,7 @@ class PersonRouteIntegrationTest {
         val token = jwtStub.createTokenFor("srvspinne")
 
         WireMock.stubFor(stsStub("stsUsername", "stsPassword"))
-        WireMock.stubFor(personStub("08078422069")
+        WireMock.stubFor(hentPersonStub("08078422069")
                 .willReturn(WireMock.ok(hentPerson_response)))
 
         val env = Environment(mapOf(

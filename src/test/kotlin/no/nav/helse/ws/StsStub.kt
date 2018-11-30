@@ -2,36 +2,14 @@ package no.nav.helse.ws
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.matching.MatchesXPathPattern
 
 fun stsStub(stsUsername: String, stsPassword: String): MappingBuilder {
    return WireMock.post(WireMock.urlPathEqualTo("/sts"))
-            .withHeader("Content-Type", WireMock.containing("text/xml"))
-            .withHeader("SOAPAction", WireMock.equalTo("\"http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue\""))
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Header/wsse:Security/wsse:UsernameToken/wsse:Username/text()",
-                    ns3, WireMock.equalTo(stsUsername)))
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Header/wsse:Security/wsse:UsernameToken/wsse:Password/text()",
-                    ns3, WireMock.equalTo(stsPassword)))
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/wst:RequestSecurityToken/wst:SecondaryParameters/wst:SecondaryParameters/wst:TokenType/text()",
-                    ns4, WireMock.equalTo("http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0")))
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/wst:RequestSecurityToken/wst:RequestType/text()",
-                    ns4, WireMock.equalTo("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue")))
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/wst:RequestSecurityToken/wst:SecondaryParameters/wst:TokenType/text()",
-                    ns4, WireMock.containing("http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0")))
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/wst:RequestSecurityToken/wst:SecondaryParameters/wst:KeyType/text()",
-                    ns4, WireMock.equalTo("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Bearer")))
-            .willReturn(WireMock.ok(sts_response))
+           .withSoapAction("http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue")
+           .withUsernamePasswordToken(stsUsername, stsPassword)
+           .withRequestSecurityTokenAssertion()
+           .willReturn(WireMock.ok(sts_response))
 }
-
-private val ns3 = mapOf(
-        "soap" to "http://schemas.xmlsoap.org/soap/envelope/",
-        "wsse" to "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
-)
-
-private val ns4 = mapOf(
-        "soap" to "http://schemas.xmlsoap.org/soap/envelope/",
-        "wst" to "http://docs.oasis-open.org/ws-sx/ws-trust/200512"
-)
 
 private val sts_response = """
 <?xml version="1.0" encoding="UTF-8"?>
