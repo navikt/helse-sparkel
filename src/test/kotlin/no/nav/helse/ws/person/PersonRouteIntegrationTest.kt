@@ -14,7 +14,6 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Environment
 import no.nav.helse.JwtStub
 import no.nav.helse.sparkel
-import no.nav.helse.testApplication
 import no.nav.helse.ws.Clients
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.stsStub
@@ -63,13 +62,13 @@ class PersonRouteIntegrationTest {
                     .whenScenarioStateIs("token acquired")
                     .willSetStateTo("personInfo called"))
 
-        val env = Environment(testApplication.defaultEnv.plus(mapOf(
+        val env = Environment(mapOf(
                 "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
                 "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
                 "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
                 "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
                 "JWT_ISSUER" to "test issuer"
-        )))
+        ))
         val clients = Clients(env, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
 
         withTestApplication({sparkel(env, clients, jwtStub.stubbedJwkProvider())}) {
