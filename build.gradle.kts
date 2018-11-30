@@ -52,6 +52,10 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+
+    testCompile("io.ktor:ktor-server-test-host:$ktorVersion") {
+        exclude(group = "org.eclipse.jetty") // conflicts with WireMock
+    }
 }
 
 repositories {

@@ -45,7 +45,7 @@ fun main() {
                 .rateLimited(10, 1, TimeUnit.MINUTES)
                 .build()
 
-        sparkel(env, jwkProvider)
+        sparkel(env, Clients(env), jwkProvider)
     }
 
     app.start(wait = false)
@@ -55,9 +55,7 @@ fun main() {
     })
 }
 
-fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
-    val clients = Clients(env)
-
+fun Application.sparkel(env: Environment, clients: Clients, jwkProvider: JwkProvider) {
     install(CallId) {
         header("Nav-Call-Id")
 
