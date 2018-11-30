@@ -10,7 +10,7 @@ import no.nav.helse.Failure
 import no.nav.helse.Success
 import no.nav.helse.ws.person.Kjønn
 import no.nav.helse.ws.person.Person
-import no.nav.helse.ws.person.personStub
+import no.nav.helse.ws.person.hentPersonStub
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import org.junit.jupiter.api.*
 import java.time.LocalDate
@@ -57,7 +57,7 @@ class SoapIntegrationTest {
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willSetStateTo("token acquired"))
 
-        WireMock.stubFor(personStub("08078422069")
+        WireMock.stubFor(hentPersonStub("08078422069")
                     .willReturn(WireMock.ok(hentPerson_response))
                     .inScenario("default")
                     .whenScenarioStateIs("token acquired")
