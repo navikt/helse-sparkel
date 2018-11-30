@@ -40,19 +40,12 @@ class SoapIntegrationTest {
 
     @Test
     fun `sts should be called before making soap call`() {
-        val clients = Clients(Environment(
-                securityTokenServiceEndpointUrl = server.baseUrl().plus("/sts"),
-                securityTokenUsername = "stsUsername",
-                securityTokenPassword = "stsPassword",
-                personEndpointUrl = server.baseUrl().plus("/person"),
-                inntektEndpointUrl = "foo",
-                arbeidsforholdEndpointUrl = "foo",
-                organisasjonEndpointUrl = "foo",
-                sakOgBehandlingEndpointUrl = "foo",
-                jwksUrl = "foo",
-                jwtIssuer = "foo",
-                jwtAudience = "foo"
-        ), STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+        val clients = Clients(Environment(mapOf(
+                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
+                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
+                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
+                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person")
+        )), STS_SAML_POLICY_NO_TRANSPORT_BINDING)
 
         WireMock.stubFor(stsRequestMapping
                 .willReturn(WireMock.ok(sts_response))

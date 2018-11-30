@@ -1,11 +1,14 @@
 package no.nav.helse.ws.person
 
-import io.prometheus.client.*
-import no.nav.helse.*
+import io.prometheus.client.CollectorRegistry
+import no.nav.helse.Failure
+import no.nav.helse.Success
 import no.nav.helse.ws.Fødselsnummer
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
-import java.time.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import java.time.LocalDate
 
 class ComponentTest {
 
@@ -18,7 +21,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookup() {
-        val personClient = PersonClient(PersonV3Stub())
+        val personClient = PersonClient{PersonV3Stub()}
         val expected = Person(
                 id = Fødselsnummer("12345678910"),
                 fornavn = "Bjarne",
@@ -39,7 +42,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookupWithError() {
-        val personClient = PersonClient(PersonV3MisbehavingStub())
+        val personClient = PersonClient{PersonV3MisbehavingStub()}
         val expected = Failure(listOf("SOAPy stuff got besmirched"))
         val actual = personClient.personInfo(Fødselsnummer("12345678910"))
         when (actual) {

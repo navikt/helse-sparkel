@@ -1,16 +1,26 @@
 package no.nav.helse
 
-data class Environment(val securityTokenServiceEndpointUrl: String = getEnvVar("SECURITY_TOKEN_SERVICE_URL"),
-                       val securityTokenUsername: String = getEnvVar("SECURITY_TOKEN_SERVICE_USERNAME"),
-                       val securityTokenPassword: String = getEnvVar("SECURITY_TOKEN_SERVICE_PASSWORD"),
-                       val personEndpointUrl: String = getEnvVar("PERSON_ENDPOINTURL"),
-                       val inntektEndpointUrl: String = getEnvVar("INNTEKT_ENDPOINTURL"),
-                       val arbeidsforholdEndpointUrl: String = getEnvVar("AAREG_ENDPOINTURL"),
-                       val organisasjonEndpointUrl: String = getEnvVar("ORGANISASJON_ENDPOINTURL"),
-                       val sakOgBehandlingEndpointUrl: String = getEnvVar("SAK_OG_BEHANDLING_ENDPOINTURL"),
-                       val jwksUrl: String = getEnvVar("JWKS_URL"),
-                       val jwtIssuer: String = getEnvVar("JWT_ISSUER"),
-                       val jwtAudience: String = getEnvVar("JWT_AUDIENCE"))
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
-private fun getEnvVar(varName: String, defaultValue: String? = null) =
-        System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable \"$varName\"")
+data class Environment(val map: Map<String, String> = System.getenv()) {
+
+    val securityTokenServiceEndpointUrl: String by envVar("SECURITY_TOKEN_SERVICE_URL")
+    val securityTokenUsername: String by envVar("SECURITY_TOKEN_SERVICE_USERNAME")
+    val securityTokenPassword: String by envVar("SECURITY_TOKEN_SERVICE_PASSWORD")
+    val personEndpointUrl: String by envVar("PERSON_ENDPOINTURL")
+    val inntektEndpointUrl: String by envVar("INNTEKT_ENDPOINTURL")
+    val arbeidsforholdEndpointUrl:String by envVar("AAREG_ENDPOINTURL")
+    val organisasjonEndpointUrl: String by envVar("ORGANISASJON_ENDPOINTURL")
+    val sakOgBehandlingEndpointUrl: String by envVar("SAK_OG_BEHANDLING_ENDPOINTURL")
+    val jwksUrl: String by envVar("JWKS_URL")
+    val jwtIssuer: String by envVar("JWT_ISSUER")
+
+    private fun envVar(key: String): ReadOnlyProperty<Environment, String> {
+        return object : ReadOnlyProperty<Environment, String> {
+            override operator fun getValue(thisRef: Environment, property: KProperty<*>): String {
+                return map[key] ?: throw RuntimeException("Missing required variable \"$key\"")
+            }
+        }
+    }
+}

@@ -1,9 +1,12 @@
 package no.nav.helse.ws.organisasjon
 
-import io.prometheus.client.*
-import no.nav.helse.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import io.prometheus.client.CollectorRegistry
+import no.nav.helse.Failure
+import no.nav.helse.Success
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 
 class ComponentTest {
 
@@ -16,7 +19,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookup() {
-        val organisasjonClient = OrganisasjonClient(OrganisasjonV5Stub())
+        val organisasjonClient = OrganisasjonClient{OrganisasjonV5Stub()}
         val expected = "fornavn, mellomnavn, etternavn"
         val actual = organisasjonClient.orgNavn("12345")
         when (actual) {
@@ -31,7 +34,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookupWithError() {
-        val organisasjonClient = OrganisasjonClient(OrganisasjonV5MisbehavingStub())
+        val organisasjonClient = OrganisasjonClient{OrganisasjonV5MisbehavingStub()}
         val expected = Failure(listOf("SOAPy stuff got besmirched"))
         val actual = organisasjonClient.orgNavn("12345")
         when (actual) {

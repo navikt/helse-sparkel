@@ -11,7 +11,7 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.WSNorskIdent
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.WSRegelverker
 import org.slf4j.LoggerFactory
 
-class ArbeidsforholdClient(private val arbeidsforhold: ArbeidsforholdV3) {
+class ArbeidsforholdClient(private val arbeidsforholdFactory: () -> ArbeidsforholdV3) {
 
     private val log = LoggerFactory.getLogger("ArbeidsforholdClient")
 
@@ -20,6 +20,8 @@ class ArbeidsforholdClient(private val arbeidsforhold: ArbeidsforholdV3) {
             .labelNames("status")
             .help("Antall registeroppslag av arbeidsforhold for person")
             .register()
+
+    private val arbeidsforhold: ArbeidsforholdV3 get() = arbeidsforholdFactory()
 
     fun finnArbeidsforholdForFnr(fnr: Fødselsnummer): OppslagResult {
         val request = WSFinnArbeidsforholdPrArbeidstakerRequest()

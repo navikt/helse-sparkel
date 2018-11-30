@@ -9,7 +9,7 @@ import no.nav.tjeneste.virksomhet.sakogbehandling.v1.meldinger.FinnSakOgBehandli
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.meldinger.FinnSakOgBehandlingskjedeListeResponse
 import org.slf4j.LoggerFactory
 
-class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandling_v1PortType) {
+class SakOgBehandlingClient(private val sakOgBehandlingFactory: () -> SakOgBehandling_v1PortType) {
 
     private val log = LoggerFactory.getLogger("SakOgBehandlingClient")
 
@@ -18,6 +18,8 @@ class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandling_v1PortT
             .labelNames("status")
             .help("Antall registeroppslag av sak og tilhørende behandlingskjeder")
             .register()
+
+    private val sakOgBehandling: SakOgBehandling_v1PortType get() = sakOgBehandlingFactory()
 
     fun finnSakOgBehandling(aktorId: String): OppslagResult {
         val request = FinnSakOgBehandlingskjedeListeRequest()
