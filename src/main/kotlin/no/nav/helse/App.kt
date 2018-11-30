@@ -1,5 +1,6 @@
 package no.nav.helse
 
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -31,6 +32,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
+private val authorizedUsers = listOf("srvspinne", "srvsplitt")
 
 fun main() {
     val env = Environment()
@@ -38,7 +40,12 @@ fun main() {
     DefaultExports.initialize()
 
     val app = embeddedServer(Netty, 8080) {
-        sparkel(env, URL(env.jwksUrl))
+        val jwkProvider = JwkProviderBuilder(URL(env.jwksUrl))
+                .cached(10, 24, TimeUnit.HOURS)
+                .rateLimited(10, 1, TimeUnit.MINUTES)
+                .build()
+
+        sparkel(env, jwkProvider)
     }
 
     app.start(wait = false)
@@ -48,12 +55,7 @@ fun main() {
     })
 }
 
-fun Application.sparkel(env: Environment, jwksUrl: URL) {
-    val jwkProvider = JwkProviderBuilder(jwksUrl)
-            .cached(10, 24, TimeUnit.HOURS)
-            .rateLimited(10, 1, TimeUnit.MINUTES)
-            .build()
-
+fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
     val clients = Clients(env)
 
     install(CallId) {
@@ -77,7 +79,7 @@ fun Application.sparkel(env: Environment, jwksUrl: URL) {
             realm = "Helse Sparkel"
             validate { credentials ->
                 log.info("authorization attempt for ${credentials.payload.subject}")
-                if (credentials.payload.subject in listOf("srvspinne", "srvsplitt")) {
+                if (credentials.payload.subject in authorizedUsers) {
                     log.info("authorization ok")
                     return@validate JWTPrincipal(credentials.payload)
                 }
