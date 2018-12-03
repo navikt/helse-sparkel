@@ -21,7 +21,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookup() {
-        val personClient = PersonClient{PersonV3Stub()}
+        val personClient = PersonClient(PersonV3Stub())
         val expected = Person(
                 id = Fødselsnummer("12345678910"),
                 fornavn = "Bjarne",
@@ -42,7 +42,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookupWithError() {
-        val personClient = PersonClient{PersonV3MisbehavingStub()}
+        val personClient = PersonClient(PersonV3MisbehavingStub())
         val expected = Failure(listOf("SOAPy stuff got besmirched"))
         val actual = personClient.personInfo(Fødselsnummer("12345678910"))
         when (actual) {

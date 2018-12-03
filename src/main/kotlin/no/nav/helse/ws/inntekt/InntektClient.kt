@@ -12,9 +12,8 @@ import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
 
-class InntektClient(private val inntektV3Factory: () -> InntektV3) {
+class InntektClient(private val inntektV3: InntektV3) {
     private val log = LoggerFactory.getLogger(InntektClient::class.java)
-    private val inntektV3: InntektV3 get() = inntektV3Factory()
 
     fun hentInntektListe(fødelsnummer: String): OppslagResult {
         val request = HentInntektListeRequest().apply {

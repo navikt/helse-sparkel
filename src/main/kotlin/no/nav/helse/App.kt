@@ -21,11 +21,23 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.nais.nais
 import no.nav.helse.ws.Clients
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
+import no.nav.helse.ws.inntekt.InntektClient
 import no.nav.helse.ws.inntekt.inntekt
+import no.nav.helse.ws.organisasjon.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.organisasjon
+import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
+import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
+import no.nav.helse.ws.sts.configureFor
+import no.nav.helse.ws.sts.stsClient
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.ArbeidsforholdV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.InntektV3
+import no.nav.tjeneste.virksomhet.organisasjon.v5.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.person.v3.PersonV3
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.SakOgBehandling_v1PortType
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
@@ -45,7 +57,7 @@ fun main() {
                 .rateLimited(10, 1, TimeUnit.MINUTES)
                 .build()
 
-        sparkel(env, Clients(env), jwkProvider)
+        sparkel(env, jwkProvider)
     }
 
     app.start(wait = false)
@@ -55,7 +67,7 @@ fun main() {
     })
 }
 
-fun Application.sparkel(env: Environment, clients: Clients, jwkProvider: JwkProvider) {
+fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
     install(CallId) {
         header("Nav-Call-Id")
 
@@ -87,13 +99,37 @@ fun Application.sparkel(env: Environment, clients: Clients, jwkProvider: JwkProv
         }
     }
 
+    val stsClient = stsClient(env.securityTokenServiceEndpointUrl,
+            env.securityTokenUsername to env.securityTokenPassword
+    )
+
     routing {
         authenticate {
-            inntekt(clients.inntektClient)
-            person(clients.personClient)
-            arbeidsforhold(clients.arbeidsforholdClient)
-            organisasjon(clients.organisasjonClient)
-            sakOgBehandling(clients.sakOgBehandlingClient)
+            inntekt{
+                val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
+                stsClient.configureFor(port)
+                InntektClient(port)
+            }
+            person {
+                val port = Clients.createServicePort(env.personEndpointUrl, PersonV3::class.java)
+                stsClient.configureFor(port)
+                    PersonClient(port)
+            }
+            arbeidsforhold{
+                val port = Clients.createServicePort(env.arbeidsforholdEndpointUrl, ArbeidsforholdV3::class.java)
+                stsClient.configureFor(port)
+                ArbeidsforholdClient(port)
+            }
+            organisasjon{
+                val port = Clients.createServicePort(env.organisasjonEndpointUrl, OrganisasjonV5::class.java)
+                stsClient.configureFor(port)
+                OrganisasjonClient(port)
+            }
+            sakOgBehandling{
+                val port = Clients.createServicePort(env.sakOgBehandlingEndpointUrl, SakOgBehandling_v1PortType::class.java)
+                stsClient.configureFor(port)
+                SakOgBehandlingClient(port)
+            }
         }
 
         nais(collectorRegistry)

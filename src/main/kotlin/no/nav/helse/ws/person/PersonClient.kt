@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import javax.xml.datatype.XMLGregorianCalendar
 
-class PersonClient(private val personV3Factory: () -> PersonV3) {
+class PersonClient(private val personV3: PersonV3) {
 
     private val counter = Counter.build()
             .name("oppslag_person")
@@ -25,8 +25,6 @@ class PersonClient(private val personV3Factory: () -> PersonV3) {
             .register()
 
     private val log = LoggerFactory.getLogger("PersonClient")
-
-    private val personV3: PersonV3 get() = personV3Factory()
 
     fun personInfo(id: Fødselsnummer): OppslagResult {
         val aktør = WSPersonIdent().apply {

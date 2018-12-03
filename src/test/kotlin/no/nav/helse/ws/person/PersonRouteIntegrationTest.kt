@@ -13,9 +13,8 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Environment
 import no.nav.helse.JwtStub
 import no.nav.helse.sparkel
-import no.nav.helse.ws.Clients
-import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.stsStub
+import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
 import org.junit.jupiter.api.*
 
@@ -54,6 +53,8 @@ class PersonRouteIntegrationTest {
 
         WireMock.stubFor(stsStub("stsUsername", "stsPassword"))
         WireMock.stubFor(hentPersonStub("08078422069")
+                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+                        "digestValue", "signatureValue", "certificateValue")
                 .willReturn(WireMock.ok(hentPerson_response)))
 
         val env = Environment(mapOf(
@@ -63,9 +64,8 @@ class PersonRouteIntegrationTest {
                 "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
                 "JWT_ISSUER" to "test issuer"
         ))
-        val clients = Clients(env, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
 
-        withTestApplication({sparkel(env, clients, jwtStub.stubbedJwkProvider())}) {
+        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Post, "/api/person") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")

@@ -19,7 +19,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookup() {
-        val organisasjonClient = OrganisasjonClient{OrganisasjonV5Stub()}
+        val organisasjonClient = OrganisasjonClient(OrganisasjonV5Stub())
         val expected = "fornavn, mellomnavn, etternavn"
         val actual = organisasjonClient.orgNavn("12345")
         when (actual) {
@@ -34,7 +34,7 @@ class ComponentTest {
 
     @Test
     fun stubbedLookupWithError() {
-        val organisasjonClient = OrganisasjonClient{OrganisasjonV5MisbehavingStub()}
+        val organisasjonClient = OrganisasjonClient(OrganisasjonV5MisbehavingStub())
         val expected = Failure(listOf("SOAPy stuff got besmirched"))
         val actual = organisasjonClient.orgNavn("12345")
         when (actual) {

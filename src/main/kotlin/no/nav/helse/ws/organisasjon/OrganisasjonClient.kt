@@ -10,7 +10,7 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonRequest
 import org.slf4j.LoggerFactory
 
-class OrganisasjonClient(private val organisasjonV5Factory: () -> OrganisasjonV5) {
+class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
 
     private val counter = Counter.build()
             .name("oppslag_organisasjon")
@@ -19,7 +19,6 @@ class OrganisasjonClient(private val organisasjonV5Factory: () -> OrganisasjonV5
             .register()
 
     private val log = LoggerFactory.getLogger("OrganisasjonClient")
-    private val organisasjonV5: OrganisasjonV5 get() = organisasjonV5Factory()
 
     fun orgNavn(orgnr: String): OppslagResult {
         val request = HentOrganisasjonRequest().apply { orgnummer = orgnr }

@@ -11,7 +11,9 @@ import no.nav.helse.Success
 import no.nav.helse.receiveJson
 import no.nav.helse.ws.Fødselsnummer
 
-fun Route.person(personClient: PersonClient) {
+fun Route.person(factory: () -> PersonClient) {
+    val personClient: PersonClient by lazy(factory)
+
     post("api/person") {
         call.receiveJson().let { json ->
             if (!json.has("fnr")) {

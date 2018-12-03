@@ -4,12 +4,15 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveParameters
 import io.ktor.response.respond
-import io.ktor.routing.*
+import io.ktor.routing.Route
+import io.ktor.routing.post
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
 
-fun Route.sakOgBehandling(sakOgBehandlingClient: SakOgBehandlingClient) {
+fun Route.sakOgBehandling(factory: () -> SakOgBehandlingClient) {
+    val sakOgBehandlingClient by lazy(factory)
+
     post("api/sakogbehandling") {
         call.receiveParameters()["aktorId"]?.let { aktorId ->
             val lookupResult: OppslagResult = sakOgBehandlingClient.finnSakOgBehandling(aktorId)

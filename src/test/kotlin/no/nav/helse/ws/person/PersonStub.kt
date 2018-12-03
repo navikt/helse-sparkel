@@ -3,14 +3,11 @@ package no.nav.helse.ws.person
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.matching.MatchesXPathPattern
-import no.nav.helse.ws.withSamlAssertion
 import no.nav.helse.ws.withSoapAction
 
 fun hentPersonStub(ident: String): MappingBuilder {
     return WireMock.post(WireMock.urlPathEqualTo("/person"))
             .withSoapAction("http://nav.no/tjeneste/virksomhet/person/v3/Person_v3/hentPersonRequest")
-            .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                    "digestValue", "signatureValue", "certificateValue")
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/ns2:hentPerson/request/aktoer/ident/ident/text()",
                     personNamespace, WireMock.equalTo(ident)))
 }

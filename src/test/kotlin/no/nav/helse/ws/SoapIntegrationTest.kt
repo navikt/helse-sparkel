@@ -5,13 +5,16 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Environment
 import no.nav.helse.Failure
 import no.nav.helse.Success
 import no.nav.helse.ws.person.Kjønn
 import no.nav.helse.ws.person.Person
+import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.hentPersonStub
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.ws.sts.configureFor
+import no.nav.helse.ws.sts.stsClient
+import no.nav.tjeneste.virksomhet.person.v3.PersonV3
 import org.junit.jupiter.api.*
 import java.time.LocalDate
 
@@ -45,25 +48,28 @@ class SoapIntegrationTest {
 
     @Test
     fun `sts should be called before making soap call`() {
-        val clients = Clients(Environment(mapOf(
-                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
-                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
-                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person")
-        )), STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+        val stsClient = stsClient(server.baseUrl().plus("/sts"),
+                "stsUsername" to "stsPassword"
+        )
+
+        val port = Clients.createServicePort(server.baseUrl().plus("/person"), PersonV3::class.java)
+        port.apply{stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)}
+        val personClient = PersonClient(port)
 
         WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                    .inScenario("default")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("token acquired"))
+                .inScenario("default")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willSetStateTo("token acquired"))
 
         WireMock.stubFor(hentPersonStub("08078422069")
-                    .willReturn(WireMock.ok(hentPerson_response))
-                    .inScenario("default")
-                    .whenScenarioStateIs("token acquired")
-                    .willSetStateTo("personInfo called"))
+                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+                        "digestValue", "signatureValue", "certificateValue")
+                .willReturn(WireMock.ok(hentPerson_response))
+                .inScenario("default")
+                .whenScenarioStateIs("token acquired")
+                .willSetStateTo("personInfo called"))
 
-        val actual = clients.personClient.personInfo(Fødselsnummer("08078422069"))
+        val actual = personClient.personInfo(Fødselsnummer("08078422069"))
         val expected = Person(
                 id = Fødselsnummer("08078422069"),
                 fornavn = "JENNY",
