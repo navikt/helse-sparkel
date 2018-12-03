@@ -62,7 +62,8 @@ class PersonRouteIntegrationTest {
                 "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
                 "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
                 "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
-                "JWT_ISSUER" to "test issuer"
+                "JWT_ISSUER" to "test issuer",
+                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))
 
         withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {

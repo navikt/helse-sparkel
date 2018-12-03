@@ -31,6 +31,7 @@ import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
+import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.ArbeidsforholdV3
@@ -107,27 +108,49 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         authenticate {
             inntekt{
                 val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
-                stsClient.configureFor(port)
+                if (env.allowInsecureSoapRequests) {
+                    stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                } else {
+                    stsClient.configureFor(this)
+                }
                 InntektClient(port)
             }
             person {
                 val port = Clients.createServicePort(env.personEndpointUrl, PersonV3::class.java)
-                stsClient.configureFor(port)
+                port.apply {
+                    if (env.allowInsecureSoapRequests) {
+                        stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                    } else {
+                        stsClient.configureFor(this)
+                    }
+                }
                     PersonClient(port)
             }
             arbeidsforhold{
                 val port = Clients.createServicePort(env.arbeidsforholdEndpointUrl, ArbeidsforholdV3::class.java)
-                stsClient.configureFor(port)
+                if (env.allowInsecureSoapRequests) {
+                    stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                } else {
+                    stsClient.configureFor(this)
+                }
                 ArbeidsforholdClient(port)
             }
             organisasjon{
                 val port = Clients.createServicePort(env.organisasjonEndpointUrl, OrganisasjonV5::class.java)
-                stsClient.configureFor(port)
+                if (env.allowInsecureSoapRequests) {
+                    stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                } else {
+                    stsClient.configureFor(this)
+                }
                 OrganisasjonClient(port)
             }
             sakOgBehandling{
                 val port = Clients.createServicePort(env.sakOgBehandlingEndpointUrl, SakOgBehandling_v1PortType::class.java)
-                stsClient.configureFor(port)
+                if (env.allowInsecureSoapRequests) {
+                    stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                } else {
+                    stsClient.configureFor(this)
+                }
                 SakOgBehandlingClient(port)
             }
         }

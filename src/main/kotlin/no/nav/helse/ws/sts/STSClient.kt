@@ -36,7 +36,11 @@ fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
     }
 }
 
-fun STSClient.configureFor(servicePort: Any, policyUri: String = STS_SAML_POLICY) {
+fun STSClient.configureFor(servicePort: Any) {
+    configureFor(servicePort, STS_SAML_POLICY)
+}
+
+fun STSClient.configureFor(servicePort: Any, policyUri: String) {
     val client = ClientProxy.getClient(servicePort)
     client.configureSTS(this, policyUri)
 }
