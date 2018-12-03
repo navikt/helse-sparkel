@@ -13,6 +13,7 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Environment
 import no.nav.helse.JwtStub
 import no.nav.helse.sparkel
+import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
@@ -51,7 +52,9 @@ class PersonRouteIntegrationTest {
         val jwtStub = JwtStub("test issuer")
         val token = jwtStub.createTokenFor("srvspinne")
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword"))
+        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
+                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+                        "digestValue", "signatureValue", "certificateValue")))
         WireMock.stubFor(hentPersonStub("08078422069")
                 .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")

@@ -57,13 +57,15 @@ class SoapIntegrationTest {
         val personClient = PersonClient(port)
 
         WireMock.stubFor(stsStub("stsUsername", "stsPassword")
+                .willReturn(samlAssertionResponse("username", "issuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local", "digest",
+                        "signature", "certificate"))
                 .inScenario("default")
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willSetStateTo("token acquired"))
 
         WireMock.stubFor(hentPersonStub("08078422069")
-                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")
+                .withSamlAssertion("username", "issuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+                        "digest", "signature", "certificate")
                 .willReturn(WireMock.ok(hentPerson_response))
                 .inScenario("default")
                 .whenScenarioStateIs("token acquired")

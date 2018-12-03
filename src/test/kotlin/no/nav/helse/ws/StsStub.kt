@@ -1,14 +1,23 @@
 package no.nav.helse.ws
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 
 fun stsStub(stsUsername: String, stsPassword: String): MappingBuilder {
-   return WireMock.post(WireMock.urlPathEqualTo("/sts"))
-           .withSoapAction("http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue")
-           .withUsernamePasswordToken(stsUsername, stsPassword)
-           .withRequestSecurityTokenAssertion()
-           .willReturn(WireMock.ok(sts_response))
+    return WireMock.post(WireMock.urlPathEqualTo("/sts"))
+            .withSoapAction("http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue")
+            .withUsernamePasswordToken(stsUsername, stsPassword)
+            .withRequestSecurityTokenAssertion()
+}
+
+fun samlAssertionResponse(username: String, issuer: String, issuerName: String, digest: String, signature: String, certificate: String): ResponseDefinitionBuilder {
+    return WireMock.okXml(sts_response.replace("{{username}}", username)
+            .replace("{{issuer}}", issuer)
+            .replace("{{digest}}", digest)
+            .replace("{{signature}}", signature)
+            .replace("{{certificate}}", certificate)
+            .replace("{{issuerName}}", issuerName))
 }
 
 private val sts_response = """
@@ -27,7 +36,7 @@ private val sts_response = """
                 <wst:RequestedSecurityToken>
                     <saml2:Assertion Version="2.0" ID="SAML-8d11de08-b17f-45ba-bd18-68098a4d28ce" IssueInstant="2018-09-06T10:28:45Z"
                                      xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">
-                        <saml2:Issuer>theIssuer</saml2:Issuer>
+                        <saml2:Issuer>{{issuer}}</saml2:Issuer>
                         <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
                             <SignedInfo>
                                 <CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
@@ -38,23 +47,23 @@ private val sts_response = """
                                         <Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
                                     </Transforms>
                                     <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
-                                    <DigestValue>digestValue</DigestValue>
+                                    <DigestValue>{{digest}}</DigestValue>
                                 </Reference>
                             </SignedInfo>
-                            <SignatureValue>signatureValue</SignatureValue>
+                            <SignatureValue>{{signature}}</SignatureValue>
                             <KeyInfo>
                                 <X509Data>
-                                    <X509Certificate>certificateValue</X509Certificate>
+                                    <X509Certificate>{{certificate}}</X509Certificate>
                                     <X509IssuerSerial>
 
-                                        <X509IssuerName>CN=B27 Issuing CA Intern, DC=preprod, DC=local</X509IssuerName>
+                                        <X509IssuerName>{{issuerName}}</X509IssuerName>
                                         <X509SerialNumber>2363879011200190627239759946745671848168525609</X509SerialNumber>
                                     </X509IssuerSerial>
                                 </X509Data>
                             </KeyInfo>
                         </Signature>
                         <saml2:Subject>
-                            <saml2:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">testusername</saml2:NameID>
+                            <saml2:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">{{username}}</saml2:NameID>
                             <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
                                 <saml2:SubjectConfirmationData NotBefore="2018-09-06T10:28:42Z" NotOnOrAfter="2018-09-06T11:28:48Z"/>
                             </saml2:SubjectConfirmation>
@@ -68,7 +77,7 @@ private val sts_response = """
                                 <saml2:AttributeValue>0</saml2:AttributeValue>
                             </saml2:Attribute>
                             <saml2:Attribute Name="consumerId" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
-                                <saml2:AttributeValue>testusername</saml2:AttributeValue>
+                                <saml2:AttributeValue>{{username}}</saml2:AttributeValue>
                             </saml2:Attribute>
                         </saml2:AttributeStatement>
                     </saml2:Assertion>
