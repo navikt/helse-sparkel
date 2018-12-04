@@ -20,7 +20,7 @@ import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
 import org.junit.jupiter.api.*
 
-class PersonRouteIntegrationTest {
+class PersonComponentTest {
 
     companion object {
         val server: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
