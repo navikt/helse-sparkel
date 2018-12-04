@@ -8,7 +8,7 @@ val orgJsonVersion = "20180813"
 val fuelVersion = "1.15.1"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.8.12.kotlin13"
-val tjenestespesifikasjonerVersion = "1.2018.11.27-14.49-88288e06ce21"
+val tjenestespesifikasjonerVersion = "1.2018.12.04-14.21-97584b2f5307"
 val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
 

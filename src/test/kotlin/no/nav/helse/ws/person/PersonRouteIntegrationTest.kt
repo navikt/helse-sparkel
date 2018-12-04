@@ -12,6 +12,7 @@ import io.ktor.server.testing.withTestApplication
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Environment
 import no.nav.helse.JwtStub
+import no.nav.helse.assertJsonEquals
 import no.nav.helse.sparkel
 import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.stsStub
@@ -78,20 +79,6 @@ class PersonRouteIntegrationTest {
                 Assertions.assertEquals(200, response.status()?.value)
                 assertJsonEquals(JSONObject("{\"fdato\":\"1984-07-08\",\"etternavn\":\"LOLNES\",\"mellomnavn\":\"PIKENES\",\"id\":{\"value\":\"08078422069\"},\"fornavn\":\"JENNY\",\"kjønn\":\"KVINNE\"}"), JSONObject(response.content))
             }
-        }
-    }
-}
-
-fun assertJsonEquals(expected: JSONObject, actual: JSONObject) {
-    Assertions.assertEquals(expected.length(), actual.length())
-
-    expected.keys().forEach {
-        Assertions.assertTrue(actual.has(it))
-
-        val expectedValue = expected.get(it)
-        when(expectedValue) {
-            is JSONObject -> assertJsonEquals(expectedValue, actual.get(it) as JSONObject)
-            else -> Assertions.assertEquals(expectedValue, actual.get(it))
         }
     }
 }
