@@ -10,6 +10,7 @@ object Clients {
             address = serviceUrl
             serviceClass = serviceClazz
             features = listOf(LoggingFeature())
+            outInterceptors.add(CallIdInterceptor())
         }
 
         @Suppress("UNCHECKED_CAST")

@@ -16,6 +16,7 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.sparkel
 import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.stsStub
+import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
 import org.junit.jupiter.api.*
@@ -62,6 +63,7 @@ class ArbeidsforholdComponentTest {
         WireMock.stubFor(finnArbeidsforholdPrArbeidstakerStub("08088806280")
                 .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")
+                .withCallId("Sett inn call id her")
                 .willReturn(WireMock.okXml(finnArbeidsforholdPrArbeidstaker_response)))
 
         val env = Environment(mapOf(
