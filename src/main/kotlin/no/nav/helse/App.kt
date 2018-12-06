@@ -35,7 +35,7 @@ import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.inntekt.v3.InntektV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.organisasjon.v5.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.PersonV3
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.SakOgBehandling_v1PortType
