@@ -24,8 +24,10 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
         val request = HentOrganisasjonRequest().apply { orgnummer = orgnr }
         return try {
             val response = organisasjonV5.hentOrganisasjon(request)
+
             counter.labels("success").inc()
-            response.organisasjon?.navn?.let { Success(name(it)) } ?: Failure(listOf("org $orgnr not found"))
+
+            return Success(OrganisasjonResponse(response.organisasjon?.navn?.let(this::name)))
         } catch (ex: Exception) {
             log.error("Error while doing organisasjon lookup", ex)
             counter.labels("failure").inc()
@@ -39,6 +41,8 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
                 .joinToString(", ")
 
     }
+
+    data class OrganisasjonResponse(val navn: String?)
 }
 
 

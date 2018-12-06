@@ -20,7 +20,7 @@ class ComponentTest {
     @Test
     fun stubbedLookup() {
         val organisasjonClient = OrganisasjonClient(OrganisasjonV5Stub())
-        val expected = "fornavn, mellomnavn, etternavn"
+        val expected = OrganisasjonClient.OrganisasjonResponse("fornavn, mellomnavn, etternavn")
         val actual = organisasjonClient.orgNavn("12345")
         when (actual) {
             is Success<*> -> {
