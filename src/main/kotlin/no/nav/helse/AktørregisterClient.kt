@@ -2,10 +2,15 @@ package no.nav.helse
 
 import com.github.kittinunf.fuel.httpGet
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("AktørregisterClient")
 
 class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 
     fun gjeldendeIdenter(ident: String): List<Ident> {
+        log.info("lookup gjeldende identer with ident=${ident}")
+
         val bearer = stsRestClient.token()
 
         val (_, _, result) = "$baseUrl/api/v1/identer?gjeldende=true".httpGet()

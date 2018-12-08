@@ -12,6 +12,7 @@ import io.ktor.request.receive
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.io.ByteReadChannel
 import kotlinx.coroutines.io.jvm.javaio.toInputStream
+import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
@@ -28,6 +29,7 @@ class JsonContentConverter : ContentConverter {
     override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
         val json = when (value) {
             is Map<*, *> -> JSONObject(value)
+            is List<*> -> JSONArray(value)
             else -> JSONObject(value)
         }.toString()
 

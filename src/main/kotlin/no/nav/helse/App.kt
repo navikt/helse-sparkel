@@ -40,6 +40,7 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.PersonV3
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
 import org.slf4j.event.Level
+import redis.clients.jedis.Jedis
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -108,6 +109,15 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
 
     routing {
         authenticate {
+            identMapping{
+                val aktørregisterClient = AktørregisterClient(env.aktørregisterUrl, StsRestClient(
+                        env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
+                ))
+                val cache = RedisCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort)))
+
+                IdentLookup(aktørregisterClient, cache)
+            }
+
             inntekt{
                 val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
                 if (env.allowInsecureSoapRequests) {

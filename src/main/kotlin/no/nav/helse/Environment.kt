@@ -15,6 +15,10 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     val sakOgBehandlingEndpointUrl: String by lazyEnvVar("SAK_OG_BEHANDLING_ENDPOINTURL")
     val jwksUrl: String by lazyEnvVar("JWKS_URL")
     val jwtIssuer: String by lazyEnvVar("JWT_ISSUER")
+    val redisHost: String by lazyEnvVar("REDIS_HOST")
+    val redisPort: String by lazyEnvVar("REDIS_PORT")
+    val aktørregisterUrl: String by lazyEnvVar("AKTORREGISTER_URL")
+    val stsRestUrl: String by lazyEnvVar("SECURITY_TOKEN_SERVICE_REST_URL")
 
     val allowInsecureSoapRequests: Boolean by lazyEnvVar("ALLOW_INSECURE_SOAP_REQUESTS", "false") { value -> "true" == value }
 
