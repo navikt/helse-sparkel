@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import redis.clients.jedis.Jedis
 import java.util.*
 
-class RedisCacheTest {
+class RedisIdentCacheTest {
 
     @Test
     fun `fromIdent should return null when cache is empty`() {
@@ -19,7 +19,7 @@ class RedisCacheTest {
             jedisMock.get("NorskIdent_123456")
         } returns null
 
-        val redisCache = RedisCache(jedisMock)
+        val redisCache = RedisIdentCache(jedisMock)
 
         Assertions.assertNull(redisCache.fromIdent(Ident("123456", IdentType.NorskIdent)))
 
@@ -35,7 +35,7 @@ class RedisCacheTest {
             jedisMock.get("NorskIdent_123456")
         } returns "a uuid"
 
-        val redisCache = RedisCache(jedisMock)
+        val redisCache = RedisIdentCache(jedisMock)
 
         Assertions.assertEquals("a uuid", redisCache.fromIdent(Ident("123456", IdentType.NorskIdent)))
 
@@ -48,7 +48,7 @@ class RedisCacheTest {
     fun `setIdenter should set entry for each ident and one for uuid`() {
         val jedisMock = mockk<Jedis>(relaxed = true)
 
-        val redisCache = RedisCache(jedisMock)
+        val redisCache = RedisIdentCache(jedisMock)
 
         val identer = listOf(
                 Ident("123456", IdentType.NorskIdent),
@@ -72,7 +72,7 @@ class RedisCacheTest {
             jedisMock.get("ident_${anUUID}")
         } returns null
 
-        val redisCache = RedisCache(jedisMock)
+        val redisCache = RedisIdentCache(jedisMock)
 
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             redisCache.fromUUID(anUUID)
@@ -92,7 +92,7 @@ class RedisCacheTest {
             jedisMock.get("ident_${anUUID}")
         } returns "this is not valid json"
 
-        val redisCache = RedisCache(jedisMock)
+        val redisCache = RedisIdentCache(jedisMock)
 
         Assertions.assertThrows(JSONException::class.java) {
             redisCache.fromUUID(anUUID)
@@ -117,7 +117,7 @@ class RedisCacheTest {
             jedisMock.get("ident_${anUUID}")
         } returns JSONArray(identer).toString()
 
-        val redisCache = RedisCache(jedisMock)
+        val redisCache = RedisIdentCache(jedisMock)
 
         val result = redisCache.fromUUID(anUUID)
         Assertions.assertEquals(identer, result)

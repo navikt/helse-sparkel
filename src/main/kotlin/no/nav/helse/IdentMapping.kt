@@ -48,7 +48,7 @@ interface IdentCache {
     fun fromUUID(uuid: String): List<Ident>
 }
 
-class RedisCache(private val client: Jedis): IdentCache {
+class RedisIdentCache(private val client: Jedis): IdentCache {
     override fun fromIdent(ident: Ident): String? {
         log.info("lookup ident=${ident} in redis")
         return client.get("${ident.type.name}_${ident.ident}")?.let {
