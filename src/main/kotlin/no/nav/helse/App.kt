@@ -113,7 +113,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 val aktørregisterClient = AktørregisterClient(env.aktørregisterUrl, StsRestClient(
                         env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
                 ))
-                val cache = RedisCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort)))
+                val cache = RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort)))
 
                 IdentLookup(aktørregisterClient, cache)
             }
