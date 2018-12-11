@@ -13,6 +13,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     val arbeidsforholdEndpointUrl:String by lazyEnvVar("AAREG_ENDPOINTURL")
     val organisasjonEndpointUrl: String by lazyEnvVar("ORGANISASJON_ENDPOINTURL")
     val sakOgBehandlingEndpointUrl: String by lazyEnvVar("SAK_OG_BEHANDLING_ENDPOINTURL")
+    val hentSykePengeListeEndpointUrl: String by lazyEnvVar("HENT_SYKEPENGER_ENDPOINTURL")
     val jwksUrl: String by lazyEnvVar("JWKS_URL")
     val jwtIssuer: String by lazyEnvVar("JWT_ISSUER")
 

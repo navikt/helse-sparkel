@@ -8,7 +8,7 @@ val orgJsonVersion = "20180813"
 val fuelVersion = "1.15.1"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.8.12.kotlin13"
-val tjenestespesifikasjonerVersion = "1.2018.12.06-09.10-d808330f40d2"
+val tjenestespesifikasjonerVersion = "1.2018.12.07-12.38-73cf10f9640d"
 val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
 
@@ -46,6 +46,7 @@ dependencies {
     compile("no.nav.tjenestespesifikasjoner:sakogbehandling-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
     compile("no.nav.tjenestespesifikasjoner:nav-fim-organisasjon-v5-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
     compile("no.nav.tjenestespesifikasjoner:nav-fim-inntekt-v3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
+    compile("no.nav.tjenestespesifikasjoner:nav-hentsykepengeliste-v2-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
 
     testCompile("io.mockk:mockk:$mockkVersion")
     testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")

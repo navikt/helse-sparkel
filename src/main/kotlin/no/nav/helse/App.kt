@@ -31,14 +31,16 @@ import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
+import no.nav.helse.ws.sakogbehandling.sykepengeListe
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient
+import no.nav.helse.ws.sykepenger.SykepengerClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
-import no.nav.tjeneste.virksomhet.organisasjon.v5.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.PersonV3
-import no.nav.tjeneste.virksomhet.sakogbehandling.v1.SakOgBehandling_v1PortType
+import no.nav.tjeneste.virksomhet.sykepenger.v2.binding.SykepengerV2
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
@@ -106,7 +108,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
 
     routing {
         authenticate {
-            inntekt{
+            inntekt {
                 val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -124,9 +126,9 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                         stsClient.configureFor(port)
                     }
                 }
-                    PersonClient(port)
+                PersonClient(port)
             }
-            arbeidsforhold{
+            arbeidsforhold {
                 val port = Clients.createServicePort(env.arbeidsforholdEndpointUrl, ArbeidsforholdV3::class.java)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -135,7 +137,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
                 ArbeidsforholdClient(port)
             }
-            organisasjon{
+            organisasjon {
                 val port = Clients.createServicePort(env.organisasjonEndpointUrl, OrganisasjonV5::class.java)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -144,7 +146,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
                 OrganisasjonClient(port)
             }
-            sakOgBehandling{
+            sakOgBehandling {
                 val port = Clients.createServicePort(env.sakOgBehandlingEndpointUrl, SakOgBehandling_v1PortType::class.java)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -152,6 +154,15 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                     stsClient.configureFor(port)
                 }
                 SakOgBehandlingClient(port)
+            }
+            sykepengeListe {
+                val port = Clients.createServicePort(env.hentSykePengeListeEndpointUrl, SykepengerV2::class.java)
+                if (env.allowInsecureSoapRequests) {
+                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                } else {
+                    stsClient.configureFor(port)
+                }
+                SykepengerClient(port)
             }
         }
 
