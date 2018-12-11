@@ -24,11 +24,7 @@ class SykepengerClient(private val sykepenger: SykepengerV2) {
             .register()
 
     fun finnSykepengeVedtak(aktorId: String, fraOgMed: DateTime, tilOgMed: DateTime): OppslagResult {
-        val request = HentSykepengerListeRequest()
-                .apply { this.ident = aktorId }
-                .apply { this.sykmelding = Periode()
-                        .apply { this.fom = toCal(fraOgMed) }
-                        .apply { this.tom = toCal(tilOgMed) } }
+        val request = createSykepengerListeRequest(aktorId, fraOgMed, tilOgMed)
 
         return try {
             val remoteResult: HentSykepengerListeResponse? = sykepenger.hentSykepengerListe(request)
@@ -39,6 +35,17 @@ class SykepengerClient(private val sykepenger: SykepengerV2) {
             counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
         }
+    }
+    
+    fun createSykepengerListeRequest(aktorId: String, fraOgMed: DateTime, tilOgMed: DateTime): HentSykepengerListeRequest {
+        val request = HentSykepengerListeRequest()
+                .apply { this.ident = aktorId }
+                .apply {
+                    this.sykmelding = Periode()
+                            .apply { this.fom = toCal(fraOgMed) }
+                            .apply { this.tom = toCal(tilOgMed) }
+                }
+        return request
     }
 
     fun toCal(dt: DateTime): XMLGregorianCalendar {
