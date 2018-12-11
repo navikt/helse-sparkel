@@ -41,7 +41,9 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.PersonV3
 import no.nav.tjeneste.virksomhet.sykepenger.v2.binding.SykepengerV2
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
 import org.slf4j.event.Level
+import redis.clients.jedis.Jedis
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -102,13 +104,23 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         }
     }
 
-    val stsClient = stsClient(env.securityTokenServiceEndpointUrl,
-            env.securityTokenUsername to env.securityTokenPassword
-    )
+    val stsClient by lazy {
+        stsClient(env.securityTokenServiceEndpointUrl,
+                env.securityTokenUsername to env.securityTokenPassword
+        )
+    }
 
     routing {
         authenticate {
-            inntekt {
+            identMapping{
+                val aktørregisterClient = AktørregisterClient(env.aktørregisterUrl, StsRestClient(
+                        env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
+                ))
+                val cache = RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort)))
+
+                IdentLookup(aktørregisterClient, cache)
+            }
+            inntekt{
                 val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -146,8 +158,9 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
                 OrganisasjonClient(port)
             }
-            sakOgBehandling {
-                val port = Clients.createServicePort(env.sakOgBehandlingEndpointUrl, SakOgBehandling_v1PortType::class.java)
+
+            sakOgBehandling{
+                val port = Clients.createServicePort(env.sakOgBehandlingEndpointUrl, SakOgBehandlingV1::class.java)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {

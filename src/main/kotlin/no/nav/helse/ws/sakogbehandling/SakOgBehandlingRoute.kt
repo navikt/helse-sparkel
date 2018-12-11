@@ -2,24 +2,28 @@ package no.nav.helse.ws.sakogbehandling
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.receiveParameters
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
+import no.nav.helse.receiveJson
 
 fun Route.sakOgBehandling(factory: () -> SakOgBehandlingClient) {
     val sakOgBehandlingClient by lazy(factory)
 
     post("api/sakogbehandling") {
-        call.receiveParameters()["aktorId"]?.let { aktorId ->
-            val lookupResult: OppslagResult = sakOgBehandlingClient.finnSakOgBehandling(aktorId)
-            when (lookupResult) {
-                is Success<*> -> call.respond(lookupResult.data!!)
-                is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
+        call.receiveJson().let { json ->
+            if (!json.has("aktorId")) {
+                call.respond(HttpStatusCode.BadRequest, "you need to supply aktorId=12345678910")
+            } else {
+                val lookupResult: OppslagResult = sakOgBehandlingClient.finnSakOgBehandling(json.getString("aktorId"))
+                when (lookupResult) {
+                    is Success<*> -> call.respond(lookupResult.data!!)
+                    is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
+                }
             }
-        } ?: call.respond(HttpStatusCode.BadRequest, "you need to supply aktorId")
+        }
     }
 }

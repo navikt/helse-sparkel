@@ -4,12 +4,12 @@ import io.prometheus.client.Counter
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
-import no.nav.tjeneste.virksomhet.sakogbehandling.v1.SakOgBehandling_v1PortType
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.meldinger.FinnSakOgBehandlingskjedeListeRequest
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.meldinger.FinnSakOgBehandlingskjedeListeResponse
 import org.slf4j.LoggerFactory
 
-class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandling_v1PortType) {
+class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandlingV1) {
 
     private val log = LoggerFactory.getLogger("SakOgBehandlingClient")
 
