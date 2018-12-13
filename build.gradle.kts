@@ -13,7 +13,7 @@ val junitJupiterVersion = "5.3.1"
 val mainClass = "no.nav.helse.AppKt"
 
 plugins {
-    kotlin("jvm") version "1.3.10"
+    kotlin("jvm") version "1.3.11"
 }
 
 buildscript {
