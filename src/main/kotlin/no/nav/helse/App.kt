@@ -31,7 +31,7 @@ import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
-import no.nav.helse.ws.sakogbehandling.sykepengeListe
+import no.nav.helse.ws.sykepenger.sykepengeListe
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient

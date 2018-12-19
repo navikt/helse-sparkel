@@ -1,4 +1,4 @@
-package no.nav.helse.ws.sakogbehandling
+package no.nav.helse.ws.sykepenger
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -8,7 +8,6 @@ import io.ktor.routing.get
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
-import no.nav.helse.ws.sykepenger.SykepengerClient
 import org.joda.time.DateTime
 
 fun Route.sykepengeListe(factory: () -> SykepengerClient) {
