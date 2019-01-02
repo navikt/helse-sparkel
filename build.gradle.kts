@@ -10,6 +10,7 @@ val wireMockVersion = "2.19.0"
 val mockkVersion = "1.8.12.kotlin13"
 val tjenestespesifikasjonerVersion = "1.2018.12.07-12.38-73cf10f9640d"
 val junitJupiterVersion = "5.3.1"
+val assertJVersion = "3.11.1"
 val mainClass = "no.nav.helse.AppKt"
 
 plugins {
@@ -55,6 +56,7 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+    testCompile("org.assertj:assertj-core:$assertJVersion")
 
     testCompile("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
