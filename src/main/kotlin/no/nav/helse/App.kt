@@ -49,7 +49,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
-private val authorizedUsers = listOf("srvspinne", "srvsplitt")
+private val authorizedUsers = listOf("srvspinne", "srvspa")
 
 fun main() {
     val env = Environment()
