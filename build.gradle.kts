@@ -84,10 +84,12 @@ tasks.named<Jar>("jar") {
         }.joinToString(separator = " ")
     }
 
-    configurations["compile"].forEach {
-        val file = File("$buildDir/libs/${it.name}")
-        if (!file.exists())
-            it.copyTo(file)
+    doLast {
+        configurations["compile"].forEach {
+            val file = File("$buildDir/libs/${it.name}")
+            if (!file.exists())
+                it.copyTo(file)
+        }
     }
 }
 
