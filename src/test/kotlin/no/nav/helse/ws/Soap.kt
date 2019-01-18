@@ -9,7 +9,7 @@ fun MappingBuilder.withSoapAction(action: String): MappingBuilder {
             .withHeader("SOAPAction", WireMock.equalTo("\"${action}\""))
 }
 
-fun MappingBuilder.withCallId(callId: String): MappingBuilder {
+fun MappingBuilder.withCallId(callId: String = "Sett inn call id her"): MappingBuilder {
     val namespace = mapOf(
             "soap" to "http://schemas.xmlsoap.org/soap/envelope/"
     )
@@ -34,7 +34,14 @@ fun MappingBuilder.withRequestSecurityTokenAssertion(): MappingBuilder {
                     requestSecurityTokenNamespace, WireMock.equalTo("http://docs.oasis-open.org/ws-sx/ws-trust/200512/Bearer")))
 }
 
-fun MappingBuilder.withSamlAssertion(username: String, issuer: String, issuerName: String, digest: String, signature: String, certificate: String): MappingBuilder {
+fun MappingBuilder.withSamlAssertion(
+        username: String = "testusername",
+        issuer: String = "theIssuer",
+        issuerName: String = "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+        digest: String = "digestValue",
+        signature: String = "signatureValue",
+        certificate: String = "certificateValue"
+): MappingBuilder {
     return withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Header/wsse:Security/saml2:Assertion/saml2:Issuer/text()",
             saml2Namespace, WireMock.equalTo(issuer)))
             .withRequestBody(MatchesXPathPattern("//*[local-name()=\"DigestValue\"]/text()",

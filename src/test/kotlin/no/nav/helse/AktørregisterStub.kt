@@ -15,7 +15,7 @@ fun aktørregisterStub(ident: String): MappingBuilder {
         "gjeldende": true
       },
       {
-        "ident": "123456",
+        "ident": "${ident}",
         "identgruppe": "NorskIdent",
         "gjeldende": true
       }

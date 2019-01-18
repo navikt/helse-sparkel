@@ -1,88 +1,86 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Environment
-import no.nav.helse.JwtStub
-import no.nav.helse.assertJsonEquals
-import no.nav.helse.sparkel
-import no.nav.helse.ws.samlAssertionResponse
-import no.nav.helse.ws.stsStub
+import no.nav.helse.*
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
 import org.junit.jupiter.api.*
-
+import kotlin.test.assertEquals
 
 
 class ArbeidsforholdComponentTest {
 
     companion object {
-        val server: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
+        val bootstrap = bootstrapComponentTest()
 
         @BeforeAll
         @JvmStatic
         fun start() {
-            server.start()
+            bootstrap.start()
         }
 
         @AfterAll
         @JvmStatic
         fun stop() {
-            server.stop()
+            bootstrap.stop()
         }
     }
 
-    @BeforeEach
-    fun configure() {
-        WireMock.configureFor(server.port())
-    }
 
     @AfterEach
-    fun `clear prometheus registry`() {
-        CollectorRegistry.defaultRegistry.clear()
+    fun `clear server`() {
+        bootstrap.reset()
     }
 
     @Test
     fun `that response is json`() {
-        val jwtStub = JwtStub("test issuer")
-        val token = jwtStub.createTokenFor("srvspinne")
+        val fnr = "08088806280"
+        val token = bootstrap.jwkStub.createTokenFor("srvspinne")
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")))
 
-        WireMock.stubFor(finnArbeidsforholdPrArbeidstakerStub("08088806280")
-                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")
-                .withCallId("Sett inn call id her")
+
+        WireMock.stubFor(aktørregisterStub(fnr))
+
+        WireMock.stubFor(finnArbeidsforholdPrArbeidstakerStub(fnr)
+                .withSamlAssertion()
+                .withCallId()
                 .willReturn(WireMock.okXml(finnArbeidsforholdPrArbeidstaker_response)))
 
-        val env = Environment(mapOf(
-                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
-                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
-                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
-                "JWT_ISSUER" to "test issuer",
-                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
-        ))
 
-        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
-            handleRequest(HttpMethod.Post, "/api/arbeidsforhold") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
-                setBody("{\"fnr\": \"08088806280\"}")
+        withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
+            handleRequest(HttpMethod.Get, "/api/ident?fnr=$fnr") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                Assertions.assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+                assertEquals(200, response.status()?.value)
+                val identResponse = JSONObject(response.content!!)
+                handleRequest(HttpMethod.Get, "/api/arbeidsforhold?uuid=${identResponse.get("id")}") {
+                    addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                    addHeader(HttpHeaders.Authorization, "Bearer $token")
+                }.apply {
+                    assertEquals(200, response.status()?.value)
+                    assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `that an unknown uuid requests`() {
+        val token = bootstrap.jwkStub.createTokenFor("srvspinne")
+
+        withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold?uuid=123-will-not-be-found") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(404, response.status()?.value)
             }
         }
     }
@@ -113,6 +111,7 @@ private val finnArbeidsforholdPrArbeidstaker_response = """
                </arbeidsavtale>
                <arbeidsgiver xsi:type="ns4:Organisasjon" xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                   <orgnummer>910831143</orgnummer>
+                  <navn>Maxbo</navn>
                </arbeidsgiver>
                <arbeidstaker>
                   <ident>
@@ -143,6 +142,7 @@ private val finnArbeidsforholdPrArbeidstaker_response = """
                </arbeidsavtale>
                <arbeidsgiver xsi:type="ns4:Organisasjon" xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                   <orgnummer>973861778</orgnummer>
+                  <navn>Telenor</navn>
                </arbeidsgiver>
                <arbeidstaker>
                   <ident>
@@ -205,7 +205,8 @@ private val expectedJson = """
       "arbeidsforholdIDnav": 45526756,
       "utenlandsopphold": [],
       "arbeidsgiver": {
-        "orgnummer": "910831143"
+        "orgnummer": "910831143",
+        "navn": "Maxbo"
       },
       "arbeidsforholdstype": {
         "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidsforholdstyper",
@@ -274,7 +275,8 @@ private val expectedJson = """
       "arbeidsforholdIDnav": 45526864,
       "utenlandsopphold": [],
       "arbeidsgiver": {
-        "orgnummer": "973861778"
+        "orgnummer": "973861778",
+        "navn": "Telenor"
       },
       "arbeidsforholdstype": {
         "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidsforholdstyper",

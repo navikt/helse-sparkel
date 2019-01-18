@@ -110,16 +110,19 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         )
     }
 
+    val cache  by lazy { RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort))) }
+    val identLookup by lazy {
+        IdentLookup({
+            AktørregisterClient(env.aktørregisterUrl, StsRestClient(
+                    env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
+            ))
+        }, cache)
+    }
+
     routing {
         authenticate {
             identMapping{
-                val cache = RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort)))
-
-                IdentLookup({
-                    AktørregisterClient(env.aktørregisterUrl, StsRestClient(
-                            env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
-                    ))
-                }, cache)
+                identLookup
             }
             inntekt{
                 val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
@@ -141,15 +144,18 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
                 PersonClient(port)
             }
-            arbeidsforhold {
-                val port = Clients.createServicePort(env.arbeidsforholdEndpointUrl, ArbeidsforholdV3::class.java)
-                if (env.allowInsecureSoapRequests) {
-                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                } else {
-                    stsClient.configureFor(port)
-                }
-                ArbeidsforholdClient(port)
-            }
+            arbeidsforhold(
+                    clientFactory = {
+                        val port = Clients.createServicePort(env.arbeidsforholdEndpointUrl, ArbeidsforholdV3::class.java)
+                        if (env.allowInsecureSoapRequests) {
+                            stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                        } else {
+                            stsClient.configureFor(port)
+                        }
+                        ArbeidsforholdClient(port)
+                    },
+                    identFactory = { identLookup }
+            )
             organisasjon {
                 val port = Clients.createServicePort(env.organisasjonEndpointUrl, OrganisasjonV5::class.java)
                 if (env.allowInsecureSoapRequests) {
