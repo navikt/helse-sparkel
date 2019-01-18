@@ -18,6 +18,7 @@ script:
 - "./gradlew check jar"
 - docker build --pull -t $DOCKER_IMG_NAME:$COMMIT_SHORT .
 - |
+  set -e
   if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then
     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
     docker push $DOCKER_IMG_NAME:$COMMIT_SHORT
