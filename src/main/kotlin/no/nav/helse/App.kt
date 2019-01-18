@@ -36,12 +36,6 @@ import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.sykepenger.SykepengerClient
 import no.nav.helse.ws.sykepenger.sykepengeListe
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
-import no.nav.tjeneste.virksomhet.person.v3.PersonV3
-import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
-import no.nav.tjeneste.virksomhet.sykepenger.v2.binding.SykepengerV2
 import org.slf4j.event.Level
 import redis.clients.jedis.Jedis
 import java.net.URL
@@ -125,7 +119,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 identLookup
             }
             inntekt{
-                val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)
+                val port = Clients.InntektV3(env.inntektEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {
@@ -134,7 +128,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 InntektClient(port)
             }
             person {
-                val port = Clients.createServicePort(env.personEndpointUrl, PersonV3::class.java)
+                val port = Clients.PersonV3(env.personEndpointUrl)
                 port.apply {
                     if (env.allowInsecureSoapRequests) {
                         stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -146,7 +140,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
             }
             arbeidsforhold(
                     clientFactory = {
-                        val port = Clients.createServicePort(env.arbeidsforholdEndpointUrl, ArbeidsforholdV3::class.java)
+                        val port = Clients.ArbeidsforholdV3(env.arbeidsforholdEndpointUrl)
                         if (env.allowInsecureSoapRequests) {
                             stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                         } else {
@@ -157,7 +151,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                     identFactory = { identLookup }
             )
             organisasjon {
-                val port = Clients.createServicePort(env.organisasjonEndpointUrl, OrganisasjonV5::class.java)
+                val port = Clients.OrganisasjonV5(env.organisasjonEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {
@@ -167,7 +161,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
             }
 
             sakOgBehandling{
-                val port = Clients.createServicePort(env.sakOgBehandlingEndpointUrl, SakOgBehandlingV1::class.java)
+                val port = Clients.SakOgBehandlingV1(env.sakOgBehandlingEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {
@@ -176,7 +170,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 SakOgBehandlingClient(port)
             }
             sykepengeListe {
-                val port = Clients.createServicePort(env.hentSykePengeListeEndpointUrl, SykepengerV2::class.java)
+                val port = Clients.SykepengerV2(env.hentSykePengeListeEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {

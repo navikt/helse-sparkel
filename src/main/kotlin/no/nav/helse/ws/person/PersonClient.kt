@@ -7,11 +7,12 @@ import no.nav.helse.Success
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.helse.ws.person.Kjønn.KVINNE
 import no.nav.helse.ws.person.Kjønn.MANN
-import no.nav.tjeneste.virksomhet.person.v3.PersonV3
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.WSNorskIdent
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.WSPersonIdent
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.WSHentPersonRequest
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.WSHentPersonResponse
+import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.NorskIdent
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.PersonIdent
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import javax.xml.datatype.XMLGregorianCalendar
@@ -27,14 +28,15 @@ class PersonClient(private val personV3: PersonV3) {
     private val log = LoggerFactory.getLogger("PersonClient")
 
     fun personInfo(id: Fødselsnummer): OppslagResult {
-        val aktør = WSPersonIdent().apply {
-            ident = WSNorskIdent().apply {
+        val aktør = PersonIdent().apply {
+            ident = NorskIdent().apply {
                 ident = id.value
             }
         }
 
-        val request = WSHentPersonRequest().apply {
+        val request = HentPersonRequest().apply {
             aktoer = aktør
+            informasjonsbehov.add(Informasjonsbehov.ADRESSE)
         }
 
         return try {
@@ -51,7 +53,7 @@ class PersonClient(private val personV3: PersonV3) {
 }
 
 object PersonMapper {
-    fun toPerson(id: Fødselsnummer, response: WSHentPersonResponse): Person {
+    fun toPerson(id: Fødselsnummer, response: HentPersonResponse): Person {
         val tpsPerson = response.person
         response.person.foedselsdato.foedselsdato
         return Person(

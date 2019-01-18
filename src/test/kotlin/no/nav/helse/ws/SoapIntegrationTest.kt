@@ -14,8 +14,13 @@ import no.nav.helse.ws.person.hentPersonStub
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient
-import no.nav.tjeneste.virksomhet.person.v3.PersonV3
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.time.LocalDate
 
 class SoapIntegrationTest {
@@ -52,7 +57,7 @@ class SoapIntegrationTest {
                 "stsUsername" to "stsPassword"
         )
 
-        val port = Clients.createServicePort(server.baseUrl().plus("/person"), PersonV3::class.java)
+        val port = Clients.PersonV3(server.baseUrl().plus("/person"))
         port.apply{stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)}
         val personClient = PersonClient(port)
 
@@ -100,7 +105,7 @@ private val hentPerson_response = """
       <ns2:hentPersonResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
          <response>
             <person xsi:type="ns3:Bruker" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-               <bostedsadresse endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
+               <bostedsadresse>
                   <strukturertAdresse xsi:type="ns3:Gateadresse">
                      <landkode>NOR</landkode>
                      <tilleggsadresseType>Offisiell adresse</tilleggsadresseType>
@@ -110,11 +115,11 @@ private val hentPerson_response = """
                      <husnummer>2</husnummer>
                   </strukturertAdresse>
                </bostedsadresse>
-               <sivilstand endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret" fomGyldighetsperiode="2018-03-01T00:00:00.000+01:00">
-                  <sivilstand>NULL</sivilstand>
+               <sivilstand fomGyldighetsperiode="2018-03-01T00:00:00.000+01:00">
+                  <sivilstand>UGIF</sivilstand>
                </sivilstand>
-               <statsborgerskap endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
-                  <land>NOR</land>
+               <statsborgerskap>
+                  <land>SWE</land>
                </statsborgerskap>
                <aktoer xsi:type="ns3:PersonIdent">
                   <ident>
@@ -125,13 +130,13 @@ private val hentPerson_response = """
                <kjoenn>
                   <kjoenn>K</kjoenn>
                </kjoenn>
-               <personnavn endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
+               <personnavn>
                   <etternavn>LOLNES</etternavn>
                   <fornavn>JENNY</fornavn>
                   <mellomnavn>PIKENES</mellomnavn>
                   <sammensattNavn>LOLNES JENNY PIKENES</sammensattNavn>
                </personnavn>
-               <personstatus endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="SKD" endringstype="endret">
+               <personstatus>
                   <personstatus>BOSA</personstatus>
                </personstatus>
                <foedselsdato>
