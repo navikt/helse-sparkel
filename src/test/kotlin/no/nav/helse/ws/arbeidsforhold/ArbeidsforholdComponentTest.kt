@@ -41,7 +41,7 @@ class ArbeidsforholdComponentTest {
     @Test
     fun `that response is json`() {
         val fnr = "08088806280"
-        val token = bootstrap.jwkStub.createTokenFor("srvspinne")
+        val token = bootstrap.jwkStub.createTokenFor("srvpleiepengesokna")
 
 
 
@@ -73,7 +73,7 @@ class ArbeidsforholdComponentTest {
 
     @Test
     fun `that an unknown uuid requests`() {
-        val token = bootstrap.jwkStub.createTokenFor("srvspinne")
+        val token = bootstrap.jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold?uuid=123-will-not-be-found") {
