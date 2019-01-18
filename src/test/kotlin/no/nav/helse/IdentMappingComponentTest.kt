@@ -210,7 +210,7 @@ class IdentMappingComponentTest {
         ))
 
         WireMock.stubFor(stsRestStub())
-        WireMock.stubFor(aktørregisterStub("654321"))
+        WireMock.stubFor(aktørregisterStub("654321", "654321", "123456"))
 
         withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "api/ident?aktorId=654321") {
@@ -253,7 +253,7 @@ class IdentMappingComponentTest {
         ))
 
         WireMock.stubFor(stsRestStub())
-        WireMock.stubFor(aktørregisterStub("123456"))
+        WireMock.stubFor(aktørregisterStub("123456", "654321", "123456"))
 
         withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "api/ident?fnr=123456") {

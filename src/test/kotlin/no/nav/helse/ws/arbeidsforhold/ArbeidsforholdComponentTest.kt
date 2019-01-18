@@ -45,7 +45,7 @@ class ArbeidsforholdComponentTest {
 
 
 
-        WireMock.stubFor(aktørregisterStub(fnr))
+        WireMock.stubFor(aktørregisterStub(fnr, "12346", fnr))
 
         WireMock.stubFor(finnArbeidsforholdPrArbeidstakerStub(fnr)
                 .withSamlAssertion()
