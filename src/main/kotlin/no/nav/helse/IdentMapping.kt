@@ -9,7 +9,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.Jedis
-import java.util.*
+import java.util.UUID
 
 
 private val log = LoggerFactory.getLogger("IdentMapping")
@@ -85,7 +85,9 @@ class RedisIdentCache(private val client: Jedis): IdentCache {
     }
 }
 
-class IdentLookup(private val aktørregisterClient: AktørregisterClient, private val cache: IdentCache) {
+class IdentLookup(aktørregisterClientFactory: () -> AktørregisterClient, private val cache: IdentCache) {
+
+    private val aktørregisterClient by lazy(aktørregisterClientFactory)
 
     fun fromIdent(ident: Ident): String {
         log.info("lookup ident=${ident}")

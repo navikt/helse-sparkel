@@ -31,21 +31,21 @@ import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
-import no.nav.helse.ws.sykepenger.sykepengeListe
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
 import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.sykepenger.SykepengerClient
+import no.nav.helse.ws.sykepenger.sykepengeListe
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.PersonV3
-import no.nav.tjeneste.virksomhet.sykepenger.v2.binding.SykepengerV2
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
+import no.nav.tjeneste.virksomhet.sykepenger.v2.binding.SykepengerV2
 import org.slf4j.event.Level
 import redis.clients.jedis.Jedis
 import java.net.URL
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
@@ -113,12 +113,13 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
     routing {
         authenticate {
             identMapping{
-                val aktørregisterClient = AktørregisterClient(env.aktørregisterUrl, StsRestClient(
-                        env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
-                ))
                 val cache = RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort)))
 
-                IdentLookup(aktørregisterClient, cache)
+                IdentLookup({
+                    AktørregisterClient(env.aktørregisterUrl, StsRestClient(
+                            env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
+                    ))
+                }, cache)
             }
             inntekt{
                 val port = Clients.createServicePort(env.inntektEndpointUrl, InntektV3::class.java)

@@ -31,7 +31,7 @@ class IdentLookupTest {
             identCacheMock.setIdenter(identer)
         } returns "a uuid"
 
-        val lookup = IdentLookup(aktørregisterClientMock, identCacheMock)
+        val lookup = IdentLookup({aktørregisterClientMock}, identCacheMock)
 
         Assertions.assertEquals("a uuid", lookup.fromIdent(ident))
 
@@ -51,7 +51,7 @@ class IdentLookupTest {
             identCacheMock.fromIdent(ident)
         } returns "a uuid"
 
-        val lookup = IdentLookup(aktørregisterClientMock, identCacheMock)
+        val lookup = IdentLookup({aktørregisterClientMock}, identCacheMock)
 
         Assertions.assertEquals("a uuid", lookup.fromIdent(ident))
     }
