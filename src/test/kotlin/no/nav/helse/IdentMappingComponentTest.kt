@@ -10,7 +10,12 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import redis.clients.jedis.Jedis
 import redis.embedded.RedisServer
 import kotlin.random.Random
@@ -63,6 +68,26 @@ class IdentMappingComponentTest {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {
                 Assertions.assertEquals(400, response.status()?.value)
+            }
+        }
+    }
+
+    @Test
+    fun `invalid uuid should error`() {
+        val jwtStub = JwtStub("test issuer")
+        val token = jwtStub.createTokenFor("srvspinne")
+
+        val env = Environment(mapOf(
+                "JWT_ISSUER" to "test issuer",
+                "REDIS_HOST" to "localhost",
+                "REDIS_PORT" to redisServer.ports().first().toString()
+        ))
+
+        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
+            handleRequest(HttpMethod.Get, "api/ident?uuid=thisdoesnotexist") {
+                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+            }.apply {
+                Assertions.assertEquals(404, response.status()?.value)
             }
         }
     }
@@ -185,7 +210,7 @@ class IdentMappingComponentTest {
         ))
 
         WireMock.stubFor(stsRestStub())
-        WireMock.stubFor(aktørregisterStub("654321"))
+        WireMock.stubFor(aktørregisterStub("654321", "654321", "123456"))
 
         withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "api/ident?aktorId=654321") {
@@ -228,7 +253,7 @@ class IdentMappingComponentTest {
         ))
 
         WireMock.stubFor(stsRestStub())
-        WireMock.stubFor(aktørregisterStub("123456"))
+        WireMock.stubFor(aktørregisterStub("123456", "654321", "123456"))
 
         withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "api/ident?fnr=123456") {

@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.util.UUID
 import kotlin.test.fail
 
 class IdentMappingTest {
@@ -14,7 +14,7 @@ class IdentMappingTest {
     fun `should throw exception if not found`() {
         val mock = mockk<AktørregisterClient>()
 
-        val cache = IdentLookup(mock, InMemoryCache())
+        val cache = IdentLookup({mock}, InMemoryCache())
 
         try {
             cache.fromUUID("foobar")
@@ -33,7 +33,7 @@ class IdentMappingTest {
             mock.gjeldendeIdenter("12345")
         } returns expectedList
 
-        val cache = IdentLookup(mock, InMemoryCache())
+        val cache = IdentLookup({mock}, InMemoryCache())
 
         val ident = Ident("12345", IdentType.NorskIdent)
 
@@ -53,7 +53,7 @@ class IdentMappingTest {
             mock.gjeldendeIdenter("12345")
         } returns expectedList
 
-        val cache = IdentLookup(mock, InMemoryCache())
+        val cache = IdentLookup({mock}, InMemoryCache())
 
         val ident = Ident("12345", IdentType.NorskIdent)
 
@@ -69,7 +69,7 @@ class IdentMappingTest {
             mock.gjeldendeIdenter("12345")
         } returns expectedList
 
-        val cache = IdentLookup(mock, InMemoryCache())
+        val cache = IdentLookup({mock}, InMemoryCache())
 
         val norskIdent = Ident("12345", IdentType.NorskIdent)
         Assertions.assertEquals(cache.fromIdent(norskIdent), cache.fromIdent(norskIdent))
