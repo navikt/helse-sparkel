@@ -40,7 +40,7 @@ dependencies {
     compile("org.apache.cxf:cxf-rt-ws-policy:$cxfVersion")
     compile("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     compile("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
-    testCompile("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
+    compile("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
 
     compile("com.sun.xml.ws:jaxws-rt:2.3.0")
     compile("no.nav.tjenestespesifikasjoner:arbeidsforholdv3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
