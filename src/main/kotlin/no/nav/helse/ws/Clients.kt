@@ -3,6 +3,7 @@ package no.nav.helse.ws
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.InfotrygdSakV1
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.medlemskap.v2.MedlemskapV2
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
@@ -41,6 +42,15 @@ object Clients {
                 namespace = "http://nav.no/tjeneste/virksomhet/infotrygdBeregningsgrunnlag/v1/Binding",
                 svcName = "infotrygdBeregningsgrunnlag_v1",
                 portName = "infotrygdBeregningsgrunnlag_v1Port")
+    }
+
+    fun InfotrygdSakV1(serviceUrl: String): InfotrygdSakV1 {
+        return createServicePort(serviceUrl,
+                serviceClazz = InfotrygdSakV1::class.java,
+                wsdl = "wsdl/no/nav/tjeneste/virksomhet/infotrygdSak/v1/Binding.wsdl",
+                namespace = "http://nav.no/tjeneste/virksomhet/infotrygdSak/v1/Binding",
+                svcName = "InfotrygdSak_v1",
+                portName = "infotrygdSak_v1Port")
     }
 
     fun InntektV3(serviceUrl: String): InntektV3 {
