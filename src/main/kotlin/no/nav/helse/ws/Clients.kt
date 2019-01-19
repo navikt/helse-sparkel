@@ -3,6 +3,7 @@ package no.nav.helse.ws
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
+import no.nav.tjeneste.virksomhet.medlemskap.v2.MedlemskapV2
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
@@ -39,6 +40,15 @@ object Clients {
                 namespace = "http://nav.no/tjeneste/virksomhet/inntekt/v3/Binding",
                 svcName = "Inntekt_v3",
                 portName = "Inntekt_v3Port")
+    }
+
+    fun MedlemskapV2(serviceUrl: String): MedlemskapV2 {
+        return createServicePort(serviceUrl,
+                serviceClazz = MedlemskapV2::class.java,
+                wsdl = "wsdl/no/nav/tjeneste/virksomhet/medlemskap/v2/MedlemskapV2.wsdl",
+                namespace = "http://nav.no/tjeneste/virksomhet/medlemskap/v2",
+                svcName = "Medlemskap_v2",
+                portName = "Medlemskap_v2Port")
     }
 
     fun OrganisasjonV5(serviceUrl: String): OrganisasjonV5 {

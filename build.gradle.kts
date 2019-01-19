@@ -47,6 +47,7 @@ dependencies {
     compile("com.sun.xml.ws:jaxws-rt:2.3.0")
     compile(tjenestespesifikasjon("arbeidsfordeling-v1-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("arbeidsforholdv3-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("nav-medlemskap-v2-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("person-v3-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("sakogbehandling-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("nav-fim-organisasjon-v5-tjenestespesifikasjon"))
