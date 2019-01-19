@@ -1,5 +1,6 @@
 package no.nav.helse.ws
 
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
@@ -12,6 +13,15 @@ import org.apache.cxf.ws.addressing.WSAddressingFeature
 import javax.xml.namespace.QName
 
 object Clients {
+
+    fun ArbeidsfordelingV1(serviceUrl: String): ArbeidsfordelingV1 {
+        return createServicePort(serviceUrl,
+                serviceClazz = ArbeidsfordelingV1::class.java,
+                wsdl = "wsdl/no/nav/tjeneste/virksomhet/arbeidsfordeling/v1/Binding.wsdl",
+                namespace = "http://nav.no/tjeneste/virksomhet/arbeidsfordeling/v1/Binding",
+                svcName = "Arbeidsfordeling_v1",
+                portName = "Arbeidsfordeling_v1Port")
+    }
 
     fun ArbeidsforholdV3(serviceUrl: String): ArbeidsforholdV3 {
         return createServicePort(serviceUrl,

@@ -13,6 +13,8 @@ val junitJupiterVersion = "5.3.1"
 val assertJVersion = "3.11.1"
 val mainClass = "no.nav.helse.AppKt"
 
+fun tjenestespesifikasjon(name: String) = "no.nav.tjenestespesifikasjoner:$name:$tjenestespesifikasjonerVersion"
+
 plugins {
     kotlin("jvm") version "1.3.11"
 }
@@ -43,12 +45,13 @@ dependencies {
     compile("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
 
     compile("com.sun.xml.ws:jaxws-rt:2.3.0")
-    compile("no.nav.tjenestespesifikasjoner:arbeidsforholdv3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
-    compile("no.nav.tjenestespesifikasjoner:person-v3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
-    compile("no.nav.tjenestespesifikasjoner:sakogbehandling-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
-    compile("no.nav.tjenestespesifikasjoner:nav-fim-organisasjon-v5-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
-    compile("no.nav.tjenestespesifikasjoner:nav-fim-inntekt-v3-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
-    compile("no.nav.tjenestespesifikasjoner:nav-hentsykepengeliste-v2-tjenestespesifikasjon:$tjenestespesifikasjonerVersion")
+    compile(tjenestespesifikasjon("arbeidsfordeling-v1-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("arbeidsforholdv3-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("person-v3-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("sakogbehandling-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("nav-fim-organisasjon-v5-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("nav-fim-inntekt-v3-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("nav-hentsykepengeliste-v2-tjenestespesifikasjon"))
 
     testCompile("com.github.kstyrc:embedded-redis:0.6")
     testCompile("io.mockk:mockk:$mockkVersion")
