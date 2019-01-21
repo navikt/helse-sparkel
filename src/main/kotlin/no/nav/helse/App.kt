@@ -106,12 +106,16 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         )
     }
 
+    val aktørregisterClient by lazy {
+        AktørregisterClient(env.aktørregisterUrl, StsRestClient(
+                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
+        ))
+    }
+
     val cache  by lazy { RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort))) }
     val identLookup by lazy {
         IdentLookup({
-            AktørregisterClient(env.aktørregisterUrl, StsRestClient(
-                    env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
-            ))
+            aktørregisterClient
         }, cache)
     }
 
@@ -150,7 +154,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                         }
                         ArbeidsforholdClient(port)
                     },
-                    identFactory = { identLookup }
+                    aktørregisterClientFactory = { aktørregisterClient }
             )
             organisasjon {
                 val port = Clients.OrganisasjonV5(env.organisasjonEndpointUrl)
