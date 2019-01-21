@@ -11,10 +11,9 @@ import no.nav.helse.Success
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-fun Route.inntekt(factory: () -> MeldekortClient) {
+fun Route.meldekort(factory: () -> MeldekortClient) {
     val client: MeldekortClient by lazy(factory)
 
-    // api/meldekort?aktøid=32&fom=4&tom=43
     get("api/meldekort/") {
         if (listOf("aktorId", "fom", "tom").all(call.request.queryParameters::contains)) {
             val aktorId = call.request.queryParameters["aktorId"]!!
