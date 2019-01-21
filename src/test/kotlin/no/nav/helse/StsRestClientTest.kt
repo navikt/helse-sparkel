@@ -165,8 +165,6 @@ class StsRestClientTest {
         // get the new one
         val token2 = client.samlToken()
 
-        println(token1)
-
         assertTrue(token1.contains("<saml2:Conditions NotBefore=\"2018-11-28T09:53:02.322Z\" NotOnOrAfter=\"2018-11-28T10:53:02.322Z\"/>"))
 
         assertNotEquals(token1, token2)

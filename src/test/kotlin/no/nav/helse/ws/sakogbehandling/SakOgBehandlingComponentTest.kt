@@ -79,8 +79,6 @@ class SakOgBehandlingComponentTest {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
                 setBody("{\"aktorId\": \"1242536513046\"}")
             }.apply {
-                println(response.content)
-
                 Assertions.assertEquals(200, response.status()?.value)
                 assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
             }
