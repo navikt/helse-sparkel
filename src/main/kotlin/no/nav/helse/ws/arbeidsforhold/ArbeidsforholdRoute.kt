@@ -7,45 +7,28 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.*
 import no.nav.helse.ws.Fødselsnummer
-
-private const val UUID_QUERY_PARAMETER = "uuid"
+import java.time.LocalDate
 
 fun Route.arbeidsforhold(
         clientFactory: () -> ArbeidsforholdClient,
-        identFactory: () -> IdentLookup
+        aktørregisterClientFactory: () -> AktørregisterClient
 ) {
     val arbeidsforholdClient by lazy(clientFactory)
-    val identLookup by lazy(identFactory)
+    val aktørregisterClient by lazy(aktørregisterClientFactory)
 
-    fun getFnrFromUuid(uuid : String) : Fødselsnummer? {
-        try {
-            val idents = identLookup.fromUUID(uuid)
-            for (ident in idents) {
-                if (IdentType.NorskIdent == ident.type) {
-                    return Fødselsnummer(ident.ident)
-                }
-            }
-            return null
-        } catch (cause : IllegalArgumentException) {
-            return null
-        }
-
-    }
-
-    get("api/arbeidsforhold") {
-        if (!call.request.queryParameters.contains(UUID_QUERY_PARAMETER)) {
-            call.respond(HttpStatusCode.BadRequest, "you need to supply query parameter $UUID_QUERY_PARAMETER")
+    get("api/arbeidsforhold/{aktorId}") {
+        if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
+            call.respond(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom")
         } else {
-            val uuid = call.request.queryParameters[UUID_QUERY_PARAMETER]!!
-            val fnr = getFnrFromUuid(uuid)
-            if (fnr == null) {
-                call.respond(HttpStatusCode.NotFound, "No match on uuid '$uuid'")
-            } else {
-                val lookupResult: OppslagResult = arbeidsforholdClient.finnArbeidsforholdForFnr(fnr)
-                when (lookupResult) {
-                    is Success<*> -> call.respond(lookupResult.data!!)
-                    is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
-                }
+            val fom = LocalDate.parse(call.request.queryParameters["fom"]!!)
+            val tom = LocalDate.parse(call.request.queryParameters["tom"]!!)
+
+            val fnr = Fødselsnummer(aktørregisterClient.gjeldendeNorskIdent(call.parameters["aktorId"]!!))
+
+            val lookupResult: OppslagResult = arbeidsforholdClient.finnArbeidsforhold(fnr, fom, tom)
+            when (lookupResult) {
+                is Success<*> -> call.respond(lookupResult.data!!)
+                is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
             }
         }
     }

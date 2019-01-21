@@ -25,6 +25,8 @@ import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.inntekt.InntektClient
 import no.nav.helse.ws.inntekt.inntekt
+import no.nav.helse.ws.meldekort.MeldekortClient
+import no.nav.helse.ws.meldekort.meldekort
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.organisasjon
 import no.nav.helse.ws.person.PersonClient
@@ -104,12 +106,16 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         )
     }
 
+    val aktørregisterClient by lazy {
+        AktørregisterClient(env.aktørregisterUrl, StsRestClient(
+                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
+        ))
+    }
+
     val cache  by lazy { RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort))) }
     val identLookup by lazy {
         IdentLookup({
-            AktørregisterClient(env.aktørregisterUrl, StsRestClient(
-                    env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
-            ))
+            aktørregisterClient
         }, cache)
     }
 
@@ -148,7 +154,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                         }
                         ArbeidsforholdClient(port)
                     },
-                    identFactory = { identLookup }
+                    aktørregisterClientFactory = { aktørregisterClient }
             )
             organisasjon {
                 val port = Clients.OrganisasjonV5(env.organisasjonEndpointUrl)
@@ -177,6 +183,15 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                     stsClient.configureFor(port)
                 }
                 SykepengerClient(port)
+            }
+            meldekort {
+                val port = Clients.MeldekortUtbetalingsgrunnlagV1(env.meldekortEndpointUrl)
+                if (env.allowInsecureSoapRequests) {
+                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                } else {
+                    stsClient.configureFor(port)
+                }
+                MeldekortClient(port)
             }
         }
 

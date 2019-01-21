@@ -6,6 +6,8 @@ import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.Infotry
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.InfotrygdSakV1
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.medlemskap.v2.MedlemskapV2
+import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
+import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.Meldekort
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
@@ -105,6 +107,15 @@ object Clients {
                 namespace = "http://nav.no/tjeneste/virksomhet/sykepenger/v2/Binding",
                 svcName = "Sykepenger_v2",
                 portName = "Sykepenger_v2Port")
+    }
+
+    fun MeldekortUtbetalingsgrunnlagV1(serviceUrl: String): MeldekortUtbetalingsgrunnlagV1 {
+        return createServicePort(serviceUrl,
+                serviceClazz = MeldekortUtbetalingsgrunnlagV1::class.java,
+                wsdl = "wsdl/no/nav/tjeneste/virksomhet/meldekortUtbetalingsgrunnlag/v1/Binding.wsdl",
+                namespace = "http://nav.no/tjeneste/virksomhet/meldekortUtbetalingsgrunnlag/v1/Binding",
+                svcName = "MeldekortUtbetalingsgrunnlag_v1",
+                portName = "meldekortUtbetalingsgrunnlag_v1Port")
     }
 
     fun <PORT_TYPE> createServicePort(serviceUrl: String, serviceClazz: Class<PORT_TYPE>, wsdl: String, namespace: String, svcName: String, portName: String): PORT_TYPE {
