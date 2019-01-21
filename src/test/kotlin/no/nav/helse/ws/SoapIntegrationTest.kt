@@ -68,7 +68,7 @@ class SoapIntegrationTest {
                 .whenScenarioStateIs(Scenario.STARTED)
                 .willSetStateTo("token acquired"))
 
-        WireMock.stubFor(hentPersonStub("08078422069")
+        WireMock.stubFor(hentPersonStub("1234567891011")
                 .withSamlAssertion("username", "issuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digest", "signature", "certificate")
                 .willReturn(WireMock.ok(hentPerson_response))
@@ -76,9 +76,9 @@ class SoapIntegrationTest {
                 .whenScenarioStateIs("token acquired")
                 .willSetStateTo("personInfo called"))
 
-        val actual = personClient.personInfo(Fødselsnummer("08078422069"))
+        val actual = personClient.personInfo(AktørId("1234567891011"))
         val expected = Person(
-                id = Fødselsnummer("08078422069"),
+                id = AktørId("1234567891011"),
                 fornavn = "JENNY",
                 mellomnavn = "PIKENES",
                 etternavn = "LOLNES",
@@ -120,11 +120,8 @@ private val hentPerson_response = """
                <statsborgerskap>
                   <land>SWE</land>
                </statsborgerskap>
-               <aktoer xsi:type="ns3:PersonIdent">
-                  <ident>
-                     <ident>08078422069</ident>
-                     <type>FNR</type>
-                  </ident>
+               <aktoer xsi:type="ns3:AktoerId">
+                  <aktoerId>1234567891011</aktoerId>
                </aktoer>
                <kjoenn>
                   <kjoenn>K</kjoenn>

@@ -8,7 +8,7 @@ import no.nav.helse.ws.withSoapAction
 fun hentPersonStub(ident: String): MappingBuilder {
     return WireMock.post(WireMock.urlPathEqualTo("/person"))
             .withSoapAction("http://nav.no/tjeneste/virksomhet/person/v3/Person_v3/hentPersonRequest")
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/ns2:hentPerson/request/aktoer/ident/ident/text()",
+            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/ns2:hentPerson/request/aktoer/aktoerId/text()",
                     personNamespace, WireMock.equalTo(ident)))
 }
 

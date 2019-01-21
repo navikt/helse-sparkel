@@ -1,11 +1,8 @@
 package no.nav.helse.ws.person
 
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentEkteskapshistorikkRequest
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentEkteskapshistorikkResponse
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningRequest
@@ -47,6 +44,9 @@ class PersonV3Stub: PersonV3 {
                     month = 11
                     day = 19
                 }
+            }
+            aktoer = AktoerId().apply {
+                aktoerId = "1234567891011"
             }
         }
 

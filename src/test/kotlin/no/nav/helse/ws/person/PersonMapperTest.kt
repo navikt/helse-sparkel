@@ -1,11 +1,8 @@
 package no.nav.helse.ws.person
 
-import no.nav.helse.ws.Fødselsnummer
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
+import no.nav.helse.ws.*
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -17,21 +14,21 @@ class PersonMapperTest {
     @Test
     fun personMappingMann() {
         val tpsMann = mannResponse()
-        val id = Fødselsnummer("12345678910")
+        val id = AktørId("1234567891011")
         val expected = no.nav.helse.ws.person.Person(
                 id = id,
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
                 fdato = LocalDate.of(2018, 11, 20),
                 kjønn = Kjønn.MANN)
-        val actual = PersonMapper.toPerson(id, tpsMann)
+        val actual = PersonMapper.toPerson(tpsMann)
         assertEquals(expected, actual)
     }
 
     @Test
     fun personMappingKvinne() {
         val tpsKvinne = kvinneResponse()
-        val id = Fødselsnummer("12345678910")
+        val id = AktørId("1234567891011")
         val expected = no.nav.helse.ws.person.Person(
                 id = id,
                 fornavn = "Leonora",
@@ -39,7 +36,7 @@ class PersonMapperTest {
                 etternavn = "Dahl",
                 fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.KVINNE)
-        val actual = PersonMapper.toPerson(id, tpsKvinne)
+        val actual = PersonMapper.toPerson(tpsKvinne)
         assertEquals(expected, actual)
     }
 
@@ -52,6 +49,9 @@ class PersonMapperTest {
                     kjoenn = Kjoennstyper().apply {
                         value = "M"
                     }
+                }
+                aktoer = AktoerId().apply {
+                    aktoerId = "1234567891011"
                 }
             }
             foedselsdato = Foedselsdato().apply {
@@ -76,6 +76,9 @@ class PersonMapperTest {
                     kjoenn = Kjoennstyper().apply {
                         value = "K"
                     }
+                }
+                aktoer = AktoerId().apply {
+                    aktoerId = "1234567891011"
                 }
                 foedselsdato = Foedselsdato().apply {
                     foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {

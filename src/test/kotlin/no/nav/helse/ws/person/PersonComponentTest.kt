@@ -62,7 +62,7 @@ class PersonComponentTest {
         WireMock.stubFor(stsStub("stsUsername", "stsPassword")
                 .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")))
-        WireMock.stubFor(hentPersonStub("08078422069")
+        WireMock.stubFor(hentPersonStub("1234567891011")
                 .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")
                 .withCallId("Sett inn call id her")
@@ -81,10 +81,10 @@ class PersonComponentTest {
             handleRequest(HttpMethod.Post, "/api/person") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
-                setBody("{\"fnr\": \"08078422069\"}")
+                setBody("{\"aktor\": \"1234567891011\"}")
             }.apply {
                 Assertions.assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONObject("{\"fdato\":\"1984-07-08\",\"etternavn\":\"LOLNES\",\"mellomnavn\":\"PIKENES\",\"id\":{\"value\":\"08078422069\"},\"fornavn\":\"JENNY\",\"kjønn\":\"KVINNE\"}"), JSONObject(response.content))
+                assertJsonEquals(JSONObject("{\"fdato\":\"1984-07-08\",\"etternavn\":\"LOLNES\",\"mellomnavn\":\"PIKENES\",\"id\":{\"aktor\":\"1234567891011\"},\"fornavn\":\"JENNY\",\"kjønn\":\"KVINNE\"}"), JSONObject(response.content))
             }
         }
     }
@@ -116,11 +116,8 @@ private val hentPerson_response = """
                <statsborgerskap endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
                   <land>NOR</land>
                </statsborgerskap>
-               <aktoer xsi:type="ns3:PersonIdent">
-                  <ident>
-                     <ident>08078422069</ident>
-                     <type>FNR</type>
-                  </ident>
+               <aktoer xsi:type="ns3:AktoerId">
+                  <aktoerId>1234567891011</aktoerId>
                </aktoer>
                <kjoenn>
                   <kjoenn>K</kjoenn>

@@ -4,13 +4,11 @@ import io.prometheus.client.Counter
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.*
 import no.nav.helse.ws.person.Kjønn.KVINNE
 import no.nav.helse.ws.person.Kjønn.MANN
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.NorskIdent
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.PersonIdent
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.slf4j.LoggerFactory
@@ -27,22 +25,19 @@ class PersonClient(private val personV3: PersonV3) {
 
     private val log = LoggerFactory.getLogger("PersonClient")
 
-    fun personInfo(id: Fødselsnummer): OppslagResult {
-        val aktør = PersonIdent().apply {
-            ident = NorskIdent().apply {
-                ident = id.value
-            }
+    fun personInfo(id: AktørId): OppslagResult {
+        val aktør = AktoerId().apply {
+            aktoerId = id.aktor
         }
 
         val request = HentPersonRequest().apply {
             aktoer = aktør
-            informasjonsbehov.add(Informasjonsbehov.ADRESSE)
         }
 
         return try {
             val tpsResponse = personV3.hentPerson(request)
             counter.labels("success").inc()
-            Success(PersonMapper.toPerson(id, tpsResponse))
+            Success(PersonMapper.toPerson(tpsResponse))
         } catch (ex: Exception) {
             log.error("Error while doing person lookup", ex)
             counter.labels("failure").inc()
@@ -53,11 +48,12 @@ class PersonClient(private val personV3: PersonV3) {
 }
 
 object PersonMapper {
-    fun toPerson(id: Fødselsnummer, response: HentPersonResponse): Person {
+    fun toPerson(response: HentPersonResponse): Person {
         val tpsPerson = response.person
         response.person.foedselsdato.foedselsdato
+
         return Person(
-                id,
+                AktørId((tpsPerson.aktoer as AktoerId).aktoerId),
                 tpsPerson.personnavn.fornavn,
                 tpsPerson.personnavn.mellomnavn,
                 tpsPerson.personnavn.etternavn,
@@ -76,7 +72,7 @@ enum class Kjønn {
 }
 
 data class Person(
-        val id: Fødselsnummer,
+        val id: AktørId,
         val fornavn: String,
         val mellomnavn: String? = null,
         val etternavn: String,
