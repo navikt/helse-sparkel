@@ -55,6 +55,7 @@ dependencies {
     compile(tjenestespesifikasjon("nav-fim-organisasjon-v5-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("nav-fim-inntekt-v3-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("nav-hentsykepengeliste-v2-tjenestespesifikasjon"))
+    compile(tjenestespesifikasjon("nav-meldekortUtbetalingsgrunnlag-v1-tjenestespesifikasjon"))
 
     testCompile("com.github.kstyrc:embedded-redis:0.6")
     testCompile("io.mockk:mockk:$mockkVersion")
