@@ -14,7 +14,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Ignore
 import org.junit.jupiter.api.*
-import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -73,22 +72,14 @@ class ArbeidsforholdComponentTest {
                 .willSetStateTo("andre_arbeidsforholdhistorikk_hentet")
                 .willReturn(WireMock.okXml(hentArbeidsforholdHistorikk_response2)))
 
-        try {
-
-            withTestApplication({ sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider()) }) {
-                handleRequest(HttpMethod.Get, "/api/arbeidsforhold/1831212532188?fom=2017-01-01&tom=2019-01-01") {
-                    addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                    addHeader(HttpHeaders.Authorization, "Bearer $token")
-                }.apply {
-                    assertEquals(200, response.status()?.value)
-                    assertJsonEquals(JSONArray(expectedJson), JSONArray(response.content))
-                }
+        withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/1831212532188?fom=2017-01-01&tom=2019-01-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(200, response.status()?.value)
+                assertJsonEquals(JSONArray(expectedJson), JSONArray(response.content))
             }
-        } catch (e : IllegalArgumentException) {
-            println("FEILFEILFEIL");
-            e.printStackTrace();
-            println("FEILIllegalArgumentExceptionFEIL");
-            throw e;
         }
     }
 }
