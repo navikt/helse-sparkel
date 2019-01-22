@@ -16,6 +16,7 @@ val mainClass = "no.nav.helse.AppKt"
 fun tjenestespesifikasjon(name: String) = "no.nav.tjenestespesifikasjoner:$name:$tjenestespesifikasjonerVersion"
 
 plugins {
+    id("com.gradle.build-scan") version "2.1"
     kotlin("jvm") version "1.3.11"
 }
 
@@ -27,6 +28,7 @@ buildscript {
 
 dependencies {
     compile(kotlin("stdlib"))
+    compile("com.google.guava:guava:20.0")
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("net.logstash.logback:logstash-logback-encoder:5.2")
     compile("io.ktor:ktor-server-netty:$ktorVersion")
@@ -79,6 +81,11 @@ repositories {
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+}
+
+buildScan {
+    setTermsOfServiceUrl("https://gradle.com/terms-of-service")
+    setTermsOfServiceAgree("yes")
 }
 
 tasks.named<Jar>("jar") {
