@@ -480,33 +480,6 @@ private val expectedJson = """
           "kodeRef": "8323102",
           "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
         },
-        "endringstidspunkt": "2018-01-05T13:31:11.177+01:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2017-12-01+01:00",
-        "fomGyldighetsperiode": "2017-12-01T00:00:00.000+01:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2018-01-05+01:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      },
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000972417562",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
         "tomGyldighetsperiode": "2017-11-30T00:00:00.000+01:00",
         "endringstidspunkt": "2018-01-05T13:31:11.170+01:00",
         "stillingsprosent": 100,
@@ -678,33 +651,6 @@ private val expectedJson = """
       "orgnummer": "984054564"
     },
     "arbeidsavtale": [
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-001041599767",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "endringstidspunkt": "2018-02-07T11:44:40.548+01:00",
-        "stillingsprosent": 0,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2015-09-19+02:00",
-        "fomGyldighetsperiode": "2018-01-01T00:00:00.000+01:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2018-02-07+01:00",
-        "beregnetAntallTimerPrUke": 0,
-        "applikasjonsID": "EDAG"
-      },
       {
         "endretAv": "srvappserver",
         "opphavREF": "eda00000-0000-0000-0000-001041599767",
