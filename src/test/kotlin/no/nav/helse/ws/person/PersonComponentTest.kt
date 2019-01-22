@@ -1,30 +1,17 @@
 package no.nav.helse.ws.person
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
-import io.ktor.server.testing.withTestApplication
-import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Environment
-import no.nav.helse.JwtStub
-import no.nav.helse.assertJsonEquals
-import no.nav.helse.sparkel
-import no.nav.helse.ws.samlAssertionResponse
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
-import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import com.github.tomakehurst.wiremock.*
+import com.github.tomakehurst.wiremock.client.*
+import com.github.tomakehurst.wiremock.core.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import io.prometheus.client.*
+import junit.framework.Assert.*
+import no.nav.helse.*
+import no.nav.helse.ws.*
+import org.json.*
+import org.junit.jupiter.api.*
+import java.time.*
 
 class PersonComponentTest {
 
@@ -55,7 +42,7 @@ class PersonComponentTest {
     }
 
     @Test
-    fun `that response is json`() {
+    fun `person lookup responds with json`() {
         val jwtStub = JwtStub("test issuer")
         val token = jwtStub.createTokenFor("srvspinne")
 
@@ -81,8 +68,44 @@ class PersonComponentTest {
             handleRequest(HttpMethod.Get, "/api/person/1234567891011") {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {
-                Assertions.assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONObject("{\"fdato\":\"1984-07-08\",\"etternavn\":\"LOLNES\",\"mellomnavn\":\"PIKENES\",\"id\":{\"aktor\":\"1234567891011\"},\"fornavn\":\"JENNY\",\"kjønn\":\"KVINNE\"}"), JSONObject(response.content))
+                assertEquals(200, response.status()?.value)
+                assertJsonEquals(JSONObject("""{"fdato":"1984-07-08","etternavn":"LOLNES","mellomnavn":"PIKENES","id":{"aktor":"1234567891011"},"fornavn":"JENNY","kjønn":"KVINNE"}"""), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `person history lookup responds with json`() {
+        val jwtStub = JwtStub("test issuer")
+        val token = jwtStub.createTokenFor("srvspinne")
+        val now = LocalDate.now()
+
+        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
+                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+                        "digestValue", "signatureValue", "certificateValue")))
+        WireMock.stubFor(hentPersonhistorikkStub("1234567891011", now.minusMonths(12), now)
+                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
+                        "digestValue", "signatureValue", "certificateValue")
+                .withCallId("Sett inn call id her")
+                .willReturn(WireMock.ok(hentPersonhistorikk_response)))
+
+        val env = Environment(mapOf(
+                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
+                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
+                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
+                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
+                "JWT_ISSUER" to "test issuer",
+                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
+        ))
+
+        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
+            handleRequest(HttpMethod.Get, "/api/person/1234567891011/history") {
+                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+            }.apply {
+                assertEquals(200, response.status()?.value)
+                val expectedJson = """{"statsborgerskap":[{"fom":"1920-09-01","verdi":"NOR"}],"bostedsadresser":[{"fom":"1920-09-01","verdi":"SANNERGATA 2, 0557"}],"statuser":[{"fom":"1920-09-01","verdi":"BOSA"}],"id":{"aktor":"1234567891011"}}"""
+                val actualJson = response.content
+                assertJsonEquals(JSONObject(expectedJson), JSONObject(actualJson))
             }
         }
     }
@@ -142,3 +165,46 @@ private val hentPerson_response = """
    </soapenv:Body>
 </soapenv:Envelope>
 """.trimIndent()
+
+private val hentPersonhistorikk_response = """
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+   <soapenv:Body>
+      <ns2:hentPersonhistorikkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
+         <response>
+            <aktoer xsi:type="ns3:AktoerId" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+               <aktoerId>1234567891011</aktoerId>
+            </aktoer>
+            <personstatusListe endringstidspunkt="2019-01-21T00:00:00.000+01:00" endretAv="SKD" endringstype="endret">
+               <periode>
+                  <fom>1920-09-01T00:00:00.000+01:00</fom>
+               </periode>
+               <personstatus>BOSA</personstatus>
+            </personstatusListe>
+            <statsborgerskapListe endringstidspunkt="2019-01-21T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
+               <periode>
+                  <fom>1920-09-01T00:00:00.000+01:00</fom>
+               </periode>
+               <statsborgerskap>
+                  <land>NOR</land>
+               </statsborgerskap>
+            </statsborgerskapListe>
+            <bostedsadressePeriodeListe endringstidspunkt="2019-01-21T00:00:00.000+01:00" endretAv="SKD" endringstype="endret">
+               <periode>
+                  <fom>1920-09-01T00:00:00.000+01:00</fom>
+               </periode>
+               <bostedsadresse>
+                  <strukturertAdresse xsi:type="ns3:Gateadresse" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                     <landkode>NOR</landkode>
+                     <poststed>0557</poststed>
+                     <kommunenummer>0301</kommunenummer>
+                     <gatenummer>16188</gatenummer>
+                     <gatenavn>SANNERGATA</gatenavn>
+                     <husnummer>2</husnummer>
+                  </strukturertAdresse>
+               </bostedsadresse>
+            </bostedsadressePeriodeListe>
+         </response>
+      </ns2:hentPersonhistorikkResponse>
+   </soapenv:Body>
+</soapenv:Envelope>
+    """

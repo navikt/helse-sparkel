@@ -22,10 +22,12 @@ data class Personhistorikk(
         val bostedsadresser: List<TidsperiodeMedVerdi>
 )
 
-data class TidsperiodeMedVerdi(val verdi: String, val fom: LocalDate, val tom: LocalDate) {
+data class TidsperiodeMedVerdi(val verdi: String, val fom: LocalDate, val tom: LocalDate?) {
 
     init {
-        if (tom.isBefore(fom)) throw IllegalArgumentException("tom cannot be before fom, $tom is before $fom")
+        tom?.let {
+            if (it.isBefore(fom)) throw IllegalArgumentException("tom cannot be before fom, $it is before $fom")
+        }
     }
 }
 
@@ -33,7 +35,7 @@ private fun statsborgerskapPeriode(periode: StatsborgerskapPeriode): Tidsperiode
     return TidsperiodeMedVerdi(
             periode.statsborgerskap?.land?.value ?: "ukjent land",
                 periode.periode.fom.toLocalDate(),
-                periode.periode.tom.toLocalDate()
+                periode.periode.tom?.toLocalDate()
     )
 }
 
@@ -41,7 +43,7 @@ private fun statusPeriode(periode: PersonstatusPeriode): TidsperiodeMedVerdi {
     return TidsperiodeMedVerdi(
             periode.personstatus?.value ?: "ukjent status",
             periode.periode.fom.toLocalDate(),
-            periode.periode.tom.toLocalDate()
+            periode.periode.tom?.toLocalDate()
     )
 }
 
@@ -49,7 +51,7 @@ private fun bostedsPeriode(periode: BostedsadressePeriode): TidsperiodeMedVerdi 
     return TidsperiodeMedVerdi(
             bostedsAdresse(periode.bostedsadresse),
             periode.periode.fom.toLocalDate(),
-            periode.periode.tom.toLocalDate()
+            periode.periode.tom?.toLocalDate()
     )
 }
 
