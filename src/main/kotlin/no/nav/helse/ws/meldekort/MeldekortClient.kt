@@ -21,7 +21,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
             val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(FinnMeldekortUtbetalingsgrunnlagListeRequest()
                     .apply {
                         this.ident = AktoerId().apply {
-                            this.aktoerId = aktoerId
+                            this.aktoerId = aktørId
                         }
                         this.periode = Periode().apply {
                             this.fom = fom.toXMLGregorian()
