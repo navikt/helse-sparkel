@@ -40,22 +40,6 @@ class PersonMappingTest {
         assertEquals(expected, actual)
     }
 
-    @Test
-    fun personHistorikk() {
-        val tpsHistorikk = historikkResponse()
-        val expected = Personhistorikk(
-                AktørId("1234567891011"),
-                emptyList(),
-                emptyList(),
-                listOf(
-                   TidsperiodeMedVerdi("veien 2A, Poststedet", LocalDate.of(2019, 1, 21),
-                           LocalDate.of(2019, 1, 22))
-                )
-        )
-        val actual = PersonhistorikkMapper.toPersonhistorikk(tpsHistorikk)
-        assertEquals(expected, actual)
-    }
-
     private fun mannResponse(): HentPersonResponse {
         val mannen = Person().apply {
             personnavn = Personnavn().apply {
@@ -107,27 +91,6 @@ class PersonMappingTest {
         }
 
         return HentPersonResponse().apply { person = kvinnen }
-    }
-
-    private fun historikkResponse(): HentPersonhistorikkResponse {
-        val bostedsadresse = Bostedsadresse().apply {
-            strukturertAdresse = Gateadresse().apply {
-                gatenavn = "veien"
-                husnummer = 2
-                husbokstav = "A"
-                withPoststed(Postnummer().apply { value = "Poststedet" })
-            }
-        }
-        return HentPersonhistorikkResponse().apply {
-            aktoer = AktoerId().apply { aktoerId = "1234567891011" }
-            val periode = BostedsadressePeriode().apply {
-                periode = Periode()
-                        .withFom(LocalDate.of(2019, 1, 21).toXmlGregorianCalendar())
-                        .withTom(LocalDate.of(2019, 1, 22).toXmlGregorianCalendar())
-                withBostedsadresse(bostedsadresse)
-            }
-            withBostedsadressePeriodeListe(periode)
-        }
     }
 
 }
