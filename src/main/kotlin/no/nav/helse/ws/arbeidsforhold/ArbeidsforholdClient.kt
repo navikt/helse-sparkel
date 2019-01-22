@@ -7,16 +7,20 @@ import no.nav.helse.OppslagResult
 import no.nav.helse.Success
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Periode
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Regelverker
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkRequest
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import javax.xml.datatype.XMLGregorianCalendar
 import java.time.ZoneId
 import java.util.GregorianCalendar
 import javax.xml.datatype.DatatypeFactory
+import javax.xml.datatype.XMLGregorianCalendar
 
 
 fun LocalDate.toXmlGregorianCalendar() : XMLGregorianCalendar {
@@ -58,6 +62,7 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                 return Success((result.data as FinnArbeidsforholdPrArbeidstakerResponse).arbeidsforhold.onEach {
                     when (val historikkResponse = finnHistorikkForArbeidsforhold(it, fom, tom)) {
                         is Success<*> -> {
+                            it.arbeidsavtale.clear()
                             it.arbeidsavtale.addAll(historikkResponse.data as List<Arbeidsavtale>)
                         }
                         is Failure -> {
