@@ -27,6 +27,7 @@ buildscript {
 
 dependencies {
     compile(kotlin("stdlib"))
+    compile("com.google.guava:guava:20.0")
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("net.logstash.logback:logstash-logback-encoder:5.2")
     compile("io.ktor:ktor-server-netty:$ktorVersion")
