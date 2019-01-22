@@ -41,6 +41,11 @@ class ArbeidsforholdComponentTest {
         bootstrap.reset()
     }
 
+    @AfterEach
+    fun `clear prometheus registry`() {
+        CollectorRegistry.defaultRegistry.clear()
+    }
+
     @Test
     fun `that response is json`() {
         val token = bootstrap.jwkStub.createTokenFor("srvpleiepengesokna")
