@@ -2,6 +2,7 @@ package no.nav.helse.ws.arbeidsforhold
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario
+import io.prometheus.client.CollectorRegistry
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
