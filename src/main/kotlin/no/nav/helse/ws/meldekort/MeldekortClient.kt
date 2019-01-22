@@ -1,5 +1,7 @@
 package no.nav.helse.ws.meldekort
 
+import io.prometheus.client.Counter
+import io.prometheus.client.Histogram
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
@@ -8,6 +10,7 @@ import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.Meldek
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.*
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.FinnMeldekortUtbetalingsgrunnlagListeRequest
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.FinnMeldekortUtbetalingsgrunnlagListeResponse
+import org.slf4j.LoggerFactory
 import java.lang.Exception
 import java.time.LocalDate
 import java.time.ZoneId
@@ -16,24 +19,41 @@ import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.XMLGregorianCalendar
 
 class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
-    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult {
-        try {
-            val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(FinnMeldekortUtbetalingsgrunnlagListeRequest()
-                    .apply {
-                        this.ident = AktoerId().apply {
-                            this.aktoerId = aktørId
-                        }
-                        this.periode = Periode().apply {
-                            this.fom = fom.toXMLGregorian()
-                            this.tom = tom.toXMLGregorian()
-                        }
-                        this.temaListe.add(Tema().apply { this.kodeverksRef = "DAG" })
-                        this.temaListe.add(Tema().apply { this.kodeverksRef = "AAP" })
-                    })
 
-            return Success(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
-        } catch(e: Exception) {
-            return Failure(listOf("${e.javaClass.simpleName} : ${e.message}"))
+    private val log = LoggerFactory.getLogger("MeldekortClient")
+    private val counter = Counter.build()
+            .name("oppslag_meldekort_utbetalingsgrunnlag")
+            .labelNames("status")
+            .help("Antall registeroppslag av meldekort for en person")
+            .register()
+
+    private val timer = Histogram.build()
+            .name("finn_meldekort_utbetalingsgrunnlag_seconds")
+            .help("latency for MeldekortUtbetalingsgrunnlagV1.finnMeldekortUtbetalingsgrunnlagListe()").register()
+
+    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult {
+        return timer.time<OppslagResult> {
+            try {
+                val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(FinnMeldekortUtbetalingsgrunnlagListeRequest()
+                        .apply {
+                            this.ident = AktoerId().apply {
+                                this.aktoerId = aktørId
+                            }
+                            this.periode = Periode().apply {
+                                this.fom = fom.toXMLGregorian()
+                                this.tom = tom.toXMLGregorian()
+                            }
+                            this.temaListe.add(Tema().apply { this.kodeverksRef = "DAG" })
+                            this.temaListe.add(Tema().apply { this.kodeverksRef = "AAP" })
+                        })
+
+                counter.labels("success").inc()
+                Success(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
+            } catch (ex: Exception) {
+                log.error("Error while doing meldekort lookup", ex)
+                counter.labels("failure").inc()
+                Failure(listOf("${ex.javaClass.simpleName} : ${ex.message}"))
+            }
         }
     }
 
