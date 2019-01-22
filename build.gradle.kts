@@ -16,8 +16,8 @@ val mainClass = "no.nav.helse.AppKt"
 fun tjenestespesifikasjon(name: String) = "no.nav.tjenestespesifikasjoner:$name:$tjenestespesifikasjonerVersion"
 
 plugins {
+    id("com.gradle.build-scan") version "2.1"
     kotlin("jvm") version "1.3.11"
-    id("com.gradle.build-scan") version "1.16"
 }
 
 buildscript {
