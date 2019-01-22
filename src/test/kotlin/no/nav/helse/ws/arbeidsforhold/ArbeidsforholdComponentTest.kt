@@ -42,8 +42,13 @@ class ArbeidsforholdComponentTest {
         bootstrap.reset()
     }
 
+    @BeforeEach
+    fun `clear prometheus registry before test`() {
+        CollectorRegistry.defaultRegistry.clear()
+    }
+
     @AfterEach
-    fun `clear prometheus registry`() {
+    fun `clear prometheus registry after test`() {
         CollectorRegistry.defaultRegistry.clear()
     }
 
