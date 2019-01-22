@@ -17,6 +17,7 @@ fun tjenestespesifikasjon(name: String) = "no.nav.tjenestespesifikasjoner:$name:
 
 plugins {
     kotlin("jvm") version "1.3.11"
+    id("com.gradle.build-scan") version "1.16"
 }
 
 buildscript {
@@ -80,6 +81,11 @@ repositories {
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+}
+
+buildScan {
+    setTermsOfServiceUrl("https://gradle.com/terms-of-service")
+    setTermsOfServiceAgree("yes")
 }
 
 tasks.named<Jar>("jar") {
