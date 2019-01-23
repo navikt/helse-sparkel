@@ -43,8 +43,9 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                                 this.fom = fom.toXMLGregorian()
                                 this.tom = tom.toXMLGregorian()
                             }
-                            this.temaListe.add(Tema().apply { this.kodeverksRef = "DAG" })
-                            this.temaListe.add(Tema().apply { this.kodeverksRef = "AAP" })
+
+                            this.temaListe.add(ObjectFactory().createTema().apply { this.kodeverksRef = "DAG" })
+                            this.temaListe.add(ObjectFactory().createTema().apply { this.kodeverksRef = "AAP" })
                         })
 
                 counter.labels("success").inc()
@@ -54,6 +55,15 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                 counter.labels("failure").inc()
                 Failure(listOf("${ex.javaClass.simpleName} : ${ex.message}"))
             }
+        }
+    }
+
+    fun ping(): OppslagResult {
+        return try {
+            port.ping()
+            Success("ok")
+        } catch (ex: Exception) {
+            Failure(listOf("fail", "${ex.javaClass.simpleName} : ${ex.message}"))
         }
     }
 

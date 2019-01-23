@@ -28,6 +28,14 @@ fun Route.meldekort(factory: () -> MeldekortClient) {
             call.respond(HttpStatusCode.BadRequest, "Missing at least one parameter of `aktorId`, `fom` and `tom`")
         }
     }
+
+    get("api/meldekort/ping") {
+        val result = client.ping()
+        when(result) {
+            is Success<*> -> call.respond("pong")
+            is Failure -> call.respond(HttpStatusCode.InternalServerError, result.errors)
+        }
+    }
 }
 
 private fun String.asLocalDate(): LocalDate {
