@@ -1,36 +1,14 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import io.prometheus.client.Counter
-import io.prometheus.client.Histogram
-import no.nav.helse.Failure
-import no.nav.helse.OppslagResult
-import no.nav.helse.Success
-import no.nav.helse.ws.Fødselsnummer
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Periode
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Regelverker
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkRequest
-import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.GregorianCalendar
-import javax.xml.datatype.DatatypeFactory
-import javax.xml.datatype.XMLGregorianCalendar
-
-
-fun LocalDate.toXmlGregorianCalendar() : XMLGregorianCalendar {
-    val gcal = GregorianCalendar.from(this.atStartOfDay(ZoneId.systemDefault()))
-    return DatatypeFactory.newInstance().newXMLGregorianCalendar(gcal)
-}
-
-private fun XMLGregorianCalendar.toLocalDate(): LocalDate {
-    return this.toGregorianCalendar().toZonedDateTime().toLocalDate()
-}
+import io.prometheus.client.*
+import no.nav.helse.*
+import no.nav.helse.common.*
+import no.nav.helse.ws.*
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.*
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.*
+import org.slf4j.*
+import java.time.*
 
 fun dateOverlap(range1Start: LocalDate, range1End: LocalDate, range2Start: LocalDate, range2End: LocalDate): Boolean {
     val isValidInterval = range1End >= range1Start && range2End >= range2Start

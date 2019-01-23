@@ -8,6 +8,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
+import no.nav.helse.http.aktør.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll

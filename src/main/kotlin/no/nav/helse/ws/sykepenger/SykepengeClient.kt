@@ -4,6 +4,7 @@ import io.prometheus.client.Counter
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
+import no.nav.helse.common.*
 import no.nav.tjeneste.virksomhet.sykepenger.v2.binding.SykepengerV2
 import no.nav.tjeneste.virksomhet.sykepenger.v2.informasjon.Periode
 import no.nav.tjeneste.virksomhet.sykepenger.v2.informasjon.Sykmeldingsperiode
@@ -84,6 +85,3 @@ fun Vedtak.toSykepengerVedtak(aktorId: String): SykepengerVedtak {
             grad = this.utbetalingsgrad.toFloat())
 }
 
-fun XMLGregorianCalendar.toLocalDate(): LocalDate {
-    return LocalDate.of(this.year, this.month, this.day)
-}

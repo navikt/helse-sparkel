@@ -3,6 +3,7 @@ package no.nav.helse
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.helse.http.aktør.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.junit.jupiter.api.Assertions

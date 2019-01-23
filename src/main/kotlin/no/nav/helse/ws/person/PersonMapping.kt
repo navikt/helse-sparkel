@@ -1,5 +1,6 @@
 package no.nav.helse.ws.person
 
+import no.nav.helse.common.*
 import no.nav.helse.ws.*
 import no.nav.helse.ws.person.Kjønn.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
@@ -36,13 +37,3 @@ data class Person(
         val fdato: LocalDate,
         val kjønn: Kjønn
 )
-
-fun XMLGregorianCalendar.toLocalDate() = LocalDate.of(year, month, day)
-
-fun LocalDate.toXmlGregorianCalendar() = this.let { localDate ->
-    datatypeFactory.newXMLGregorianCalendar().apply {
-        year = localDate.year
-        month = localDate.monthValue
-        day = localDate.dayOfMonth
-    }
-}

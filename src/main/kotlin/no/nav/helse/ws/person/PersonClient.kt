@@ -2,6 +2,7 @@ package no.nav.helse.ws.person
 
 import io.prometheus.client.*
 import no.nav.helse.*
+import no.nav.helse.common.*
 import no.nav.helse.ws.*
 import no.nav.tjeneste.virksomhet.person.v3.binding.*
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.*

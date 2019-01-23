@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.helse.http.aktør.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.slf4j.LoggerFactory

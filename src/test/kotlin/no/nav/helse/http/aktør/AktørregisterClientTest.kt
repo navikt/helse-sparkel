@@ -1,10 +1,11 @@
-package no.nav.helse
+package no.nav.helse.http.aktør
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.helse.*
 import org.junit.jupiter.api.*
 
 class AktørregisterClientTest {

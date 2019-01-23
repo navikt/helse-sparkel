@@ -1,22 +1,13 @@
 package no.nav.helse.ws.meldekort
 
-import io.prometheus.client.Counter
-import io.prometheus.client.Histogram
-import no.nav.helse.Failure
-import no.nav.helse.OppslagResult
-import no.nav.helse.Success
-import no.nav.helse.ws.sykepenger.toLocalDate
-import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
+import io.prometheus.client.*
+import no.nav.helse.*
+import no.nav.helse.common.*
+import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.*
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.*
-import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.FinnMeldekortUtbetalingsgrunnlagListeRequest
-import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.FinnMeldekortUtbetalingsgrunnlagListeResponse
-import org.slf4j.LoggerFactory
-import java.lang.Exception
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.*
-import javax.xml.datatype.DatatypeFactory
-import javax.xml.datatype.XMLGregorianCalendar
+import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.*
+import org.slf4j.*
+import java.time.*
 
 class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
 
@@ -40,8 +31,8 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                                 this.aktoerId = aktørId
                             }
                             this.periode = Periode().apply {
-                                this.fom = fom.toXMLGregorian()
-                                this.tom = tom.toXMLGregorian()
+                                this.fom = fom.toXmlGregorianCalendar()
+                                this.tom = tom.toXmlGregorianCalendar()
                             }
                             this.temaListe.add(Tema().apply { this.kodeverksRef = "DAG" })
                             this.temaListe.add(Tema().apply { this.kodeverksRef = "AAP" })
@@ -123,4 +114,3 @@ data class MeldekortForVedtak(
         val utbetalingsgrad: Double
 )
 
-private fun LocalDate.toXMLGregorian(): XMLGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(this.atStartOfDay(ZoneId.systemDefault())))

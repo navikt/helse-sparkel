@@ -8,9 +8,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.prometheus.client.CollectorRegistry
-import no.nav.helse.aktørregisterStub
+import no.nav.helse.http.aktør.aktørregisterStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
+import no.nav.helse.common.*
 import no.nav.helse.sparkel
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion

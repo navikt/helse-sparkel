@@ -6,6 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.*
+import no.nav.helse.http.aktør.*
 import no.nav.helse.ws.Fødselsnummer
 import java.time.LocalDate
 

@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Failure
 import no.nav.helse.Success
+import no.nav.helse.common.*
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
