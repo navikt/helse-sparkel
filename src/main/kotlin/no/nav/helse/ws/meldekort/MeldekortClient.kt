@@ -15,6 +15,7 @@ import java.lang.Exception
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
+import javax.xml.bind.JAXB
 import javax.xml.datatype.DatatypeFactory
 import javax.xml.datatype.XMLGregorianCalendar
 
@@ -34,7 +35,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
     fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult {
         return timer.time<OppslagResult> {
             try {
-                val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(FinnMeldekortUtbetalingsgrunnlagListeRequest()
+                val request = FinnMeldekortUtbetalingsgrunnlagListeRequest()
                         .apply {
                             this.ident = AktoerId().apply {
                                 this.aktoerId = aktørId
@@ -43,10 +44,16 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                                 this.fom = fom.toXMLGregorian()
                                 this.tom = tom.toXMLGregorian()
                             }
-
-                            this.temaListe.add(ObjectFactory().createTema().apply { this.kodeverksRef = "DAG" })
-                            this.temaListe.add(ObjectFactory().createTema().apply { this.kodeverksRef = "AAP" })
-                        })
+                            this.temaListe.add(ObjectFactory().createTema().apply {
+                                this.kodeverksRef = "DAG"
+                                this.value = "DAG"
+                            })
+                            this.temaListe.add(ObjectFactory().createTema().apply {
+                                this.kodeverksRef = "AAP"
+                                this.value = "AAP"
+                            })
+                        }
+                val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(request)
 
                 counter.labels("success").inc()
                 Success(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
