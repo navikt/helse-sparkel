@@ -17,6 +17,11 @@ class PersonClient(private val personV3: PersonV3) {
             .help("Antall registeroppslag av personer")
             .register()
 
+    var histogram = Histogram.build()
+            .name("tps_request_time")
+            .help("svartid fra TPS")
+            .register()
+
     private val log = LoggerFactory.getLogger("PersonClient")
 
     fun personInfo(id: AktørId): OppslagResult {
@@ -28,6 +33,7 @@ class PersonClient(private val personV3: PersonV3) {
             aktoer = aktør
         }
 
+        val requestTimer = histogram.startTimer()
         return try {
             val tpsResponse = personV3.hentPerson(request)
             counter.labels("success").inc()
@@ -36,6 +42,8 @@ class PersonClient(private val personV3: PersonV3) {
             log.error("Error while doing person lookup", ex)
             counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
+        } finally {
+            requestTimer.observeDuration()
         }
     }
 
@@ -52,6 +60,7 @@ class PersonClient(private val personV3: PersonV3) {
             }
         }
 
+        val requestTimer = histogram.startTimer()
         return try {
             val tpsResponse = personV3.hentPersonhistorikk(request)
             counter.labels("success").inc()
@@ -60,6 +69,8 @@ class PersonClient(private val personV3: PersonV3) {
             log.error("Error while doing personhistorikk lookup", ex)
             counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
+        } finally {
+            requestTimer.observeDuration()
         }
 
     }
