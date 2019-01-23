@@ -8,8 +8,6 @@ import no.nav.helse.*
 import no.nav.helse.ws.*
 import java.time.*
 
-private const val aktørParam = "aktor"
-
 fun Route.person(factory: () -> PersonClient) {
     val personClient: PersonClient by lazy(factory)
 

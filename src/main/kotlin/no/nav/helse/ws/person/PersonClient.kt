@@ -25,12 +25,10 @@ class PersonClient(private val personV3: PersonV3) {
     private val log = LoggerFactory.getLogger("PersonClient")
 
     fun personInfo(id: AktørId): OppslagResult {
-        val aktør = AktoerId().apply {
-            aktoerId = id.aktor
-        }
-
         val request = HentPersonRequest().apply {
-            aktoer = aktør
+            aktoer = AktoerId().apply {
+                aktoerId = id.aktor
+            }
         }
 
         val requestTimer = histogram.startTimer()
@@ -48,12 +46,11 @@ class PersonClient(private val personV3: PersonV3) {
     }
 
     fun personHistorikk(id: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult {
-        val aktør = AktoerId().apply {
-            aktoerId = id.aktor
-        }
-
         val request = HentPersonhistorikkRequest().apply {
-            aktoer = aktør
+            aktoer = AktoerId().apply {
+                aktoerId = id.aktor
+            }
+
             periode = Periode().apply {
                 this.fom = fom.toXmlGregorianCalendar()
                 this.tom = tom.toXmlGregorianCalendar()
