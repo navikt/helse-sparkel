@@ -5,6 +5,7 @@ import no.nav.helse.*
 import no.nav.helse.common.*
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.*
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.*
+import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.ObjectFactory
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.*
 import org.slf4j.*
 import java.time.*
@@ -25,7 +26,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
     fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult {
         return timer.time<OppslagResult> {
             try {
-                val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(FinnMeldekortUtbetalingsgrunnlagListeRequest()
+                val request = FinnMeldekortUtbetalingsgrunnlagListeRequest()
                         .apply {
                             this.ident = AktoerId().apply {
                                 this.aktoerId = aktørId
@@ -34,9 +35,16 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                                 this.fom = fom.toXmlGregorianCalendar()
                                 this.tom = tom.toXmlGregorianCalendar()
                             }
-                            this.temaListe.add(Tema().apply { this.kodeverksRef = "DAG" })
-                            this.temaListe.add(Tema().apply { this.kodeverksRef = "AAP" })
-                        })
+                            this.temaListe.add(ObjectFactory().createTema().apply {
+                                this.kodeverksRef = "DAG"
+                                this.value = "DAG"
+                            })
+                            this.temaListe.add(ObjectFactory().createTema().apply {
+                                this.kodeverksRef = "AAP"
+                                this.value = "AAP"
+                            })
+                        }
+                val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(request)
 
                 counter.labels("success").inc()
                 Success(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
@@ -45,6 +53,15 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                 counter.labels("failure").inc()
                 Failure(listOf("${ex.javaClass.simpleName} : ${ex.message}"))
             }
+        }
+    }
+
+    fun ping(): OppslagResult {
+        return try {
+            port.ping()
+            Success("ok")
+        } catch (ex: Exception) {
+            Failure(listOf("fail", "${ex.javaClass.simpleName} : ${ex.message}"))
         }
     }
 
