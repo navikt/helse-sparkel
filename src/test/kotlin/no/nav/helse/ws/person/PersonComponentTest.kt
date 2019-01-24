@@ -11,7 +11,6 @@ import no.nav.helse.ws.*
 import org.json.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import java.time.*
 
 class PersonComponentTest {
 
