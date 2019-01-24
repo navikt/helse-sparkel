@@ -1,49 +1,31 @@
 package no.nav.helse
 
-import com.auth0.jwk.JwkProvider
-import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.application.log
-import io.ktor.auth.Authentication
-import io.ktor.auth.authenticate
-import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.auth.jwt.jwt
-import io.ktor.features.CallId
-import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.callIdMdc
-import io.ktor.http.ContentType
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.hotspot.DefaultExports
+import com.auth0.jwk.*
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.prometheus.client.*
+import io.prometheus.client.hotspot.*
 import no.nav.helse.http.aktør.*
-import no.nav.helse.nais.nais
-import no.nav.helse.ws.Clients
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
-import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
-import no.nav.helse.ws.inntekt.InntektClient
-import no.nav.helse.ws.inntekt.inntekt
-import no.nav.helse.ws.meldekort.MeldekortClient
-import no.nav.helse.ws.meldekort.meldekort
-import no.nav.helse.ws.organisasjon.OrganisasjonClient
-import no.nav.helse.ws.organisasjon.organisasjon
-import no.nav.helse.ws.person.PersonClient
-import no.nav.helse.ws.person.person
-import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
-import no.nav.helse.ws.sakogbehandling.sakOgBehandling
-import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
-import no.nav.helse.ws.sts.configureFor
-import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.sykepenger.SykepengerClient
-import no.nav.helse.ws.sykepenger.sykepengeListe
-import org.slf4j.event.Level
-import redis.clients.jedis.Jedis
-import java.net.URL
-import java.util.UUID
-import java.util.concurrent.TimeUnit
+import no.nav.helse.nais.*
+import no.nav.helse.ws.*
+import no.nav.helse.ws.arbeidsforhold.*
+import no.nav.helse.ws.inntekt.*
+import no.nav.helse.ws.meldekort.*
+import no.nav.helse.ws.organisasjon.*
+import no.nav.helse.ws.person.*
+import no.nav.helse.ws.sakogbehandling.*
+import no.nav.helse.ws.sts.*
+import no.nav.helse.ws.sykepenger.*
+import org.slf4j.event.*
+import java.net.*
+import java.util.*
+import java.util.concurrent.*
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
 private val authorizedUsers = listOf("srvspinne", "srvspa", "srvpleiepengesokna")
@@ -113,18 +95,8 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         ))
     }
 
-    val cache  by lazy { RedisIdentCache(Jedis(env.redisHost, Integer.valueOf(env.redisPort))) }
-    val identLookup by lazy {
-        IdentLookup({
-            aktørregisterClient
-        }, cache)
-    }
-
     routing {
         authenticate {
-            identMapping{
-                identLookup
-            }
             inntekt{
                 val port = Clients.InntektV3(env.inntektEndpointUrl)
                 if (env.allowInsecureSoapRequests) {

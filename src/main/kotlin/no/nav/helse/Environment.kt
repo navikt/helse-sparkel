@@ -17,8 +17,6 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     val meldekortEndpointUrl: String by lazyEnvVar("MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL")
     val jwksUrl: String by lazyEnvVar("JWKS_URL")
     val jwtIssuer: String by lazyEnvVar("JWT_ISSUER")
-    val redisHost: String by lazyEnvVar("REDIS_HOST")
-    val redisPort: String by lazyEnvVar("REDIS_PORT")
     val aktørregisterUrl: String by lazyEnvVar("AKTORREGISTER_URL")
 
     val stsRestUrl: String by lazyEnvVar("SECURITY_TOKEN_SERVICE_REST_URL")

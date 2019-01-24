@@ -35,7 +35,6 @@ dependencies {
     compile("io.ktor:ktor-auth-jwt:$ktorVersion")
     compile("io.prometheus:simpleclient_common:$prometheusVersion")
     compile("io.prometheus:simpleclient_hotspot:$prometheusVersion")
-    compile("redis.clients:jedis:3.0.0")
 
     compile("org.json:json:$orgJsonVersion")
     compile("com.github.kittinunf.fuel:fuel:$fuelVersion")
@@ -59,7 +58,6 @@ dependencies {
     compile(tjenestespesifikasjon("nav-hentsykepengeliste-v2-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("nav-meldekortUtbetalingsgrunnlag-v1-tjenestespesifikasjon"))
 
-    testCompile("com.github.kstyrc:embedded-redis:0.6")
     testCompile("io.mockk:mockk:$mockkVersion")
     testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
