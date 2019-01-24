@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.*
+import no.nav.helse.sts.*
 import org.junit.jupiter.api.*
 
 class AktørregisterClientTest {

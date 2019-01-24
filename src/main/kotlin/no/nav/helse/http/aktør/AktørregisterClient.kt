@@ -1,7 +1,7 @@
 package no.nav.helse.http.aktør
 
 import com.github.kittinunf.fuel.httpGet
-import no.nav.helse.*
+import no.nav.helse.sts.*
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 

@@ -1,7 +1,7 @@
 package no.nav.helse.ws.inntekt
 
 import com.github.kittinunf.fuel.httpPost
-import no.nav.helse.StsRestClient
+import no.nav.helse.sts.StsRestClient
 import org.json.JSONObject
 import java.time.YearMonth
 

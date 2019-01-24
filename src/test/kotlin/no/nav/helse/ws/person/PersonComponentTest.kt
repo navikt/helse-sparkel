@@ -6,11 +6,11 @@ import com.github.tomakehurst.wiremock.core.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.prometheus.client.*
-import junit.framework.Assert.*
 import no.nav.helse.*
 import no.nav.helse.ws.*
 import org.json.*
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 import java.time.*
 
 class PersonComponentTest {
@@ -78,12 +78,11 @@ class PersonComponentTest {
     fun `person history lookup responds with json`() {
         val jwtStub = JwtStub("test issuer")
         val token = jwtStub.createTokenFor("srvspinne")
-        val now = LocalDate.now()
 
         WireMock.stubFor(stsStub("stsUsername", "stsPassword")
                 .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")))
-        WireMock.stubFor(hentPersonhistorikkStub("1234567891011", now.minusMonths(12), now)
+        WireMock.stubFor(hentPersonhistorikkStub("1234567891011")
                 .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")
                 .withCallId("Sett inn call id her")

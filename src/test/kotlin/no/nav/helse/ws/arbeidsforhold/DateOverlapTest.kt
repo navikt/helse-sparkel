@@ -1,4 +1,4 @@
-package no.nav.helse
+package no.nav.helse.ws.arbeidsforhold
 
 import no.nav.helse.ws.arbeidsforhold.dateOverlap
 import org.junit.jupiter.api.Assertions

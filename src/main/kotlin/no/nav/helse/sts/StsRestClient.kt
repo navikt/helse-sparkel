@@ -1,6 +1,7 @@
-package no.nav.helse
+package no.nav.helse.sts
 
 import com.github.kittinunf.fuel.httpGet
+import no.nav.helse.*
 import org.json.JSONObject
 import java.time.LocalDateTime
 import java.util.*
@@ -59,7 +60,7 @@ class StsRestClient(val baseUrl: String, val username: String, val password: Str
                     return true
                 }
 
-                return Token.isExpired(token)
+                return isExpired(token)
             }
 
             fun isExpired(token: Token): Boolean {

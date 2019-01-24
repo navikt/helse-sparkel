@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.StsRestClient
+import no.nav.helse.sts.StsRestClient
 import org.junit.jupiter.api.*
 import java.time.YearMonth
 

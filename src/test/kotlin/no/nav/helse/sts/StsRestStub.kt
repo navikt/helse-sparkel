@@ -1,4 +1,4 @@
-package no.nav.helse
+package no.nav.helse.sts
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock

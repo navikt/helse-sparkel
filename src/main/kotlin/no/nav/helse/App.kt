@@ -13,6 +13,7 @@ import io.prometheus.client.*
 import io.prometheus.client.hotspot.*
 import no.nav.helse.http.aktør.*
 import no.nav.helse.nais.*
+import no.nav.helse.sts.*
 import no.nav.helse.ws.*
 import no.nav.helse.ws.arbeidsforhold.*
 import no.nav.helse.ws.inntekt.*
