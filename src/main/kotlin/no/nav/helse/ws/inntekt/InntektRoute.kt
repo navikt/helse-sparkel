@@ -4,25 +4,33 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.routing.get
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
-import no.nav.helse.receiveJson
+import no.nav.helse.http.aktør.AktørregisterClient
+import no.nav.helse.ws.Fødselsnummer
+import java.time.YearMonth
 
-fun Route.inntekt(factory: () -> InntektClient) {
+fun Route.inntekt(factory: () -> InntektClient,
+                  aktørregisterClientFactory: () -> AktørregisterClient
+) {
     val inntektClient by lazy(factory)
+    val aktørregisterClient by lazy(aktørregisterClientFactory)
 
-    post("api/inntekt/inntekt-liste") {
-        call.receiveJson().let { json ->
-            if (!json.has("fnr")) {
-                call.respond(HttpStatusCode.BadRequest, "you need to supply fnr=12345678910")
-            } else {
-                val lookupResult: OppslagResult = inntektClient.hentInntektListe(json.getString("fnr"))
-                when (lookupResult) {
-                    is Success<*> -> call.respond(lookupResult.data!!)
-                    is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
-                }
+    get("api/inntekt/{aktorId}") {
+        if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
+            call.respond(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom")
+        } else {
+            val fom = YearMonth.parse(call.request.queryParameters["fom"]!!)
+            val tom = YearMonth.parse(call.request.queryParameters["tom"]!!)
+
+            val fnr = Fødselsnummer(aktørregisterClient.gjeldendeNorskIdent(call.parameters["aktorId"]!!))
+
+            val lookupResult: OppslagResult = inntektClient.hentInntektListe(fnr, fom, tom)
+            when (lookupResult) {
+                is Success<*> -> call.respond(lookupResult.data!!)
+                is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
             }
         }
     }

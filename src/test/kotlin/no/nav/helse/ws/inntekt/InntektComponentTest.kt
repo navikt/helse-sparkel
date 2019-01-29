@@ -7,19 +7,25 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Environment
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
+import no.nav.helse.http.aktør.aktørregisterStub
 import no.nav.helse.sparkel
+import no.nav.helse.sts.stsRestStub
 import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 
 
@@ -56,30 +62,34 @@ class InntektComponentTest {
         val jwtStub = JwtStub("test issuer")
         val token = jwtStub.createTokenFor("srvspinne")
 
+        WireMock.stubFor(stsRestStub())
+        WireMock.stubFor(aktørregisterStub("1831212532188", "1831212532188", "13119924167"))
+
         WireMock.stubFor(stsStub("stsUsername", "stsPassword")
                 .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")))
 
-        WireMock.stubFor(hentInntektListeBolkStub("13119924167", "2017-12Z", "2018-01Z")
+        WireMock.stubFor(hentInntektListeBolkStub("13119924167", "2017-01+01:00", "2018-01+01:00")
                 .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")
                 .withCallId("Sett inn call id her")
                 .willReturn(WireMock.okXml(hentInntektListeBolk_response)))
 
         val env = Environment(mapOf(
+                "SECURITY_TOKEN_SERVICE_REST_URL" to server.baseUrl(),
                 "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
                 "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
                 "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
+                "AKTORREGISTER_URL" to server.baseUrl(),
                 "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
                 "JWT_ISSUER" to "test issuer",
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))
 
         withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
-            handleRequest(HttpMethod.Post, "/api/inntekt/inntekt-liste") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            handleRequest(HttpMethod.Get, "/api/inntekt/1831212532188?fom=2017-01&tom=2018-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
-                setBody("{\"fnr\": \"13119924167\"}")
             }.apply {
                 Assertions.assertEquals(200, response.status()?.value)
                 assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
