@@ -1,14 +1,22 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import io.prometheus.client.*
-import no.nav.helse.*
-import no.nav.helse.common.*
-import no.nav.helse.ws.*
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.*
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.*
-import org.slf4j.*
-import java.time.*
+import no.nav.helse.Failure
+import no.nav.helse.OppslagResult
+import no.nav.helse.Success
+import no.nav.helse.common.toLocalDate
+import no.nav.helse.common.toXmlGregorianCalendar
+import no.nav.helse.ws.Fødselsnummer
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Periode
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Regelverker
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkRequest
+import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 fun dateOverlap(range1Start: LocalDate, range1End: LocalDate, range2Start: LocalDate, range2End: LocalDate): Boolean {
     val isValidInterval = range1End >= range1Start && range2End >= range2Start
@@ -19,20 +27,6 @@ fun dateOverlap(range1Start: LocalDate, range1End: LocalDate, range2Start: Local
 class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
 
     private val log = LoggerFactory.getLogger("ArbeidsforholdClient")
-
-    private val counter = Counter.build()
-            .name("oppslag_arbeidsforhold")
-            .labelNames("status")
-            .help("Antall registeroppslag av arbeidsforhold for person")
-            .register()
-
-    private val finnArbeidsforholdPrArbeidstakerTimer = Histogram.build()
-            .name("finn_arbeidsforhold_pr_arbeidstaker_seconds")
-            .help("latency for ArbeidsforholdV3.finnArbeidsforholdPrArbeidstaker()").register()
-
-    private val hentArbeidsforholdHistorikkTimer = Histogram.build()
-            .name("hent_arbeidsforhold_historikk_seconds")
-            .help("latency for ArbeidsforholdV3.hentArbeidsforholdHistorikk()").register()
 
     fun finnArbeidsforhold(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult {
         when(val result = finnArbeidsforholdForFnr(fnr, fom, tom)) {
@@ -66,16 +60,11 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                         kodeRef = RegelverkerValues.A_ORDNINGEN.name
                     }
                 }
-        return finnArbeidsforholdPrArbeidstakerTimer.time<OppslagResult> {
-            try {
-                val remoteResult = arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request)
-                counter.labels("success").inc()
-                Success(remoteResult)
-            } catch (ex: Exception) {
-                log.error("Error while doing arbeidsforhold lookup", ex)
-                counter.labels("failure").inc()
-                Failure(listOf(ex.message ?: "unknown error"))
-            }
+        return try {
+            Success(arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request))
+        } catch (ex: Exception) {
+            log.error("Error while doing arbeidsforhold lookup", ex)
+            Failure(listOf(ex.message ?: "unknown error"))
         }
     }
 
@@ -83,14 +72,12 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
         val request = HentArbeidsforholdHistorikkRequest().apply {
             arbeidsforholdId = arbeidsforhold.arbeidsforholdIDnav
         }
-        return hentArbeidsforholdHistorikkTimer.time<OppslagResult> {
-            try {
-                Success(arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold.arbeidsavtale.filter {
-                    dateOverlap(it.fomGyldighetsperiode.toLocalDate(), it.tomGyldighetsperiode?.toLocalDate() ?: LocalDate.MAX, fom, tom)
-                })
-            } catch (err: Exception) {
-                Failure(listOf(err.message ?: "unknown error"))
-            }
+        return try {
+            Success(arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold.arbeidsavtale.filter {
+                dateOverlap(it.fomGyldighetsperiode.toLocalDate(), it.tomGyldighetsperiode?.toLocalDate() ?: LocalDate.MAX, fom, tom)
+            })
+        } catch (err: Exception) {
+            Failure(listOf(err.message ?: "unknown error"))
         }
     }
 }

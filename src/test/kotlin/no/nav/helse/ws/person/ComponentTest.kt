@@ -3,7 +3,7 @@ package no.nav.helse.ws.person
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Failure
 import no.nav.helse.Success
-import no.nav.helse.ws.*
+import no.nav.helse.ws.AktørId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -32,8 +32,6 @@ class ComponentTest {
         val actual = personClient.personInfo(AktørId("1234567891011"))
         when (actual) {
             is Success<*> -> {
-                assertEquals(1.0, metricsRegistry.getSampleValue(
-                        "oppslag_person", arrayOf("status"), arrayOf("success")))
                 assertEquals(expected, actual.data)
             }
             is Failure -> fail { "This lookup was expected to succeed, but it didn't" }
@@ -48,8 +46,6 @@ class ComponentTest {
         when (actual) {
             is Success<*> -> fail { "This lookup was expected to fail, but it didn't" }
             is Failure -> {
-                assertEquals(1.0, metricsRegistry.getSampleValue(
-                        "oppslag_person", arrayOf("status"), arrayOf("failure")))
                 assertEquals(expected, actual)
             }
         }

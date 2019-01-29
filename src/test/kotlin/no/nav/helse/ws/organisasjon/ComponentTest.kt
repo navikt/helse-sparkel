@@ -24,8 +24,6 @@ class ComponentTest {
         val actual = organisasjonClient.orgNavn("12345")
         when (actual) {
             is Success<*> -> {
-                assertEquals(1.0, metricsRegistry.getSampleValue(
-                        "oppslag_organisasjon", arrayOf("status"), arrayOf("success")))
                 assertEquals(expected, actual.data)
             }
             is Failure -> fail { "This lookup was expected to succeed, but it didn't" }
@@ -40,8 +38,6 @@ class ComponentTest {
         when (actual) {
             is Success<*> -> fail { "This lookup was expected to fail, but it didn't" }
             is Failure -> {
-                assertEquals(1.0, metricsRegistry.getSampleValue(
-                        "oppslag_organisasjon", arrayOf("status"), arrayOf("failure")))
                 assertEquals(expected, actual)
             }
         }

@@ -1,27 +1,19 @@
 package no.nav.helse.ws.person
 
-import io.prometheus.client.*
-import no.nav.helse.*
-import no.nav.helse.common.*
-import no.nav.helse.ws.*
-import no.nav.tjeneste.virksomhet.person.v3.binding.*
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
-import org.slf4j.*
-import java.time.*
+import no.nav.helse.Failure
+import no.nav.helse.OppslagResult
+import no.nav.helse.Success
+import no.nav.helse.common.toXmlGregorianCalendar
+import no.nav.helse.ws.AktørId
+import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Periode
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonhistorikkRequest
+import org.slf4j.LoggerFactory
+import java.time.LocalDate
 
 class PersonClient(private val personV3: PersonV3) {
-
-    private val counter = Counter.build()
-            .name("oppslag_person")
-            .labelNames("status")
-            .help("Antall registeroppslag av personer")
-            .register()
-
-    var histogram = Histogram.build()
-            .name("tps_request_time")
-            .help("svartid fra TPS")
-            .register()
 
     private val log = LoggerFactory.getLogger("PersonClient")
 
@@ -32,17 +24,12 @@ class PersonClient(private val personV3: PersonV3) {
             }
         }
 
-        val requestTimer = histogram.startTimer()
         return try {
             val tpsResponse = personV3.hentPerson(request)
-            counter.labels("success").inc()
             Success(PersonMapper.toPerson(tpsResponse))
         } catch (ex: Exception) {
             log.error("Error while doing person lookup", ex)
-            counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
-        } finally {
-            requestTimer.observeDuration()
         }
     }
 
@@ -58,19 +45,13 @@ class PersonClient(private val personV3: PersonV3) {
             }
         }
 
-        val requestTimer = histogram.startTimer()
         return try {
             val tpsResponse = personV3.hentPersonhistorikk(request)
-            counter.labels("success").inc()
             Success(PersonhistorikkMapper.toPersonhistorikk(tpsResponse))
         } catch (ex: Exception) {
             log.error("Error while doing personhistorikk lookup", ex)
-            counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
-        } finally {
-            requestTimer.observeDuration()
         }
-
     }
 }
 

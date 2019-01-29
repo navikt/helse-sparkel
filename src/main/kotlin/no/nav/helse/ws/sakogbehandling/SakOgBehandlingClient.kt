@@ -1,6 +1,5 @@
 package no.nav.helse.ws.sakogbehandling
 
-import io.prometheus.client.Counter
 import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
 import no.nav.helse.Success
@@ -13,12 +12,6 @@ class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandlingV1) {
 
     private val log = LoggerFactory.getLogger("SakOgBehandlingClient")
 
-    private val counter = Counter.build()
-            .name("oppslag_sak_og_behandling")
-            .labelNames("status")
-            .help("Antall registeroppslag av sak og tilhørende behandlingskjeder")
-            .register()
-
     fun finnSakOgBehandling(aktorId: String): OppslagResult {
         val request = FinnSakOgBehandlingskjedeListeRequest()
                 .apply { this.aktoerREF = aktorId }
@@ -26,11 +19,9 @@ class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandlingV1) {
 
         return try {
             val remoteResult: FinnSakOgBehandlingskjedeListeResponse? = sakOgBehandling.finnSakOgBehandlingskjedeListe(request)
-            counter.labels("success").inc()
             Success(remoteResult)
         } catch (ex: Exception) {
             log.error("Error while doing sak og behndling lookup", ex)
-            counter.labels("failure").inc()
             Failure(listOf(ex.message ?: "unknown error"))
         }
     }
