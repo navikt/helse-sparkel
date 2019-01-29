@@ -1,5 +1,6 @@
 package no.nav.helse.ws
 
+import no.nav.cxf.metrics.MetricFeature
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
@@ -7,7 +8,6 @@ import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.InfotrygdSakV1
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.medlemskap.v2.MedlemskapV2
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
-import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.Meldekort
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.binding.SakOgBehandlingV1
@@ -125,7 +125,7 @@ object Clients {
             serviceName = QName(namespace, svcName)
             endpointName = QName(namespace, portName)
             serviceClass = serviceClazz
-            features = listOf(WSAddressingFeature(), LoggingFeature())
+            features = listOf(WSAddressingFeature(), LoggingFeature(), MetricFeature())
             outInterceptors.add(CallIdInterceptor())
         }
 

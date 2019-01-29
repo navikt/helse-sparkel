@@ -45,6 +45,8 @@ dependencies {
     compile("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
     compile("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
 
+    compile("no.nav.helse:cxf-prometheus-metrics:dd7d125")
+
     compile("com.sun.xml.ws:jaxws-rt:2.3.0")
     compile(tjenestespesifikasjon("arbeidsfordeling-v1-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("arbeidsforholdv3-tjenestespesifikasjon"))
