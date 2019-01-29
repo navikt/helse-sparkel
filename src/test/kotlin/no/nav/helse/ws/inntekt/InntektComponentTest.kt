@@ -69,7 +69,7 @@ class InntektComponentTest {
                 .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")))
 
-        WireMock.stubFor(hentInntektListeBolkStub("13119924167", "2017-01+01:00", "2018-01+01:00")
+        WireMock.stubFor(hentInntektListeBolkStub("13119924167", "2017-01Z", "2018-01Z")
                 .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
                         "digestValue", "signatureValue", "certificateValue")
                 .withCallId("Sett inn call id her")

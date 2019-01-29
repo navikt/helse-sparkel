@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneOffset
 import java.util.TimeZone
 import javax.xml.datatype.DatatypeFactory
 
@@ -19,7 +20,7 @@ class DatetimeTests {
             minute = 0
             second = 0
             millisecond = 0
-            timezone = TimeZone.getDefault().rawOffset / 1000 / 60
+            timezone = TimeZone.getTimeZone(ZoneOffset.UTC).rawOffset / 1000 / 60
         }
         val actual = LocalDate.of(2019, 1, 23).toXmlGregorianCalendar()
         assertEquals(expected, actual)
@@ -46,7 +47,7 @@ class DatetimeTests {
             minute = 0
             second = 0
             millisecond = 0
-            timezone = TimeZone.getDefault().rawOffset / 1000 / 60
+            timezone = TimeZone.getTimeZone(ZoneOffset.UTC).rawOffset / 1000 / 60
         }
         val actual = YearMonth.of(2019, 1).toXmlGregorianCalendar()
         assertEquals(expected, actual)
