@@ -171,15 +171,20 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
                 SakOgBehandlingClient(port)
             }
-            sykepengeListe {
-                val port = Clients.SykepengerV2(env.hentSykePengeListeEndpointUrl)
-                if (env.allowInsecureSoapRequests) {
-                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                } else {
-                    stsClient.configureFor(port)
+            sykepengeListe(
+                factory = {
+                    val port = Clients.SykepengerV2(env.hentSykePengeListeEndpointUrl)
+                    if (env.allowInsecureSoapRequests) {
+                        stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+                    } else {
+                        stsClient.configureFor(port)
+                    }
+                    SykepengerClient(port)
+                },
+                aktørregisterClientFactory = {
+                    aktørregisterClient
                 }
-                SykepengerClient(port)
-            }
+            )
             meldekort {
                 val port = Clients.MeldekortUtbetalingsgrunnlagV1(env.meldekortEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
