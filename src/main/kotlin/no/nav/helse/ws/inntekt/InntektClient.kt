@@ -24,10 +24,10 @@ class InntektClient(private val inntektV3: InntektV3) {
                 personIdent = fødelsnummer.value
             })
             formaal = Formaal().apply {
-                value = "Sykepenger"
+                value = "Foreldrepenger"
             }
             ainntektsfilter = Ainntektsfilter().apply {
-                value = "SykepengerA-Inntekt"
+                value = "ForeldrepengerA-Inntekt"
             }
             uttrekksperiode = Uttrekksperiode().apply {
                 maanedFom = fom.toXmlGregorianCalendar()

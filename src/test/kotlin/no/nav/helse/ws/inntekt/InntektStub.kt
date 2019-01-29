@@ -11,9 +11,9 @@ fun hentInntektListeBolkStub(ident: String, månedFom: String, månedTom: String
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/identListe/personIdent/text()",
                     inntektNamespace, WireMock.equalTo(ident)))
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/ainntektsfilter/text()",
-                    inntektNamespace, WireMock.equalTo("SykepengerA-Inntekt")))
+                    inntektNamespace, WireMock.equalTo("ForeldrepengerA-Inntekt")))
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/formaal/text()",
-                    inntektNamespace, WireMock.equalTo("Sykepenger")))
+                    inntektNamespace, WireMock.equalTo("Foreldrepenger")))
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/uttrekksperiode/maanedFom/text()",
                     inntektNamespace, WireMock.equalTo(månedFom)))
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/uttrekksperiode/maanedTom/text()",
