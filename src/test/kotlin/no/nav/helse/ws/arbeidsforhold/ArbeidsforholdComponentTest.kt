@@ -13,9 +13,10 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
 import no.nav.helse.common.*
 import no.nav.helse.sparkel
+import no.nav.helse.ws.organisasjon.hentOrganisasjonStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
-import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -89,13 +90,23 @@ class ArbeidsforholdComponentTest {
                 .willSetStateTo("andre_arbeidsforholdhistorikk_hentet")
                 .willReturn(WireMock.okXml(hentArbeidsforholdHistorikk_response2)))
 
+        WireMock.stubFor(hentOrganisasjonStub("913548221")
+                .withSamlAssertion()
+                .withCallId()
+                .willReturn(WireMock.okForContentType("application/xml; charset=utf-8", hentOrganisasjon_response(organisasjonsnummer = "913548221", navn1 = "EQUINOR AS", navn2 = "AVD STATOIL SOKKELVIRKSOMHET"))))
+
+        WireMock.stubFor(hentOrganisasjonStub("984054564")
+                .withSamlAssertion()
+                .withCallId()
+                .willReturn(WireMock.okForContentType("application/xml; charset=utf-8", hentOrganisasjon_response(organisasjonsnummer = "984054564", navn1 = "NAV", navn2 = "AVD WALDEMAR THRANES GATE"))))
+
         withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/1831212532188?fom=2017-01-01&tom=2019-01-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONArray(expectedJson), JSONArray(response.content))
+                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
             }
         }
     }
@@ -159,7 +170,7 @@ private val finnArbeidsforholdPrArbeidstaker_response = """
                   </ident>
                </arbeidstaker>
                <opplysningspliktig xsi:type="ns4:Organisasjon" xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                  <orgnummer>984054564</orgnummer>
+                  <orgnummer>913548221</orgnummer>
                </opplysningspliktig>
                <arbeidsforholdInnrapportertEtterAOrdningen>true</arbeidsforholdInnrapportertEtterAOrdningen>
             </arbeidsforhold>
@@ -183,7 +194,7 @@ private val finnArbeidsforholdPrArbeidstaker_response = """
                   <beregnetAntallTimerPrUke>0.0</beregnetAntallTimerPrUke>
                </arbeidsavtale>
                <arbeidsgiver xsi:type="ns4:Organisasjon" xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                  <orgnummer>913548221</orgnummer>
+                  <orgnummer>984054564</orgnummer>
                </arbeidsgiver>
                <arbeidstaker>
                   <ident>
@@ -393,325 +404,97 @@ private val hentArbeidsforholdHistorikk_response2 = """
 """.trimIndent()
 
 private val expectedJson = """
-[
-  {
-    "permisjonOgPermittering": [],
-    "endretAv": "srvappserver",
-    "antallTimerForTimeloennet": [
-      {
-        "antallTimer": 2,
-        "endretAv": "srvappserver",
-        "rapporteringsperiode": "2015-09+02:00",
-        "opphavREF": "06c8a5b7-2d59-44fd-9f98-79cc4fc44a65",
-        "endringstidspunkt": "2015-10-05T14:00:16.809+02:00",
-        "applikasjonsID": "EDAG",
-        "periode": {
-          "tom": "2015-09-30T00:00:00.000+02:00",
-          "fom": "2015-09-01T00:00:00.000+02:00"
-        }
-      },
-      {
-        "antallTimer": 15.8,
-        "endretAv": "srvappserver",
-        "rapporteringsperiode": "2015-10+02:00",
-        "opphavREF": "35e5241a-425e-44b2-b32e-50c17bac570e",
-        "endringstidspunkt": "2015-11-05T12:48:16.406+01:00",
-        "applikasjonsID": "EDAG",
-        "periode": {
-          "tom": "2015-10-31T00:00:00.000+01:00",
-          "fom": "2015-10-01T00:00:00.000+02:00"
-        }
-      },
-      {
-        "antallTimer": 8,
-        "endretAv": "srvappserver",
-        "rapporteringsperiode": "2015-11+01:00",
-        "opphavREF": "092da794-e540-48af-85de-05b66c330138",
-        "endringstidspunkt": "2015-12-04T15:23:27.334+01:00",
-        "applikasjonsID": "EDAG",
-        "periode": {
-          "tom": "2015-11-30T00:00:00.000+01:00",
-          "fom": "2015-11-01T00:00:00.000+01:00"
-        }
-      }
-    ],
-    "arbeidsforholdInnrapportertEtterAOrdningen": true,
-    "arbeidsforholdID": "00000009692000000001",
-    "opplysningspliktig": {
-      "orgnummer": "984054564"
-    },
-    "arbeidsavtale": [
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000972417562",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "endringstidspunkt": "2018-01-05T13:31:11.177+01:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2017-12-01+01:00",
-        "fomGyldighetsperiode": "2017-12-01T00:00:00.000+01:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2018-01-05+01:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      },
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000972417562",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "tomGyldighetsperiode": "2017-11-30T00:00:00.000+01:00",
-        "endringstidspunkt": "2018-01-05T13:31:11.170+01:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2017-11-01+01:00",
-        "fomGyldighetsperiode": "2017-11-01T00:00:00.000+01:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2018-01-05+01:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      },
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000913989552",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "tomGyldighetsperiode": "2017-10-31T00:00:00.000+01:00",
-        "endringstidspunkt": "2017-12-05T15:21:36.512+01:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2017-10-01+02:00",
-        "fomGyldighetsperiode": "2017-10-01T00:00:00.000+02:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2017-12-05+01:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      },
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000858962424",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "tomGyldighetsperiode": "2017-09-30T00:00:00.000+02:00",
-        "endringstidspunkt": "2017-11-06T13:24:37.221+01:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2017-09-01+02:00",
-        "fomGyldighetsperiode": "2017-09-01T00:00:00.000+02:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2017-11-06+01:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      },
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000809027622",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "tomGyldighetsperiode": "2017-08-31T00:00:00.000+02:00",
-        "endringstidspunkt": "2017-10-05T19:49:46.263+02:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2017-08-01+02:00",
-        "fomGyldighetsperiode": "2017-08-01T00:00:00.000+02:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2017-10-05+02:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      },
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-000754811568",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "tomGyldighetsperiode": "2017-07-31T00:00:00.000+02:00",
-        "endringstidspunkt": "2017-09-05T16:02:15.907+02:00",
-        "stillingsprosent": 100,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2015-09-19+02:00",
-        "fomGyldighetsperiode": "2017-01-01T00:00:00.000+01:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2017-09-05+02:00",
-        "beregnetAntallTimerPrUke": 37.5,
-        "applikasjonsID": "EDAG"
-      }
-    ],
-    "opphavREF": "eda00000-0000-0000-0000-000972417562",
-    "endringstidspunkt": "2018-01-05T13:31:11.214+01:00",
-    "arbeidsforholdIDnav": 38009429,
-    "utenlandsopphold": [],
-    "arbeidsgiver": {
-      "orgnummer": "913548221"
-    },
-    "arbeidsforholdstype": {
-      "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidsforholdstyper",
-      "kodeRef": "ordinaertArbeidsforhold",
-      "value": "OrdinÃ¦rt arbeidsforhold"
-    },
-    "opprettelsestidspunkt": "2015-10-05T14:00:16.809+02:00",
-    "arbeidstaker": {
-      "ident": {
-        "ident": "07067625948"
-      }
-    },
-    "sistBekreftet": "2018-01-05T13:29:41.000+01:00",
-    "ansettelsesPeriode": {
-      "endretAv": "srvappserver",
-      "fomBruksperiode": "2018-01-05+01:00",
-      "opphavREF": "eda00000-0000-0000-0000-000972417562",
-      "endringstidspunkt": "2018-01-05T13:31:11.177+01:00",
-      "applikasjonsID": "EDAG",
-      "periode": {
-        "tom": "2017-11-30T00:00:00.000+01:00",
-        "fom": "2015-09-19T00:00:00.000+02:00"
-      }
-    },
-    "opprettetAv": "srvappserver",
-    "applikasjonsID": "EDAG"
-  },
-  {
-    "permisjonOgPermittering": [],
-    "endretAv": "srvappserver",
-    "antallTimerForTimeloennet": [],
-    "arbeidsforholdInnrapportertEtterAOrdningen": true,
-    "arbeidsforholdID": "00000009692000000005",
-    "opplysningspliktig": {
-      "orgnummer": "984054564"
-    },
-    "arbeidsavtale": [
-      {
-        "endretAv": "srvappserver",
-        "opphavREF": "eda00000-0000-0000-0000-001041599767",
-        "avloenningstype": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Avloenningstyper",
-          "kodeRef": "time",
-          "value": "<Fant ingen gyldig term for kode: time>"
-        },
-        "yrke": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Yrker",
-          "kodeRef": "8323102",
-          "value": "SJÃ\u0085FÃ\u0098R (LASTEBIL)"
-        },
-        "endringstidspunkt": "2018-02-07T11:44:40.548+01:00",
-        "stillingsprosent": 0,
-        "avtaltArbeidstimerPerUke": 37.5,
-        "sisteLoennsendringsdato": "2015-09-19+02:00",
-        "fomGyldighetsperiode": "2018-01-01T00:00:00.000+01:00",
-        "arbeidstidsordning": {
-          "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidstidsordninger",
-          "kodeRef": "ikkeSkift",
-          "value": "Ikke skift"
-        },
-        "fomBruksperiode": "2018-02-07+01:00",
-        "beregnetAntallTimerPrUke": 0,
-        "applikasjonsID": "EDAG"
-      }
-    ],
-    "opphavREF": "eda00000-0000-0000-0000-001190431060",
-    "endringstidspunkt": "2018-05-08T11:24:25.569+02:00",
-    "arbeidsforholdIDnav": 44669403,
-    "utenlandsopphold": [],
-    "arbeidsgiver": {
-      "orgnummer": "913548221"
-    },
-    "arbeidsforholdstype": {
-      "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Arbeidsforholdstyper",
-      "kodeRef": "ordinaertArbeidsforhold",
-      "value": "OrdinÃ¦rt arbeidsforhold"
-    },
-    "opprettelsestidspunkt": "2018-02-07T11:44:40.548+01:00",
-    "arbeidstaker": {
-      "ident": {
-        "ident": "07067625948"
-      }
-    },
-    "sistBekreftet": "2018-05-08T11:13:39.000+02:00",
-    "ansettelsesPeriode": {
-      "endretAv": "srvappserver",
-      "fomBruksperiode": "2018-02-07+01:00",
-      "opphavREF": "eda00000-0000-0000-0000-001041599767",
-      "endringstidspunkt": "2018-02-07T11:44:40.548+01:00",
-      "applikasjonsID": "EDAG",
-      "periode": {
-        "tom": "2017-10-31T00:00:00.000+01:00",
-        "fom": "2015-09-19T00:00:00.000+02:00"
-      }
-    },
-    "opprettetAv": "srvappserver",
-    "applikasjonsID": "EDAG"
-  }
-]
+    {
+        "organisasjoner": [{
+            "organisasjonsnummer": "913548221",
+            "navn": "EQUINOR AS, AVD STATOIL SOKKELVIRKSOMHET"
+        },{
+            "organisasjonsnummer": "984054564",
+            "navn": "NAV, AVD WALDEMAR THRANES GATE"
+        }]
+    }
+""".trimIndent()
+
+private fun hentOrganisasjon_response(organisasjonsnummer: String, navn1: String, navn2: String) = """
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <ns2:hentOrganisasjonResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/organisasjon/v5">
+         <response>
+            <organisasjon xsi:type="ns4:Virksomhet" xmlns:ns4="http://nav.no/tjeneste/virksomhet/organisasjon/v5/informasjon" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+               <orgnummer>$organisasjonsnummer</orgnummer>
+               <navn xsi:type="ns4:UstrukturertNavn">
+                  <navnelinje>$navn1</navnelinje>
+                  <navnelinje>$navn2</navnelinje>
+                  <navnelinje/>
+                  <navnelinje/>
+                  <navnelinje/>
+               </navn>
+               <organisasjonDetaljer>
+                  <registreringsDato>2018-09-03+02:00</registreringsDato>
+                  <datoSistEndret>2018-10-23+02:00</datoSistEndret>
+                  <forretningsadresse fomBruksperiode="2018-10-24T13:12:34.739+02:00" fomGyldighetsperiode="2018-10-23T00:00:00.000+02:00" xsi:type="ns4:SemistrukturertAdresse">
+                     <adresseId>Vei 123456</adresseId>
+                     <landkode kodeRef="NO"/>
+                     <adresseledd>
+                        <noekkel kodeRef="adresselinje1"/>
+                        <verdi>Stakkevollvegen 328</verdi>
+                     </adresseledd>
+                     <adresseledd>
+                        <noekkel kodeRef="postnr"/>
+                        <verdi>9019</verdi>
+                     </adresseledd>
+                     <adresseledd>
+                        <noekkel kodeRef="kommunenr"/>
+                        <verdi>1902</verdi>
+                     </adresseledd>
+                     <adresseledd>
+                        <noekkel kodeRef="linjenummer"/>
+                        <verdi>1</verdi>
+                     </adresseledd>
+                  </forretningsadresse>
+                  <postadresse fomBruksperiode="2018-10-24T13:12:34.740+02:00" fomGyldighetsperiode="2018-10-23T00:00:00.000+02:00" xsi:type="ns4:SemistrukturertAdresse">
+                     <adresseId>Vei 123456</adresseId>
+                     <landkode kodeRef="NO"/>
+                     <adresseledd>
+                        <noekkel kodeRef="adresselinje1"/>
+                        <verdi>Stakkevollvegen 328</verdi>
+                     </adresseledd>
+                     <adresseledd>
+                        <noekkel kodeRef="postnr"/>
+                        <verdi>9019</verdi>
+                     </adresseledd>
+                     <adresseledd>
+                        <noekkel kodeRef="kommunenr"/>
+                        <verdi>1902</verdi>
+                     </adresseledd>
+                     <adresseledd>
+                        <noekkel kodeRef="linjenummer"/>
+                        <verdi>1</verdi>
+                     </adresseledd>
+                  </postadresse>
+                  <navSpesifikkInformasjon fomBruksperiode="1900-01-01T00:00:00.000+01:00" fomGyldighetsperiode="1900-01-01T00:00:00.000+01:00">
+                     <erIA>false</erIA>
+                  </navSpesifikkInformasjon>
+                  <navn fomBruksperiode="2018-10-24T13:12:33.501+02:00" fomGyldighetsperiode="2018-10-23T00:00:00.000+02:00">
+                     <navn xsi:type="ns4:UstrukturertNavn">
+                        <navnelinje>EGERSUND OG ØRSTA REGNSKAP</navnelinje>
+                        <navnelinje/>
+                        <navnelinje/>
+                        <navnelinje/>
+                        <navnelinje/>
+                     </navn>
+                  </navn>
+                  <organisasjonEnhetstyper fomBruksperiode="2018-09-04T14:51:15.327+02:00" fomGyldighetsperiode="2018-09-04T00:00:00.000+02:00">
+                     <enhetstype>Bedrift (BEDR)</enhetstype>
+                  </organisasjonEnhetstyper>
+               </organisasjonDetaljer>
+               <virksomhetDetaljer>
+                  <enhetstype kodeRef="BEDR"/>
+               </virksomhetDetaljer>
+            </organisasjon>
+         </response>
+      </ns2:hentOrganisasjonResponse>
+   </soap:Body>
+</soap:Envelope>
 """.trimIndent()

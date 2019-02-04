@@ -113,6 +113,16 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         ))
     }
 
+    val organisasjonClient by lazy {
+        val port = Clients.OrganisasjonV5(env.organisasjonEndpointUrl)
+        if (env.allowInsecureSoapRequests) {
+            stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+        } else {
+            stsClient.configureFor(port)
+        }
+        OrganisasjonClient(port)
+    }
+
     routing {
         authenticate {
             inntekt(
@@ -150,16 +160,11 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                         }
                         ArbeidsforholdClient(port)
                     },
-                    aktørregisterClientFactory = { aktørregisterClient }
+                    aktørregisterClientFactory = { aktørregisterClient },
+                    organisasjonsClientFactory = { organisasjonClient }
             )
             organisasjon {
-                val port = Clients.OrganisasjonV5(env.organisasjonEndpointUrl)
-                if (env.allowInsecureSoapRequests) {
-                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                } else {
-                    stsClient.configureFor(port)
-                }
-                OrganisasjonClient(port)
+                organisasjonClient
             }
 
             sakOgBehandling{

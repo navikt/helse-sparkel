@@ -26,7 +26,8 @@ fun bootstrapComponentTest() : ComponentTestBootstrap {
             "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
             "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
             "AAREG_ENDPOINTURL" to wireMockServer.baseUrl().plus("/aareg"),
-            "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
+            "ALLOW_INSECURE_SOAP_REQUESTS" to "true",
+            "ORGANISASJON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/organisasjon")
     ))
 
     return ComponentTestBootstrap(

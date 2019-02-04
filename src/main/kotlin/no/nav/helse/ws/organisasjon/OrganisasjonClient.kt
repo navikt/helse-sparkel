@@ -14,7 +14,7 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
     private val log = LoggerFactory.getLogger("OrganisasjonClient")
 
     fun orgNavn(orgnr: String): OppslagResult {
-        val request = HentOrganisasjonRequest().apply { orgnummer = orgnr }
+        val request = HentOrganisasjonRequest().apply { orgnummer = orgnr } // TODO: Bruke HentNoekkelinfoOrganisasjonRequest istedenfor?
         return try {
             val response = organisasjonV5.hentOrganisasjon(request)
 
