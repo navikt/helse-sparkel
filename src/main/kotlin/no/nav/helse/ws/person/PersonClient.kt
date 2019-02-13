@@ -7,7 +7,9 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.GeografiskTilknytning
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Periode
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningRequest
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonhistorikkRequest
 import org.slf4j.LoggerFactory
@@ -51,6 +53,22 @@ class PersonClient(private val personV3: PersonV3) {
         } catch (ex: Exception) {
             log.error("Error while doing personhistorikk lookup", ex)
             Failure(listOf(ex.message ?: "unknown error"))
+        }
+    }
+
+    fun geografiskTilknytning(id : AktørId) : OppslagResult {
+        val request = HentGeografiskTilknytningRequest().apply {
+            aktoer = AktoerId().apply {
+                aktoerId = id.aktor
+            }
+        }
+
+        return try {
+            val tpsResponse = personV3.hentGeografiskTilknytning(request)
+            Success(GeografiskTilknytningMapper.tilGeografiskTilknytning(tpsResponse))
+        } catch (cause: Throwable) {
+            log.error("Error while doing geografisk tilknytning lookup", cause)
+            Failure(listOf(cause.message ?: "unknown error"))
         }
     }
 }

@@ -27,7 +27,8 @@ fun bootstrapComponentTest() : ComponentTestBootstrap {
             "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
             "AAREG_ENDPOINTURL" to wireMockServer.baseUrl().plus("/aareg"),
             "ALLOW_INSECURE_SOAP_REQUESTS" to "true",
-            "ORGANISASJON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/organisasjon")
+            "ORGANISASJON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/organisasjon"),
+            "PERSON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/person")
     ))
 
     return ComponentTestBootstrap(
@@ -47,11 +48,10 @@ data class ComponentTestBootstrap(
     }
 
     fun stop() {
-        wireMockServer.stop()
+        wireMockServer.shutdown()
     }
 
     fun reset() {
-        WireMock.reset()
         CollectorRegistry.defaultRegistry.clear()
     }
 }

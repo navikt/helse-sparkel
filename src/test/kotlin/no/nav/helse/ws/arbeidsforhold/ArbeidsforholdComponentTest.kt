@@ -7,7 +7,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.prometheus.client.CollectorRegistry
 import no.nav.helse.http.aktør.aktørregisterStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
@@ -17,11 +16,7 @@ import no.nav.helse.ws.organisasjon.hentOrganisasjonStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -45,18 +40,9 @@ class ArbeidsforholdComponentTest {
 
 
     @AfterEach
+    @BeforeEach
     fun `clear server`() {
         bootstrap.reset()
-    }
-
-    @BeforeEach
-    fun `clear prometheus registry before test`() {
-        CollectorRegistry.defaultRegistry.clear()
-    }
-
-    @AfterEach
-    fun `clear prometheus registry after test`() {
-        CollectorRegistry.defaultRegistry.clear()
     }
 
     @Test
