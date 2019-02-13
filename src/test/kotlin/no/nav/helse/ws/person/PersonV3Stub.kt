@@ -48,6 +48,13 @@ class PersonV3Stub: PersonV3 {
             aktoer = AktoerId().apply {
                 aktoerId = "1234567891011"
             }
+            bostedsadresse = Bostedsadresse().apply {
+                strukturertAdresse = Gateadresse().apply {
+                    landkode = Landkoder().apply {
+                        value = "NOR"
+                    }
+                }
+            }
         }
 
         return HentPersonResponse().apply { person = mannen }

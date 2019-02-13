@@ -20,7 +20,8 @@ class PersonMappingTest {
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
                 fdato = LocalDate.of(2018, 11, 20),
-                kjønn = Kjønn.MANN)
+                kjønn = Kjønn.MANN,
+                bostedsland = "NOR")
         val actual = PersonMapper.toPerson(tpsMann)
         assertEquals(expected, actual)
     }
@@ -35,7 +36,8 @@ class PersonMappingTest {
                 mellomnavn = "Dorothea",
                 etternavn = "Dahl",
                 fdato = LocalDate.of(2018, 11, 19),
-                kjønn = Kjønn.KVINNE)
+                kjønn = Kjønn.KVINNE,
+                bostedsland = "NOR")
         val actual = PersonMapper.toPerson(tpsResponse)
         assertEquals(expected, actual)
     }
@@ -59,6 +61,13 @@ class PersonMappingTest {
                     year = 2018
                     month = 11
                     day = 20
+                }
+            }
+            bostedsadresse = Bostedsadresse().apply {
+                strukturertAdresse = Gateadresse().apply {
+                    landkode = Landkoder().apply {
+                        value = "NOR"
+                    }
                 }
             }
         }
@@ -85,6 +94,13 @@ class PersonMappingTest {
                         year = 2018
                         month = 11
                         day = 19
+                    }
+                }
+            }
+            bostedsadresse = Bostedsadresse().apply {
+                strukturertAdresse = Gateadresse().apply {
+                    landkode = Landkoder().apply {
+                        value = "NOR"
                     }
                 }
             }

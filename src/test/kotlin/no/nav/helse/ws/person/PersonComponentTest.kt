@@ -68,7 +68,7 @@ class PersonComponentTest {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {
                 assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONObject("""{"fdato":"1984-07-08","etternavn":"LOLNES","mellomnavn":"PIKENES","id":{"aktor":"1234567891011"},"fornavn":"JENNY","kjønn":"KVINNE"}"""), JSONObject(response.content))
+                assertJsonEquals(JSONObject("""{"fdato":"1984-07-08","etternavn":"LOLNES","mellomnavn":"PIKENES","id":{"aktor":"1234567891011"},"fornavn":"JENNY","kjønn":"KVINNE","bostedsland":"NOR"}"""), JSONObject(response.content))
             }
         }
     }

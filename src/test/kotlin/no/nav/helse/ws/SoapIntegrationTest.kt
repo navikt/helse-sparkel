@@ -83,7 +83,8 @@ class SoapIntegrationTest {
                 mellomnavn = "PIKENES",
                 etternavn = "LOLNES",
                 fdato = LocalDate.of(1984, 7, 8),
-                kjønn = Kjønn.KVINNE
+                kjønn = Kjønn.KVINNE,
+                bostedsland = "NOR"
         )
         when (actual) {
             is Success<*> -> {

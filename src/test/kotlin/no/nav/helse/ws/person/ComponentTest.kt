@@ -27,7 +27,8 @@ class ComponentTest {
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
                 fdato = LocalDate.of(2018, 11, 19),
-                kjønn = Kjønn.MANN
+                kjønn = Kjønn.MANN,
+                bostedsland = "NOR"
         )
         val actual = personClient.personInfo(AktørId("1234567891011"))
         when (actual) {
