@@ -1,8 +1,5 @@
 package no.nav.helse.ws.person
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -11,9 +8,11 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
 import no.nav.helse.sparkel
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
-import no.nav.helse.ws.withSoapAction
+import no.nav.helse.ws.person.GeografiskTilknytningMocks.medDiskresjonsKode6Responses
+import no.nav.helse.ws.person.GeografiskTilknytningMocks.medDiskresjonsKode7Responses
+import no.nav.helse.ws.person.GeografiskTilknytningMocks.medGeografiskTilknytningResponses
+import no.nav.helse.ws.person.GeografiskTilknytningMocks.mock
+import no.nav.helse.ws.person.GeografiskTilknytningMocks.utenGeografiskTilknytningEllerDiskresjonskode
 import org.json.JSONObject
 import org.junit.jupiter.api.*
 import kotlin.test.assertEquals
@@ -46,12 +45,9 @@ class GeografiskTilknytningComponentTest {
     @Test
     fun `Geografisk Tilknytning på en person med kode 6`() {
         val aktoerId = "1831212532188"
-        val responses = medDiskresjonsKodeResponses(aktoerId = aktoerId, kode = 6)
+        val responses = medDiskresjonsKode6Responses(aktoerId = aktoerId)
 
-        WireMock.stubFor(medAktoerIdRequest(aktoerId)
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okXml(responses.registerXmlResponse)))
+        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
         requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
     }
@@ -59,12 +55,16 @@ class GeografiskTilknytningComponentTest {
     @Test
     fun `Geografisk Tilknytning på en person med kode 7`() {
         val aktoerId = "1831212532189"
-        val responses = medDiskresjonsKodeResponses(aktoerId = aktoerId, kode = 7)
+        val geografiskOmraadeType = "Land"
+        val geografiskOmraadeKode = "030155"
 
-        WireMock.stubFor(medAktoerIdRequest(aktoerId)
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okXml(responses.registerXmlResponse)))
+        val responses = medDiskresjonsKode7Responses(
+                aktoerId = aktoerId,
+                geografiskOmraadeType = geografiskOmraadeType,
+                geografiskOmraadeKode = geografiskOmraadeKode
+        )
+
+        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
         requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
     }
@@ -77,10 +77,7 @@ class GeografiskTilknytningComponentTest {
 
         val responses = medGeografiskTilknytningResponses(aktoerId = aktoerId, geografiskOmraadeType = geografiskOmraadeType, geografiskOmraadeKode = geografiskOmraadeKode)
 
-        WireMock.stubFor(medAktoerIdRequest(aktoerId)
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okXml(responses.registerXmlResponse)))
+        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
         requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
     }
@@ -93,10 +90,7 @@ class GeografiskTilknytningComponentTest {
 
         val responses = medGeografiskTilknytningResponses(aktoerId = aktoerId, geografiskOmraadeType = geografiskOmraadeType, geografiskOmraadeKode = geografiskOmraadeKode)
 
-        WireMock.stubFor(medAktoerIdRequest(aktoerId)
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okXml(responses.registerXmlResponse)))
+        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
         requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
 
@@ -110,118 +104,36 @@ class GeografiskTilknytningComponentTest {
 
         val responses = medGeografiskTilknytningResponses(aktoerId = aktoerId, geografiskOmraadeType = geografiskOmraadeType, geografiskOmraadeKode = geografiskOmraadeKode)
 
-        WireMock.stubFor(medAktoerIdRequest(aktoerId)
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okXml(responses.registerXmlResponse)))
+        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
         requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
+    }
+
+    @Test
+    fun `Person uten Geografisk Tilnytning`() {
+        val aktoerId = "1831212532193"
+
+        val responses = utenGeografiskTilknytningEllerDiskresjonskode(aktoerId = aktoerId)
+
+        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
+
+        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse, expectedHttpResponseCode = 404)
     }
 
 
     private fun requestSparkelAndAssertResponse(
             aktoerId: String,
-            expectedResponse : String
+            expectedResponse : String,
+            expectedHttpResponseCode : Int = 200
     ) {
         withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "/api/person/$aktoerId/geografisk-tilknytning") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(200, response.status()?.value)
+                assertEquals(expectedHttpResponseCode, response.status()?.value)
                 assertJsonEquals(JSONObject(expectedResponse), JSONObject(response.content))
             }
         }
     }
-
-    private fun medAktoerIdRequest(aktoerId: String): MappingBuilder {
-        return WireMock.post(WireMock.urlPathEqualTo("/person"))
-                .withSoapAction("http://nav.no/tjeneste/virksomhet/person/v3/Person_v3/hentGeografiskTilknytningRequest")
-                .withRequestBody(ContainsPattern("<aktoerId>$aktoerId</aktoerId>"))
-    }
-
-    private fun medDiskresjonsKodeResponses(
-            aktoerId: String,
-            kode : Int
-    ) : Responses {
-        val diskresjonskode = if (kode == 6) "SPSF" else "SPFO"
-        val beskrivelse = if (kode == 6) "Sperret adresse, strengt fortrolig" else "Sperret adresse, fortrolig"
-
-        val xml = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-                <soapenv:Body>
-                    <ns2:hentGeografiskTilknytningResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
-                        <response>
-                            <aktoer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns3:AktoerId">
-                                <aktoerId>$aktoerId</aktoerId>
-                            </aktoer>
-                            <navn>
-                                <etternavn>DAME</etternavn>
-                                <fornavn>SKJERMET</fornavn>
-                                <sammensattNavn>DAME SKJERMET</sammensattNavn>
-                            </navn>
-                            <diskresjonskode>$diskresjonskode</diskresjonskode>
-                        </response>
-                    </ns2:hentGeografiskTilknytningResponse>
-                </soapenv:Body>
-            </soapenv:Envelope>
-        """.trimIndent()
-
-        val json = """
-        {
-            "diskresjonskode": {
-                "forkortelse": "$diskresjonskode",
-                "beskrivelse": "$beskrivelse",
-                "kode": $kode
-            }
-        }
-        """.trimIndent()
-
-        return Responses(registerXmlResponse = xml, sparkelJsonResponse = json)
-    }
-
-
-    private fun medGeografiskTilknytningResponses(
-            aktoerId: String,
-            geografiskOmraadeType : String,
-            geografiskOmraadeKode : String
-    ) : Responses {
-        val xml = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-            <soapenv:Body>
-                <ns2:hentGeografiskTilknytningResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
-                    <response>
-                        <aktoer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns3:AktoerId">
-                            <aktoerId>$aktoerId</aktoerId>
-                        </aktoer>
-                        <navn>
-                            <etternavn>LOLNES</etternavn>
-                            <fornavn>JENNY</fornavn>
-                            <mellomnavn>PIKENES</mellomnavn>
-                            <sammensattNavn>LOLNES JENNY PIKENES</sammensattNavn>
-                        </navn>
-                        <geografiskTilknytning xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns3:$geografiskOmraadeType">
-                            <geografiskTilknytning>$geografiskOmraadeKode</geografiskTilknytning>
-                        </geografiskTilknytning>
-                    </response>
-                </ns2:hentGeografiskTilknytningResponse>
-            </soapenv:Body>
-        </soapenv:Envelope>
-        """.trimIndent()
-
-        val json = """
-        {
-            "geografiskOmraade": {
-                "type": "${geografiskOmraadeType.toUpperCase()}",
-                "kode": "$geografiskOmraadeKode"
-            }
-        }
-        """.trimIndent()
-
-        return Responses(registerXmlResponse = xml, sparkelJsonResponse = json)
-    }
-
-    private data class Responses(val registerXmlResponse : String, val sparkelJsonResponse : String)
 }

@@ -28,7 +28,8 @@ fun bootstrapComponentTest() : ComponentTestBootstrap {
             "AAREG_ENDPOINTURL" to wireMockServer.baseUrl().plus("/aareg"),
             "ALLOW_INSECURE_SOAP_REQUESTS" to "true",
             "ORGANISASJON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/organisasjon"),
-            "PERSON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/person")
+            "PERSON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/person"),
+            "ARBEIDSFORDELING_ENDPOINTURL" to wireMockServer.baseUrl().plus("/arbeidsfordeling")
     ))
 
     return ComponentTestBootstrap(

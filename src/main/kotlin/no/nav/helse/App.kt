@@ -23,6 +23,9 @@ import no.nav.helse.http.aktør.AktørregisterClient
 import no.nav.helse.nais.nais
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.Clients
+import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingClient
+import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
+import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.inntekt.InntektClient
@@ -123,6 +126,30 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         OrganisasjonClient(port)
     }
 
+    val personClient by lazy {
+        val port = Clients.PersonV3(env.personEndpointUrl)
+        port.apply {
+            if (env.allowInsecureSoapRequests) {
+                stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+            } else {
+                stsClient.configureFor(port)
+            }
+        }
+        PersonClient(port)
+    }
+
+    val arbeidsfordelingClient by lazy {
+        val port = Clients.ArbeidsfordelingV1(env.arbeidsfordelingEndpointUrl)
+        if (env.allowInsecureSoapRequests) {
+            stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+        } else {
+            stsClient.configureFor(port)
+        }
+        ArbeidsfordelingClient(port)
+    }
+
+
+
     routing {
         authenticate {
             inntekt(
@@ -139,16 +166,14 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                     aktørregisterClient
                 }
             )
+            arbeidsfordeling {
+                ArbeidsfordelingService(
+                        arbeidsfordelingClient = arbeidsfordelingClient,
+                        personClient = personClient
+                )
+            }
             person {
-                val port = Clients.PersonV3(env.personEndpointUrl)
-                port.apply {
-                    if (env.allowInsecureSoapRequests) {
-                        stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                    } else {
-                        stsClient.configureFor(port)
-                    }
-                }
-                PersonClient(port)
+                personClient
             }
             arbeidsforhold(
                     clientFactory = {

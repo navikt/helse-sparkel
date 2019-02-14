@@ -36,7 +36,15 @@ fun Route.person(factory: () -> PersonClient) {
         call.parameters["aktør"]?.let { aktørid ->
             val lookupResult: OppslagResult = personClient.geografiskTilknytning(AktørId(aktørid))
             when (lookupResult) {
-                is Success<*> -> call.respond(lookupResult.data!!)
+                is Success<*> -> {
+                    val geografiskTilknytning = lookupResult.data as GeografiskTilknytning
+                    if (geografiskTilknytning.diskresjonskode == null && geografiskTilknytning.geografiskOmraade == null) {
+                        call.respond(HttpStatusCode.NotFound, mapOf("error" to "Personen har ingen geografisk tilknytning"))
+                    } else {
+                        call.respond(geografiskTilknytning)
+
+                    }
+                }
                 is Failure -> call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "that didn't go so well..."))
             }
         } ?: call.respond(HttpStatusCode.BadRequest, "An aktørid must be specified")
