@@ -36,7 +36,7 @@ class ArbeidsfordelingService(
         // Gjeldende geografiske tilknytning
         val gjeldendeGeografiskeTilknytning = velgGjeldendeGeografiskeTilknytning(
                 forHovedAktoer = geografiskTilknytningHovedAktoer,
-                forMedAktoerer = geografiskTilknytningMedAktoerer
+                forMedAktoerer = geografiskTilknytningMedAktoerer.toList()
         )
         // Gjør oppslag for å finne enhet
         return arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema)

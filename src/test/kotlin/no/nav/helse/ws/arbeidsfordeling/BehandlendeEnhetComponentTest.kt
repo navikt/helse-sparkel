@@ -337,7 +337,7 @@ class BehandlendeEnhetComponentTest {
         medAktoerIder.forEach { it ->
             queryString = queryString.plus("&medAktoerId=$it")
         }
-        val url = "/api/arbeidsfordeling/enhet/$aktoerId$queryString"
+        val url = "/api/arbeidsfordeling/behandlende-enhet/$aktoerId$queryString"
         log.info("URL=$url")
 
         withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {

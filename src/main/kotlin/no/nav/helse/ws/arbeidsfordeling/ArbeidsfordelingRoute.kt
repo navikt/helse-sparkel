@@ -17,7 +17,7 @@ private const val TEMA_QUERY_PARAM = "tema"
 fun Route.arbeidsfordeling(factory: () -> ArbeidsfordelingService) {
     val arbeidsfordelingService: ArbeidsfordelingService by lazy(factory)
 
-    get("api/arbeidsfordeling/enhet/{$HOVED_AKTOER_PATH_PARAM}") {
+    get("api/arbeidsfordeling/behandlende-enhet/{$HOVED_AKTOER_PATH_PARAM}") {
         val tema = call.getTema()
         if (tema == null) {
             call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Requesten må inneholde query parameter '$TEMA_QUERY_PARAM'"))
