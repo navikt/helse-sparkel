@@ -8,13 +8,7 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.*
 class OrganisasjonV5Stub: OrganisasjonV5 {
 
     override fun hentOrganisasjon(request: HentOrganisasjonRequest?): HentOrganisasjonResponse {
-        return HentOrganisasjonResponse().apply {
-            organisasjon = Organisasjon().apply {
-                navn = UstrukturertNavn().apply {
-                    navnelinje.addAll(listOf("fornavn", "mellomnavn", "etternavn"))
-                }
-            }
-        }
+        TODO("not implemented")
     }
 
     override fun ping() {
@@ -30,7 +24,11 @@ class OrganisasjonV5Stub: OrganisasjonV5 {
     }
 
     override fun hentNoekkelinfoOrganisasjon(request: HentNoekkelinfoOrganisasjonRequest?): HentNoekkelinfoOrganisasjonResponse {
-        TODO("not implemented")
+        return HentNoekkelinfoOrganisasjonResponse().apply {
+            navn = UstrukturertNavn().apply {
+                navnelinje.addAll(listOf("fornavn", "mellomnavn", "etternavn"))
+            }
+        }
     }
 
     override fun validerOrganisasjon(request: ValiderOrganisasjonRequest?): ValiderOrganisasjonResponse {

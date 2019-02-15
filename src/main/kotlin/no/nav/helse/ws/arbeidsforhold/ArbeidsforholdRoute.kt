@@ -9,6 +9,9 @@ import no.nav.helse.*
 import no.nav.helse.http.aktør.*
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
+import no.nav.helse.ws.organisasjon.OrganisasjonResponse
+import no.nav.helse.ws.organisasjon.OrganisasjonsAttributt
+import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import java.time.LocalDate
@@ -53,8 +56,11 @@ private fun genererResponse(arbeidsforholdListe : List<Arbeidsforhold>, organisa
 
 private fun hentOrganisasjonsNavn(organisasjonsClient: OrganisasjonClient, organisasjon: Organisasjon) : String? {
     return if (organisasjon.navn.isNullOrBlank()) {
-        val oppslagResult  = organisasjonsClient.orgNavn(organisasjon.orgnummer)
-        if (oppslagResult is Success<*>) (oppslagResult.data as OrganisasjonClient.OrganisasjonResponse).navn else null
+        val oppslagResult  = organisasjonsClient.hentOrganisasjon(
+                orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
+                attributter = listOf(OrganisasjonsAttributt("navn"))
+        )
+        if (oppslagResult is Success<*>) (oppslagResult.data as OrganisasjonResponse).navn else null
     } else {
         organisasjon.navn
     }

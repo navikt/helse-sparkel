@@ -20,8 +20,10 @@ class ComponentTest {
     @Test
     fun stubbedLookup() {
         val organisasjonClient = OrganisasjonClient(OrganisasjonV5Stub())
-        val expected = OrganisasjonClient.OrganisasjonResponse("fornavn, mellomnavn, etternavn")
-        val actual = organisasjonClient.orgNavn("12345")
+        val expected = OrganisasjonResponse("fornavn, mellomnavn, etternavn")
+        val actual = organisasjonClient.hentOrganisasjon(
+            orgnr = OrganisasjonsNummer("12345")
+        )
         when (actual) {
             is Success<*> -> {
                 assertEquals(expected, actual.data)
@@ -34,7 +36,9 @@ class ComponentTest {
     fun stubbedLookupWithError() {
         val organisasjonClient = OrganisasjonClient(OrganisasjonV5MisbehavingStub())
         val expected = Failure(listOf("SOAPy stuff got besmirched"))
-        val actual = organisasjonClient.orgNavn("12345")
+        val actual = organisasjonClient.hentOrganisasjon(
+                orgnr = OrganisasjonsNummer("12345")
+        )
         when (actual) {
             is Success<*> -> fail { "This lookup was expected to fail, but it didn't" }
             is Failure -> {

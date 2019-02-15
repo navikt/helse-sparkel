@@ -6,7 +6,7 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.*
 class OrganisasjonV5MisbehavingStub: OrganisasjonV5 {
 
     override fun hentOrganisasjon(request: HentOrganisasjonRequest?): HentOrganisasjonResponse {
-        throw Exception("SOAPy stuff got besmirched")
+        TODO("not implemented")
     }
 
     override fun ping() {
@@ -22,7 +22,7 @@ class OrganisasjonV5MisbehavingStub: OrganisasjonV5 {
     }
 
     override fun hentNoekkelinfoOrganisasjon(request: HentNoekkelinfoOrganisasjonRequest?): HentNoekkelinfoOrganisasjonResponse {
-        TODO("not implemented")
+        throw Exception("SOAPy stuff got besmirched")
     }
 
     override fun validerOrganisasjon(request: ValiderOrganisasjonRequest?): ValiderOrganisasjonResponse {

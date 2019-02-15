@@ -12,7 +12,7 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
 import no.nav.helse.common.*
 import no.nav.helse.sparkel
-import no.nav.helse.ws.organisasjon.hentOrganisasjonStub
+import no.nav.helse.ws.organisasjon.OrganisasjonMocks
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
@@ -76,15 +76,25 @@ class ArbeidsforholdComponentTest {
                 .willSetStateTo("andre_arbeidsforholdhistorikk_hentet")
                 .willReturn(WireMock.okXml(hentArbeidsforholdHistorikk_response2)))
 
-        WireMock.stubFor(hentOrganisasjonStub("913548221")
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okForContentType("application/xml; charset=utf-8", hentOrganisasjon_response(organisasjonsnummer = "913548221", navn1 = "EQUINOR AS", navn2 = "AVD STATOIL SOKKELVIRKSOMHET"))))
+        val org1Responses = OrganisasjonMocks.okResponses(
+                orgNr = "913548221",
+                navnLinje1 = "EQUINOR AS",
+                navnLinje2 = "AVD STATOIL SOKKELVIRKSOMHET"
+        )
+        OrganisasjonMocks.mock(
+                orgNr = "913548221",
+                xml = org1Responses.registerXmlResponse
+        )
 
-        WireMock.stubFor(hentOrganisasjonStub("984054564")
-                .withSamlAssertion()
-                .withCallId()
-                .willReturn(WireMock.okForContentType("application/xml; charset=utf-8", hentOrganisasjon_response(organisasjonsnummer = "984054564", navn1 = "NAV", navn2 = "AVD WALDEMAR THRANES GATE"))))
+        val org2Responses = OrganisasjonMocks.okResponses(
+                orgNr = "984054564",
+                navnLinje1 = "NAV",
+                navnLinje2 = "AVD WALDEMAR THRANES GATE"
+        )
+        OrganisasjonMocks.mock(
+                orgNr = "984054564",
+                xml = org2Responses.registerXmlResponse
+        )
 
         withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/1831212532188?fom=2017-01-01&tom=2019-01-01") {
