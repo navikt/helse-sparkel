@@ -49,7 +49,11 @@ class GeografiskTilknytningComponentTest {
 
         mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
-        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
+        requestSparkelAndAssertResponse(
+                aktoerId = aktoerId,
+                expectedResponse = responses.sparkelJsonResponse,
+                expectedHttpResponseCode = 403
+        )
     }
 
     @Test
@@ -66,7 +70,10 @@ class GeografiskTilknytningComponentTest {
 
         mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
 
-        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
+        requestSparkelAndAssertResponse(
+                aktoerId = aktoerId,
+                expectedResponse = responses.sparkelJsonResponse
+        )
     }
 
     @Test
@@ -75,11 +82,21 @@ class GeografiskTilknytningComponentTest {
         val geografiskOmraadeType = "Land"
         val geografiskOmraadeKode = "030103"
 
-        val responses = medGeografiskTilknytningResponses(aktoerId = aktoerId, geografiskOmraadeType = geografiskOmraadeType, geografiskOmraadeKode = geografiskOmraadeKode)
+        val responses = medGeografiskTilknytningResponses(
+                aktoerId = aktoerId,
+                geografiskOmraadeType = geografiskOmraadeType,
+                geografiskOmraadeKode = geografiskOmraadeKode
+        )
 
-        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
+        mock(
+                aktoerId = aktoerId,
+                xml = responses.registerXmlResponse
+        )
 
-        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
+        requestSparkelAndAssertResponse(
+                aktoerId = aktoerId,
+                expectedResponse = responses.sparkelJsonResponse
+        )
     }
 
     @Test
@@ -88,11 +105,21 @@ class GeografiskTilknytningComponentTest {
         val geografiskOmraadeType = "Kommune"
         val geografiskOmraadeKode = "030104"
 
-        val responses = medGeografiskTilknytningResponses(aktoerId = aktoerId, geografiskOmraadeType = geografiskOmraadeType, geografiskOmraadeKode = geografiskOmraadeKode)
+        val responses = medGeografiskTilknytningResponses(
+                aktoerId = aktoerId,
+                geografiskOmraadeType = geografiskOmraadeType,
+                geografiskOmraadeKode = geografiskOmraadeKode
+        )
 
-        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
+        mock(
+                aktoerId = aktoerId,
+                xml = responses.registerXmlResponse
+        )
 
-        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
+        requestSparkelAndAssertResponse(
+                aktoerId = aktoerId,
+                expectedResponse = responses.sparkelJsonResponse
+        )
 
     }
 
@@ -102,22 +129,41 @@ class GeografiskTilknytningComponentTest {
         val geografiskOmraadeType = "Bydel"
         val geografiskOmraadeKode = "030105"
 
-        val responses = medGeografiskTilknytningResponses(aktoerId = aktoerId, geografiskOmraadeType = geografiskOmraadeType, geografiskOmraadeKode = geografiskOmraadeKode)
+        val responses = medGeografiskTilknytningResponses(
+                aktoerId = aktoerId,
+                geografiskOmraadeType = geografiskOmraadeType,
+                geografiskOmraadeKode = geografiskOmraadeKode
+        )
 
-        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
+        mock(
+                aktoerId = aktoerId,
+                xml = responses.registerXmlResponse
+        )
 
-        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse)
+        requestSparkelAndAssertResponse(
+                aktoerId = aktoerId,
+                expectedResponse = responses.sparkelJsonResponse
+        )
     }
 
     @Test
     fun `Person uten Geografisk Tilnytning`() {
         val aktoerId = "1831212532193"
 
-        val responses = utenGeografiskTilknytningEllerDiskresjonskode(aktoerId = aktoerId)
+        val responses = utenGeografiskTilknytningEllerDiskresjonskode(
+                aktoerId = aktoerId
+        )
 
-        mock(aktoerId = aktoerId, xml = responses.registerXmlResponse)
+        mock(
+                aktoerId = aktoerId,
+                xml = responses.registerXmlResponse
+        )
 
-        requestSparkelAndAssertResponse(aktoerId = aktoerId, expectedResponse = responses.sparkelJsonResponse, expectedHttpResponseCode = 404)
+        requestSparkelAndAssertResponse(
+                aktoerId = aktoerId,
+                expectedResponse = responses.sparkelJsonResponse,
+                expectedHttpResponseCode = 404
+        )
     }
 
 

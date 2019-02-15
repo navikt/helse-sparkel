@@ -53,22 +53,20 @@ object GeografiskTilknytningMocks {
 
         val json = """
         {
-            "geografiskOmraade": {
-                "type": "${geografiskOmraadeType.toUpperCase()}",
-                "kode": "$geografiskOmraadeKode"
-            }
+            "type": "${geografiskOmraadeType.toUpperCase()}",
+            "kode": "$geografiskOmraadeKode"
         }
         """.trimIndent()
 
-        return Responses(registerXmlResponse = xml, sparkelJsonResponse = json)
+        return Responses(
+                registerXmlResponse = xml,
+                sparkelJsonResponse = json
+        )
     }
 
     fun medDiskresjonsKode6Responses(
             aktoerId: String
     ) : Responses {
-        val diskresjonskode = "SPSF"
-        val beskrivelse = "Sperret adresse, strengt fortrolig"
-
         val xml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -83,7 +81,7 @@ object GeografiskTilknytningMocks {
                                 <fornavn>SKJERMET</fornavn>
                                 <sammensattNavn>DAME SKJERMET</sammensattNavn>
                             </navn>
-                            <diskresjonskode>$diskresjonskode</diskresjonskode>
+                            <diskresjonskode>SPSF</diskresjonskode>
                         </response>
                     </ns2:hentGeografiskTilknytningResponse>
                 </soapenv:Body>
@@ -92,15 +90,14 @@ object GeografiskTilknytningMocks {
 
         val json = """
         {
-            "diskresjonskode": {
-                "forkortelse": "$diskresjonskode",
-                "beskrivelse": "$beskrivelse",
-                "kode": 6
-            }
+            "error": "Ikke tilgang til å se geografisk tilknytning til denne aktøren."
         }
         """.trimIndent()
 
-        return Responses(registerXmlResponse = xml, sparkelJsonResponse = json)
+        return Responses(
+                registerXmlResponse = xml,
+                sparkelJsonResponse = json
+        )
     }
 
     fun medDiskresjonsKode7Responses(
@@ -108,9 +105,6 @@ object GeografiskTilknytningMocks {
             geografiskOmraadeType : String,
             geografiskOmraadeKode : String
     ) : Responses {
-        val diskresjonskode = "SPFO"
-        val beskrivelse = "Sperret adresse, fortrolig"
-
         val xml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -137,19 +131,15 @@ object GeografiskTilknytningMocks {
 
         val json = """
         {
-            "diskresjonskode": {
-                "forkortelse": "$diskresjonskode",
-                "beskrivelse": "$beskrivelse",
-                "kode": 7
-            },
-            "geografiskOmraade": {
-                "type": "${geografiskOmraadeType.toUpperCase()}",
-                "kode": "$geografiskOmraadeKode"
-            }
+            "type": "${geografiskOmraadeType.toUpperCase()}",
+            "kode": "$geografiskOmraadeKode"
         }
         """.trimIndent()
 
-        return Responses(registerXmlResponse = xml, sparkelJsonResponse = json)
+        return Responses(
+                registerXmlResponse = xml,
+                sparkelJsonResponse = json
+        )
     }
 
     fun utenGeografiskTilknytningEllerDiskresjonskode(
@@ -177,10 +167,13 @@ object GeografiskTilknytningMocks {
 
         val json = """
         {
-            "error": "Personen har ingen geografisk tilknytning"
+            "error": "Aktøren har ingen geografisk tilknytning."
         }
         """.trimIndent()
 
-        return Responses(registerXmlResponse = xml, sparkelJsonResponse = json)
+        return Responses(
+                registerXmlResponse = xml,
+                sparkelJsonResponse = json
+        )
     }
 }

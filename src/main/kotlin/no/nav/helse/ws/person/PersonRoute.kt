@@ -33,21 +33,27 @@ fun Route.person(factory: () -> PersonClient) {
     }
 
     get("api/person/{aktør}/geografisk-tilknytning") {
-        call.parameters["aktør"]?.let { aktørid ->
-            val lookupResult: OppslagResult = personClient.geografiskTilknytning(AktørId(aktørid))
+        call.parameters["aktør"]?.let { aktoerId ->
+            val lookupResult: OppslagResult = personClient.geografiskTilknytning(AktørId(aktoerId))
             when (lookupResult) {
                 is Success<*> -> {
                     val geografiskTilknytning = lookupResult.data as GeografiskTilknytning
-                    if (geografiskTilknytning.diskresjonskode == null && geografiskTilknytning.geografiskOmraade == null) {
-                        call.respond(HttpStatusCode.NotFound, mapOf("error" to "Personen har ingen geografisk tilknytning"))
-                    } else {
-                        call.respond(geografiskTilknytning)
-
+                    when {
+                        geografiskTilknytning.erKode6() -> call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Ikke tilgang til å se geografisk tilknytning til denne aktøren."))
+                        geografiskTilknytning.harGeografisOmraade() -> call.respond(geografiskTilknytning.geografiskOmraade!!)
+                        else -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Aktøren har ingen geografisk tilknytning."))
                     }
                 }
-                is Failure -> call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "that didn't go so well..."))
+                is Failure -> call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Feil ved henting av geografisk tilknytning."))
             }
-        } ?: call.respond(HttpStatusCode.BadRequest, "An aktørid must be specified")
+        } ?: call.respond(HttpStatusCode.BadRequest, "En Aktør ID må oppgis.")
     }
 }
 
+private fun GeografiskTilknytning.erKode6(): Boolean {
+    return diskresjonskode?.kode == 6
+}
+
+private fun GeografiskTilknytning.harGeografisOmraade() : Boolean {
+    return geografiskOmraade != null
+}
