@@ -1,23 +1,23 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val slf4jVersion = "1.7.25"
-val ktorVersion = "1.0.0"
-val prometheusVersion = "0.5.0"
+val ktorVersion = "1.1.2"
+val prometheusVersion = "0.6.0"
 val cxfVersion = "3.2.7"
 val orgJsonVersion = "20180813"
 val fuelVersion = "1.15.1"
 val wireMockVersion = "2.19.0"
 val mockkVersion = "1.8.12.kotlin13"
 val tjenestespesifikasjonerVersion = "1.2019.01.16-21.19-afc54bed6f85"
-val junitJupiterVersion = "5.3.1"
-val assertJVersion = "3.11.1"
+val junitJupiterVersion = "5.4.0"
+val assertJVersion = "3.12.0"
 val mainClass = "no.nav.helse.AppKt"
 
 fun tjenestespesifikasjon(name: String) = "no.nav.tjenestespesifikasjoner:$name:$tjenestespesifikasjonerVersion"
 
 plugins {
     `build-scan`
-    kotlin("jvm") version "1.3.20"
+    kotlin("jvm") version "1.3.21"
 }
 
 buildscript {
@@ -28,7 +28,6 @@ buildscript {
 
 dependencies {
     compile(kotlin("stdlib"))
-    compile("com.google.guava:guava:20.0")
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("net.logstash.logback:logstash-logback-encoder:5.2")
     compile("io.ktor:ktor-server-netty:$ktorVersion")
@@ -62,6 +61,7 @@ dependencies {
 
     testCompile("io.mockk:mockk:$mockkVersion")
     testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")
+    testCompile("com.google.guava:guava:20.0")
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -123,5 +123,5 @@ tasks.withType<Test> {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "5.1.1"
+    gradleVersion = "5.2.1"
 }
