@@ -20,6 +20,7 @@ import io.ktor.server.netty.Netty
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.http.aktør.AktørregisterClient
+import no.nav.helse.maksdato.*
 import no.nav.helse.nais.nais
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.Clients
@@ -224,6 +225,8 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
                 MeldekortClient(port)
             }
+
+            maksdato("http://maksdato")
         }
 
         nais(collectorRegistry)
