@@ -7,6 +7,7 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Periode
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningRequest
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
@@ -23,7 +24,7 @@ class PersonClient(private val personV3: PersonV3) {
             aktoer = AktoerId().apply {
                 aktoerId = id.aktor
             }
-        }
+        }.withInformasjonsbehov(Informasjonsbehov.ADRESSE)
 
         return try {
             val tpsResponse = personV3.hentPerson(request)
