@@ -29,7 +29,17 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
 
     private val log = LoggerFactory.getLogger("ArbeidsforholdClient")
 
-    fun finnArbeidsforhold(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsforhold>> {
+    fun finnArbeidsforhold(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate) =
+            finnArbeidsforholdForFnr(fnr, fom, tom).map { arbeidsforholdResponse ->
+                arbeidsforholdResponse.arbeidsforhold!!
+                        .map { arbeidsforhold ->
+                            arbeidsforhold!!
+                        }
+            }.map {
+                it.toList()
+            }
+
+    fun finnArbeidsforholdMedHistorikkOverArbeidsavtaler(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsforhold>> {
         return finnArbeidsforholdForFnr(fnr, fom, tom).map { arbeidsforholdResponse ->
             arbeidsforholdResponse.arbeidsforhold
         }.flatMap { listeOverArbeidsforhold ->

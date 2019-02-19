@@ -105,7 +105,7 @@ class ArbeidsforholdClientTest {
         }
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val result = arbeidsforholdClient.finnArbeidsforhold(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
             is OppslagResult.Ok -> {
@@ -194,7 +194,7 @@ class ArbeidsforholdClientTest {
         }
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val result = arbeidsforholdClient.finnArbeidsforhold(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
             is OppslagResult.Ok -> {
@@ -283,7 +283,7 @@ class ArbeidsforholdClientTest {
         }
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val result = arbeidsforholdClient.finnArbeidsforhold(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
             is OppslagResult.Ok -> {
