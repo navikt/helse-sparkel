@@ -1,11 +1,24 @@
 package no.nav.helse.ws.person
 
-import io.ktor.http.HttpStatusCode
-import io.prometheus.client.CollectorRegistry
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
+import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
-import org.junit.jupiter.api.AfterEach
+import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bostedsadresse
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Gateadresse
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Landkoder
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Postnummer
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -13,50 +26,99 @@ import java.time.LocalDate
 
 class ComponentTest {
 
-    private val metricsRegistry = CollectorRegistry.defaultRegistry
+    @Test
+    fun `skal få feil når tjenesten kaster exception`() {
+        val personV3 = mockk<PersonV3>()
 
-    @AfterEach
-    fun afterEach() {
-        metricsRegistry.clear()
+        every {
+            personV3.hentPerson(any())
+        } throws(Exception("SOAP fault"))
+
+        val personClient = PersonClient(personV3)
+        val result = personClient.personInfo(AktørId("123456789"))
+
+        verify(exactly = 1) {
+            personV3.hentPerson(any())
+        }
+
+        when (result) {
+            is OppslagResult.Feil -> {
+                when (result.feil) {
+                    is Feil.Exception -> assertEquals("SOAP fault", (result.feil as Feil.Exception).feilmelding)
+                    else -> fail { "Expected Feil.Exception to be returned" }
+                }
+            }
+            else -> fail { "Expected OppslagResult.Feil to be returned" }
+        }
     }
 
     @Test
-    fun stubbedLookup() {
-        val personClient = PersonClient(PersonV3Stub())
+    fun `skal få person når oppslag er vellykket`() {
+        val personV3 = mockk<PersonV3>()
+
+        val aktørId = "123456789"
+
+        every {
+            personV3.hentPerson(match { actualRequest ->
+                (actualRequest.aktoer is AktoerId)
+                        && (actualRequest.aktoer as AktoerId).aktoerId == aktørId
+                        && actualRequest.informasjonsbehov.size == 1
+                        && actualRequest.informasjonsbehov.contains(Informasjonsbehov.ADRESSE)
+            })
+        } returns HentPersonResponse().apply {
+            person = no.nav.tjeneste.virksomhet.person.v3.informasjon.Person().apply {
+                aktoer = AktoerId().apply {
+                    aktoerId = aktørId
+                }
+                personnavn = Personnavn().apply {
+                    fornavn = "Bjarne"
+                    mellomnavn = null
+                    etternavn = "Betjent"
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = LocalDate.of(2018, 11, 19).toXmlGregorianCalendar()
+                }
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "M"
+                    }
+                }
+                bostedsadresse = Bostedsadresse().apply {
+                    strukturertAdresse = Gateadresse().apply {
+                        poststed = Postnummer().apply {
+                            value = "0557"
+                        }
+                        landkode = Landkoder().apply {
+                            value = "NOR"
+                        }
+                        tilleggsadresse = "Offisiell adresse"
+                        kommunenummer = "0301"
+                        gatenavn = "SANNERGATA"
+                        husnummer = 2
+                    }
+                }
+            }
+        }
+
+        val personClient = PersonClient(personV3)
+        val result = personClient.personInfo(AktørId(aktørId))
+
+        verify(exactly = 1) {
+            personV3.hentPerson(any())
+        }
+
         val expected = Person(
-                id = AktørId("1234567891011"),
+                id = AktørId(aktørId),
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
                 fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.MANN,
                 bostedsland = "NOR"
         )
-        val actual = personClient.personInfo(AktørId("1234567891011"))
-        when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected, actual.data)
-            }
-            is OppslagResult.Feil -> fail { "This lookup was expected to succeed, but it didn't" }
-        }
-    }
 
-    @Test
-    fun stubbedLookupWithError() {
-        val personClient = PersonClient(PersonV3MisbehavingStub())
-        val expected = OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("SOAPy stuff got besmirched", Exception("SOAPy stuff got besmirched")))
-        val actual = personClient.personInfo(AktørId("1234567891011"))
-        when (actual) {
-            is OppslagResult.Ok -> fail { "This lookup was expected to fail, but it didn't" }
-            is OppslagResult.Feil -> {
-                assertEquals(expected.httpCode, actual.httpCode)
-                when (actual.feil) {
-                    is Feil.Exception -> {
-                        assertEquals(expected.feil.feilmelding, (actual.feil as Feil.Exception).feilmelding)
-                        assertEquals(expected.feil.exception.message, (actual.feil as Feil.Exception).exception.message)
-                    }
-                    else -> fail { "Expected an exception to be returned" }
-                }
-            }
+        when (result) {
+            is OppslagResult.Ok -> assertEquals(expected, result.data)
+            else -> fail { "Expected OppslagResult.Ok to be returned" }
         }
     }
 
