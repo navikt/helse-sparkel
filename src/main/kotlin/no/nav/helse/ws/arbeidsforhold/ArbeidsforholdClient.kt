@@ -84,9 +84,9 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
             arbeidsforholdId = arbeidsforhold.arbeidsforholdIDnav
         }
         return try {
-            val arbeidsforhold = arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold
+            val historikk = arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold
 
-            val arbeidsforholdMedFiltrertHistorikk = arbeidsforhold.also {
+            val arbeidsforholdMedFiltrertHistorikk = historikk.also {
                 val filtrerteArbeidsavtaler = it.arbeidsavtale.filter { arbeidsavtale ->
                     dateOverlap(arbeidsavtale.fomGyldighetsperiode.toLocalDate(), arbeidsavtale.tomGyldighetsperiode?.toLocalDate() ?: LocalDate.MAX, fom, tom)
                 }

@@ -1,18 +1,14 @@
 package no.nav.helse.ws.organisasjon
 
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
-import no.nav.helse.OppslagResult
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonRequest
-import org.slf4j.LoggerFactory
+import io.ktor.http.*
+import no.nav.helse.*
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.*
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.*
 
 private val SUPPORTERTE_ATTRIBUTTER = listOf(OrganisasjonsAttributt("navn"))
 
 class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
-
-    private val log = LoggerFactory.getLogger("OrganisasjonClient")
-
+    
     fun hentOrganisasjon(
             orgnr: OrganisasjonsNummer,
             attributter : List<OrganisasjonsAttributt> = listOf()
@@ -23,7 +19,7 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
             val request = HentNoekkelinfoOrganisasjonRequest().apply { orgnummer = orgnr.value }
             try {
                 val response = organisasjonV5.hentNoekkelinfoOrganisasjon(request)
-                OppslagResult.Ok(OrganisasjonsMapper.fraNoekkelInfo(response, attributter))
+                OppslagResult.Ok(OrganisasjonsMapper.fraNoekkelInfo(response))
             } catch (cause : Throwable) {
                 OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(cause.message ?: "Ingen detaljer", cause))
             }

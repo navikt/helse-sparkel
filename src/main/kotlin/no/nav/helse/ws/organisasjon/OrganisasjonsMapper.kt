@@ -6,9 +6,7 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrgan
 
 object OrganisasjonsMapper {
     fun fraNoekkelInfo(
-            response : HentNoekkelinfoOrganisasjonResponse,
-            attributter : List<OrganisasjonsAttributt>
-    ) : OrganisasjonResponse {
+            response : HentNoekkelinfoOrganisasjonResponse) : OrganisasjonResponse {
         return OrganisasjonResponse(navn = name(response.navn))
     }
 
