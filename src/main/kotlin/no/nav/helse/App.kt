@@ -1,53 +1,34 @@
 package no.nav.helse
 
-import com.auth0.jwk.JwkProvider
-import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.application.log
-import io.ktor.auth.Authentication
-import io.ktor.auth.authenticate
-import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.auth.jwt.jwt
-import io.ktor.features.CallId
-import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.callIdMdc
-import io.ktor.http.ContentType
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.hotspot.DefaultExports
-import no.nav.helse.http.aktør.AktørregisterClient
+import com.auth0.jwk.*
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.jwt.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.prometheus.client.*
+import io.prometheus.client.hotspot.*
+import no.nav.helse.http.aktør.*
 import no.nav.helse.maksdato.*
-import no.nav.helse.nais.nais
-import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.Clients
-import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingClient
-import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
-import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
-import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
-import no.nav.helse.ws.inntekt.InntektClient
-import no.nav.helse.ws.inntekt.inntekt
-import no.nav.helse.ws.meldekort.MeldekortClient
-import no.nav.helse.ws.meldekort.meldekort
-import no.nav.helse.ws.organisasjon.OrganisasjonClient
-import no.nav.helse.ws.organisasjon.organisasjon
-import no.nav.helse.ws.person.PersonClient
-import no.nav.helse.ws.person.person
-import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
-import no.nav.helse.ws.sakogbehandling.sakOgBehandling
-import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
-import no.nav.helse.ws.sts.configureFor
-import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.sykepenger.SykepengerClient
-import no.nav.helse.ws.sykepenger.sykepengeListe
-import org.slf4j.event.Level
-import java.net.URL
-import java.util.UUID
-import java.util.concurrent.TimeUnit
+import no.nav.helse.nais.*
+import no.nav.helse.sts.*
+import no.nav.helse.ws.*
+import no.nav.helse.ws.arbeidsfordeling.*
+import no.nav.helse.ws.arbeidsforhold.*
+import no.nav.helse.ws.inntekt.*
+import no.nav.helse.ws.meldekort.*
+import no.nav.helse.ws.organisasjon.*
+import no.nav.helse.ws.person.*
+import no.nav.helse.ws.sakogbehandling.*
+import no.nav.helse.ws.sts.*
+import no.nav.helse.ws.sykepenger.*
+import org.slf4j.event.*
+import java.net.*
+import java.util.*
+import java.util.concurrent.*
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
 private val authorizedUsers = listOf("srvspinne", "srvspa", "srvpleiepengesokna", "srvpleiepenger-opp")
@@ -118,7 +99,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
     }
 
     val organisasjonClient by lazy {
-        val port = Clients.OrganisasjonV5(env.organisasjonEndpointUrl)
+        val port = SoapPorts.OrganisasjonV5(env.organisasjonEndpointUrl)
         if (env.allowInsecureSoapRequests) {
             stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
         } else {
@@ -128,7 +109,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
     }
 
     val personClient by lazy {
-        val port = Clients.PersonV3(env.personEndpointUrl)
+        val port = SoapPorts.PersonV3(env.personEndpointUrl)
         port.apply {
             if (env.allowInsecureSoapRequests) {
                 stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -140,7 +121,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
     }
 
     val arbeidsfordelingClient by lazy {
-        val port = Clients.ArbeidsfordelingV1(env.arbeidsfordelingEndpointUrl)
+        val port = SoapPorts.ArbeidsfordelingV1(env.arbeidsfordelingEndpointUrl)
         if (env.allowInsecureSoapRequests) {
             stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
         } else {
@@ -155,7 +136,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         authenticate {
             inntekt(
                 factory = {
-                    val port = Clients.InntektV3(env.inntektEndpointUrl)
+                    val port = SoapPorts.InntektV3(env.inntektEndpointUrl)
                     if (env.allowInsecureSoapRequests) {
                         stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                     } else {
@@ -178,7 +159,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
             }
             arbeidsforhold(
                     clientFactory = {
-                        val port = Clients.ArbeidsforholdV3(env.arbeidsforholdEndpointUrl)
+                        val port = SoapPorts.ArbeidsforholdV3(env.arbeidsforholdEndpointUrl)
                         if (env.allowInsecureSoapRequests) {
                             stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                         } else {
@@ -194,7 +175,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
             }
 
             sakOgBehandling{
-                val port = Clients.SakOgBehandlingV1(env.sakOgBehandlingEndpointUrl)
+                val port = SoapPorts.SakOgBehandlingV1(env.sakOgBehandlingEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {
@@ -204,7 +185,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
             }
             sykepengeListe(
                 factory = {
-                    val port = Clients.SykepengerV2(env.hentSykePengeListeEndpointUrl)
+                    val port = SoapPorts.SykepengerV2(env.hentSykePengeListeEndpointUrl)
                     if (env.allowInsecureSoapRequests) {
                         stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                     } else {
@@ -217,7 +198,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
                 }
             )
             meldekort {
-                val port = Clients.MeldekortUtbetalingsgrunnlagV1(env.meldekortEndpointUrl)
+                val port = SoapPorts.MeldekortUtbetalingsgrunnlagV1(env.meldekortEndpointUrl)
                 if (env.allowInsecureSoapRequests) {
                     stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
                 } else {

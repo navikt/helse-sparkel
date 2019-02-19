@@ -17,7 +17,7 @@ import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
 import org.apache.cxf.ws.addressing.WSAddressingFeature
 import javax.xml.namespace.QName
 
-object Clients {
+object SoapPorts {
 
     fun ArbeidsfordelingV1(serviceUrl: String): ArbeidsfordelingV1 {
         return createServicePort(serviceUrl,

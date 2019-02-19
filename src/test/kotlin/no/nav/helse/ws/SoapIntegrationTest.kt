@@ -56,7 +56,7 @@ class SoapIntegrationTest {
                 "stsUsername" to "stsPassword"
         )
 
-        val port = Clients.PersonV3(server.baseUrl().plus("/person"))
+        val port = SoapPorts.PersonV3(server.baseUrl().plus("/person"))
         port.apply{stsClient.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)}
         val personClient = PersonClient(port)
 
