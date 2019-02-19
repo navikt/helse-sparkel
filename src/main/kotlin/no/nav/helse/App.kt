@@ -75,13 +75,13 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
             verifier(jwkProvider, env.jwtIssuer)
             realm = "Helse Sparkel"
             validate { credentials ->
-                log.info("authorization attempt for ${credentials.payload.subject}")
                 if (credentials.payload.subject in authorizedUsers) {
-                    log.info("authorization ok")
-                    return@validate JWTPrincipal(credentials.payload)
+                    JWTPrincipal(credentials.payload)
                 }
-                log.info("authorization failed")
-                return@validate null
+                else {
+                    log.info("${credentials.payload.subject} is not authorized to use this app, denying access")
+                    null
+                }
             }
         }
     }
