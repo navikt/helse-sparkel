@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.time.LocalDate
 
-class ComponentTest {
+class PersonClientTest {
 
     @Test
     fun `skal få feil når tjenesten kaster exception`() {
