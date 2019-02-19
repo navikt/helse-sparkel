@@ -5,9 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
-import no.nav.helse.Success
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -19,10 +17,10 @@ fun Route.meldekort(factory: () -> MeldekortClient) {
             val aktorId = call.request.queryParameters["aktorId"]!!
             val fom = call.request.queryParameters["fom"]!!.asLocalDate()
             val tom = call.request.queryParameters["tom"]!!.asLocalDate()
-            val result: OppslagResult = client.hentMeldekortgrunnlag(aktorId, fom, tom)
-            when (result) {
-                is Success<*> -> call.respond(result.data!!)
-                is Failure -> call.respond(HttpStatusCode.InternalServerError, result.errors)
+            val lookupResult = client.hentMeldekortgrunnlag(aktorId, fom, tom)
+            when (lookupResult) {
+                is OppslagResult.Ok -> call.respond(lookupResult.data)
+                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
             }
         } else {
             call.respond(HttpStatusCode.BadRequest, "Missing at least one parameter of `aktorId`, `fom` and `tom`")
@@ -30,10 +28,10 @@ fun Route.meldekort(factory: () -> MeldekortClient) {
     }
 
     get("api/meldekort/ping") {
-        val result = client.ping()
-        when(result) {
-            is Success<*> -> call.respond("pong")
-            is Failure -> call.respond(HttpStatusCode.InternalServerError, result.errors)
+        val lookupResult = client.ping()
+        when (lookupResult) {
+            is OppslagResult.Ok -> call.respond(lookupResult.data)
+            is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
         }
     }
 }

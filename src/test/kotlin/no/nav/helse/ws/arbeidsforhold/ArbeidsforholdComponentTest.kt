@@ -7,16 +7,20 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import no.nav.helse.http.aktør.aktørregisterStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
-import no.nav.helse.common.*
+import no.nav.helse.common.toXmlGregorianCalendar
+import no.nav.helse.http.aktør.aktørregisterStub
 import no.nav.helse.sparkel
 import no.nav.helse.ws.organisasjon.OrganisasjonMocks
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -381,7 +385,7 @@ private val hentArbeidsforholdHistorikk_response2 = """
                   <beregnetAntallTimerPrUke>0.0</beregnetAntallTimerPrUke>
                </arbeidsavtale>
                <arbeidsgiver xsi:type="ns4:Organisasjon" xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                  <orgnummer>913548221</orgnummer>
+                  <orgnummer>984054564</orgnummer>
                </arbeidsgiver>
                <arbeidstaker>
                   <ident>

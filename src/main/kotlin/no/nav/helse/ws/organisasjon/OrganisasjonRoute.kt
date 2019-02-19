@@ -5,8 +5,7 @@ import io.ktor.application.call
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.Failure
-import no.nav.helse.Success
+import no.nav.helse.OppslagResult
 
 private const val ATTRIBUTT_QUERY_PARAM = "attributt"
 private const val ORG_NR_PATH_PARAM = "orgnr"
@@ -18,14 +17,14 @@ fun Route.organisasjon(factory: () -> OrganisasjonClient) {
         val organisasjonsNummer = call.getOrganisasjonsNummer()
         val attributter = call.getAttributes()
 
-        val oppslagResult = orgClient.hentOrganisasjon(
+        val lookupResult = orgClient.hentOrganisasjon(
                 orgnr = organisasjonsNummer,
                 attributter = attributter
         )
 
-        when (oppslagResult) {
-            is Success<*> -> call.respond(oppslagResult.data!!)
-            is Failure -> call.respond(oppslagResult.httpCode, mapOf("errors" to oppslagResult.errors))
+        when (lookupResult) {
+            is OppslagResult.Ok -> call.respond(lookupResult.data)
+            is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
         }
     }
 }

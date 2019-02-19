@@ -5,14 +5,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.*
-import no.nav.helse.http.aktør.*
+import no.nav.helse.OppslagResult
+import no.nav.helse.http.aktør.AktørregisterClient
+import no.nav.helse.map
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
-import no.nav.helse.ws.organisasjon.OrganisasjonResponse
 import no.nav.helse.ws.organisasjon.OrganisasjonsAttributt
 import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import java.time.LocalDate
 
@@ -34,35 +33,51 @@ fun Route.arbeidsforhold(
 
             val fnr = Fødselsnummer(aktørregisterClient.gjeldendeNorskIdent(call.parameters["aktorId"]!!))
 
-            val lookupResult: OppslagResult = arbeidsforholdClient.finnArbeidsforhold(fnr, fom, tom)
+            val lookupResult = arbeidsforholdClient.finnArbeidsforhold(fnr, fom, tom)
+
             when (lookupResult) {
-                is Success<*> -> call.respond(genererResponse(arbeidsforholdListe = lookupResult.data as List<Arbeidsforhold>, organisasjonsClient = organisasjonsClient))
-                is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
+                is OppslagResult.Ok -> {
+                    val listeAvArbeidsgivere = lookupResult.data.map {
+                        it.arbeidsgiver
+                    }.filter {
+                        it is Organisasjon
+                    }.map {
+                        it as Organisasjon
+                    }.map { organisasjon ->
+                        if (organisasjon.navn.isNullOrBlank()) {
+                            organisasjonsClient.hentOrganisasjon(
+                                    orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
+                                    attributter = listOf(OrganisasjonsAttributt("navn"))
+                            ).map { organisasjonResponse ->
+                                Organisasjon().apply {
+                                    navn = organisasjonResponse.navn
+                                    orgnummer = organisasjon.orgnummer
+                                }
+                            }
+                        } else {
+                            OppslagResult.Ok(organisasjon)
+                        }
+                    }.let {
+                        OppslagResult.Ok(it.map { oppslagResultat ->
+                            when (oppslagResultat) {
+                                is OppslagResult.Ok -> oppslagResultat.data
+                                is OppslagResult.Feil -> {
+                                    return@let oppslagResultat.copy()
+                                }
+                            }
+                        }.map { organisasjon ->
+                            OrganisasjonArbeidsforhold(organisasjon.orgnummer, organisasjon.navn)
+                        })
+                    }
+
+                    when (listeAvArbeidsgivere) {
+                        is OppslagResult.Ok -> call.respond(ArbeidsforholdResponse(listeAvArbeidsgivere.data))
+                        is OppslagResult.Feil -> call.respond(listeAvArbeidsgivere.httpCode, listeAvArbeidsgivere.feil)
+                    }
+                }
+                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
             }
         }
-    }
-}
-
-private fun genererResponse(arbeidsforholdListe : List<Arbeidsforhold>, organisasjonsClient: OrganisasjonClient) : ArbeidsforholdResponse {
-    val organisasjoner = mutableListOf<OrganisasjonArbeidsforhold>()
-    arbeidsforholdListe.filter { it.arbeidsgiver is Organisasjon }.forEach { arbeidsforhold ->
-        val organisasjonsnummer = (arbeidsforhold.arbeidsgiver as Organisasjon).orgnummer
-        val navn : String? = hentOrganisasjonsNavn(organisasjonsClient, arbeidsforhold.arbeidsgiver as Organisasjon)
-        organisasjoner.add(OrganisasjonArbeidsforhold(organisasjonsnummer = organisasjonsnummer, navn = navn))
-
-    }
-    return ArbeidsforholdResponse(organisasjoner = organisasjoner.toList())
-}
-
-private fun hentOrganisasjonsNavn(organisasjonsClient: OrganisasjonClient, organisasjon: Organisasjon) : String? {
-    return if (organisasjon.navn.isNullOrBlank()) {
-        val oppslagResult  = organisasjonsClient.hentOrganisasjon(
-                orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
-                attributter = listOf(OrganisasjonsAttributt("navn"))
-        )
-        if (oppslagResult is Success<*>) (oppslagResult.data as OrganisasjonResponse).navn else null
-    } else {
-        organisasjon.navn
     }
 }
 

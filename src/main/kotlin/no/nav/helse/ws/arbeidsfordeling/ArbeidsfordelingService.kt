@@ -1,8 +1,7 @@
 package no.nav.helse.ws.arbeidsfordeling
 
-import no.nav.helse.Failure
+import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
-import no.nav.helse.Success
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonClient
@@ -18,18 +17,22 @@ class ArbeidsfordelingService(
             hovedAktoer: AktørId,
             medAktoerer: List<AktørId> = listOf(),
             tema: Tema
-    ) : OppslagResult {
+    ) : OppslagResult<Feil, Enhet> {
         // Geografisk tilknytning for Hovedaktør
         val geografiskTilknytningHovedAktoerOppslagResponse = personClient.geografiskTilknytning(hovedAktoer)
-        if (geografiskTilknytningHovedAktoerOppslagResponse is Failure) return geografiskTilknytningHovedAktoerOppslagResponse
-        val geografiskTilknytningHovedAktoer = (geografiskTilknytningHovedAktoerOppslagResponse as Success<*>).data as GeografiskTilknytning
+        if (geografiskTilknytningHovedAktoerOppslagResponse is OppslagResult.Feil) {
+            return geografiskTilknytningHovedAktoerOppslagResponse
+        }
+        val geografiskTilknytningHovedAktoer = (geografiskTilknytningHovedAktoerOppslagResponse as OppslagResult.Ok).data
 
         // Geografisk tilknytning for eventuelle Medaktører
         val geografiskTilknytningMedAktoerer = mutableListOf<GeografiskTilknytning>()
         medAktoerer.forEach { medAktoer ->
             val geografiskTilknytningMedAktoerOppslagResponse = personClient.geografiskTilknytning(medAktoer)
-            if (geografiskTilknytningMedAktoerOppslagResponse is Failure) return geografiskTilknytningMedAktoerOppslagResponse
-            val geografiskTilknytningMedAktoer = (geografiskTilknytningMedAktoerOppslagResponse as Success<*>).data as GeografiskTilknytning
+            if (geografiskTilknytningMedAktoerOppslagResponse is OppslagResult.Feil) {
+                return geografiskTilknytningMedAktoerOppslagResponse
+            }
+            val geografiskTilknytningMedAktoer = (geografiskTilknytningMedAktoerOppslagResponse as OppslagResult.Ok).data
             geografiskTilknytningMedAktoerer.add(geografiskTilknytningMedAktoer)
         }
 

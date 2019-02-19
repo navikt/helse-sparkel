@@ -1,8 +1,8 @@
 package no.nav.helse.ws.meldekort
 
-import no.nav.helse.Failure
+import io.ktor.http.HttpStatusCode
+import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
-import no.nav.helse.Success
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
@@ -21,7 +21,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
 
     private val log = LoggerFactory.getLogger("MeldekortClient")
 
-    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult {
+    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<MeldekortUtbetalingsgrunnlagSak>> {
         return try {
             val request = FinnMeldekortUtbetalingsgrunnlagListeRequest()
                     .apply {
@@ -42,19 +42,19 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                         })
                     }
             val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(request)
-            Success(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
+            OppslagResult.Ok(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
         } catch (ex: Exception) {
             log.error("Error while doing meldekort lookup", ex)
-            Failure(listOf("${ex.javaClass.simpleName} : ${ex.message}"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("${ex.javaClass.simpleName} : ${ex.message}", ex))
         }
     }
 
-    fun ping(): OppslagResult {
+    fun ping(): OppslagResult<Feil, String> {
         return try {
             port.ping()
-            Success("ok")
+            OppslagResult.Ok("pong")
         } catch (ex: Exception) {
-            Failure(listOf("fail", "${ex.javaClass.simpleName} : ${ex.message}"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("${ex.javaClass.simpleName} : ${ex.message}", ex))
         }
     }
 

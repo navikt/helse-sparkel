@@ -5,9 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.Failure
 import no.nav.helse.OppslagResult
-import no.nav.helse.Success
 import no.nav.helse.http.aktør.AktørregisterClient
 import no.nav.helse.ws.Fødselsnummer
 import java.time.YearMonth
@@ -27,10 +25,10 @@ fun Route.inntekt(factory: () -> InntektClient,
 
             val fnr = Fødselsnummer(aktørregisterClient.gjeldendeNorskIdent(call.parameters["aktorId"]!!))
 
-            val lookupResult: OppslagResult = inntektClient.hentInntektListe(fnr, fom, tom)
+            val lookupResult = inntektClient.hentInntektListe(fnr, fom, tom)
             when (lookupResult) {
-                is Success<*> -> call.respond(lookupResult.data!!)
-                is Failure -> call.respond(HttpStatusCode.InternalServerError, "that didn't go so well...")
+                is OppslagResult.Ok -> call.respond(lookupResult.data)
+                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
             }
         }
     }

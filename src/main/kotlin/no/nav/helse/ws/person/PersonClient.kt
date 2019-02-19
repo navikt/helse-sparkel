@@ -1,8 +1,8 @@
 package no.nav.helse.ws.person
 
-import no.nav.helse.Failure
+import io.ktor.http.HttpStatusCode
+import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
-import no.nav.helse.Success
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
@@ -19,23 +19,24 @@ class PersonClient(private val personV3: PersonV3) {
 
     private val log = LoggerFactory.getLogger("PersonClient")
 
-    fun personInfo(id: AktørId): OppslagResult {
+    fun personInfo(id: AktørId): OppslagResult<Feil, Person> {
         val request = HentPersonRequest().apply {
             aktoer = AktoerId().apply {
                 aktoerId = id.aktor
             }
-        }.withInformasjonsbehov(Informasjonsbehov.ADRESSE)
+            informasjonsbehov.add(Informasjonsbehov.ADRESSE)
+        }
 
         return try {
             val tpsResponse = personV3.hentPerson(request)
-            Success(PersonMapper.toPerson(tpsResponse))
+            OppslagResult.Ok(PersonMapper.toPerson(tpsResponse))
         } catch (ex: Exception) {
             log.error("Error while doing person lookup", ex)
-            Failure(listOf(ex.message ?: "unknown error"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
         }
     }
 
-    fun personHistorikk(id: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult {
+    fun personHistorikk(id: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, Personhistorikk> {
         val request = HentPersonhistorikkRequest().apply {
             aktoer = AktoerId().apply {
                 aktoerId = id.aktor
@@ -49,14 +50,14 @@ class PersonClient(private val personV3: PersonV3) {
 
         return try {
             val tpsResponse = personV3.hentPersonhistorikk(request)
-            Success(PersonhistorikkMapper.toPersonhistorikk(tpsResponse))
+            OppslagResult.Ok(PersonhistorikkMapper.toPersonhistorikk(tpsResponse))
         } catch (ex: Exception) {
             log.error("Error while doing personhistorikk lookup", ex)
-            Failure(listOf(ex.message ?: "unknown error"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
         }
     }
 
-    fun geografiskTilknytning(id : AktørId) : OppslagResult {
+    fun geografiskTilknytning(id : AktørId) : OppslagResult<Feil, GeografiskTilknytning> {
         val request = HentGeografiskTilknytningRequest().apply {
             aktoer = AktoerId().apply {
                 aktoerId = id.aktor
@@ -65,10 +66,10 @@ class PersonClient(private val personV3: PersonV3) {
 
         return try {
             val tpsResponse = personV3.hentGeografiskTilknytning(request)
-            Success(GeografiskTilknytningMapper.tilGeografiskTilknytning(tpsResponse))
+            OppslagResult.Ok(GeografiskTilknytningMapper.tilGeografiskTilknytning(tpsResponse))
         } catch (cause: Throwable) {
             log.error("Error while doing geografisk tilknytning lookup", cause)
-            Failure(listOf(cause.message ?: "unknown error"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(cause.message ?: "unknown error", cause))
         }
     }
 }

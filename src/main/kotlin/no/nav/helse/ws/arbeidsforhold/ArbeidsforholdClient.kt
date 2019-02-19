@@ -1,13 +1,14 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.Failure
+import io.ktor.http.HttpStatusCode
+import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
-import no.nav.helse.Success
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
+import no.nav.helse.flatMap
+import no.nav.helse.map
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Periode
@@ -28,26 +29,26 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
 
     private val log = LoggerFactory.getLogger("ArbeidsforholdClient")
 
-    fun finnArbeidsforhold(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult {
-        when(val result = finnArbeidsforholdForFnr(fnr, fom, tom)) {
-            is Success<*> -> {
-                return Success((result.data as FinnArbeidsforholdPrArbeidstakerResponse).arbeidsforhold.onEach {
-                    when (val historikkResponse = finnHistorikkForArbeidsforhold(it, fom, tom)) {
-                        is Success<*> -> {
-                            it.arbeidsavtale.clear()
-                            it.arbeidsavtale.addAll(historikkResponse.data as List<Arbeidsavtale>)
-                        }
-                        is Failure -> {
-                            log.error("Feil ved henting av historikk: ${historikkResponse.errors}")
+    fun finnArbeidsforhold(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsforhold>> {
+        return finnArbeidsforholdForFnr(fnr, fom, tom).map { arbeidsforholdResponse ->
+            arbeidsforholdResponse.arbeidsforhold
+        }.flatMap { listeOverArbeidsforhold ->
+            listeOverArbeidsforhold.map { arbeidsforhold ->
+                finnHistorikkForArbeidsforhold(arbeidsforhold, fom, tom)
+            }.let { listeOverArbeidsforholdMedHistorikk ->
+                OppslagResult.Ok(listeOverArbeidsforholdMedHistorikk.map { historikkResult ->
+                    when (historikkResult) {
+                        is OppslagResult.Ok -> historikkResult.data
+                        is OppslagResult.Feil -> {
+                            return@let historikkResult.copy()
                         }
                     }
                 })
             }
         }
-        return Failure(listOf("oh no"))
     }
 
-    private fun finnArbeidsforholdForFnr(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult {
+    private fun finnArbeidsforholdForFnr(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, FinnArbeidsforholdPrArbeidstakerResponse> {
         val request = FinnArbeidsforholdPrArbeidstakerRequest()
                 .apply {
                     ident = NorskIdent().apply { ident = fnr.value }
@@ -61,23 +62,31 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                     }
                 }
         return try {
-            Success(arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request))
+            OppslagResult.Ok(arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request))
         } catch (ex: Exception) {
             log.error("Error while doing arbeidsforhold lookup", ex)
-            Failure(listOf(ex.message ?: "unknown error"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
         }
     }
 
-    private fun finnHistorikkForArbeidsforhold(arbeidsforhold: Arbeidsforhold, fom: LocalDate, tom: LocalDate): OppslagResult {
+    private fun finnHistorikkForArbeidsforhold(arbeidsforhold: Arbeidsforhold, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, Arbeidsforhold> {
         val request = HentArbeidsforholdHistorikkRequest().apply {
             arbeidsforholdId = arbeidsforhold.arbeidsforholdIDnav
         }
         return try {
-            Success(arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold.arbeidsavtale.filter {
-                dateOverlap(it.fomGyldighetsperiode.toLocalDate(), it.tomGyldighetsperiode?.toLocalDate() ?: LocalDate.MAX, fom, tom)
-            })
+            val arbeidsforhold = arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold
+
+            val arbeidsforholdMedFiltrertHistorikk = arbeidsforhold.also {
+                val filtrerteArbeidsavtaler = it.arbeidsavtale.filter { arbeidsavtale ->
+                    dateOverlap(arbeidsavtale.fomGyldighetsperiode.toLocalDate(), arbeidsavtale.tomGyldighetsperiode?.toLocalDate() ?: LocalDate.MAX, fom, tom)
+                }
+                it.arbeidsavtale.clear()
+                it.arbeidsavtale.addAll(filtrerteArbeidsavtaler)
+            }
+
+            OppslagResult.Ok(arbeidsforholdMedFiltrertHistorikk)
         } catch (err: Exception) {
-            Failure(listOf(err.message ?: "unknown error"))
+            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(err.message ?: "unknown error", err))
         }
     }
 }

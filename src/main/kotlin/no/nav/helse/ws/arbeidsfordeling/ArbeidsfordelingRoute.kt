@@ -6,8 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.Failure
-import no.nav.helse.Success
+import no.nav.helse.OppslagResult
 import no.nav.helse.ws.AktørId
 
 private const val HOVED_AKTOER_PATH_PARAM = "hovedAktoerId"
@@ -32,8 +31,8 @@ fun Route.arbeidsfordeling(factory: () -> ArbeidsfordelingService) {
             )
 
             when (oppslagResult) {
-                is Success<*> -> call.respond(oppslagResult.data!!)
-                is Failure -> call.respond(HttpStatusCode.InternalServerError, oppslagResult.errors)
+                is OppslagResult.Ok -> call.respond(oppslagResult.data)
+                is OppslagResult.Feil -> call.respond(oppslagResult.httpCode, oppslagResult.feil)
             }
         }
     }

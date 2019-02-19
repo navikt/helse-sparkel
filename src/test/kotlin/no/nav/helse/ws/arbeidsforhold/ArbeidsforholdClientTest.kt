@@ -3,9 +3,8 @@ package no.nav.helse.ws.arbeidsforhold
 import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Failure
-import no.nav.helse.Success
-import no.nav.helse.common.*
+import no.nav.helse.OppslagResult
+import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
@@ -76,6 +75,7 @@ class ArbeidsforholdClientTest {
             })
         } returns HentArbeidsforholdHistorikkResponse().apply {
             arbeidsforhold = Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 1234
                 arbeidsavtale.add(Arbeidsavtale().apply {
                     fomGyldighetsperiode = LocalDate.of(2018, 1, 2).toXmlGregorianCalendar()
                     tomGyldighetsperiode = LocalDate.of(2018, 6, 1).toXmlGregorianCalendar()
@@ -96,6 +96,7 @@ class ArbeidsforholdClientTest {
             })
         } returns HentArbeidsforholdHistorikkResponse().apply {
             arbeidsforhold = Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 5678
                 arbeidsavtale.add(Arbeidsavtale().apply {
                     fomGyldighetsperiode = LocalDate.of(2017, 1, 1).toXmlGregorianCalendar()
                     tomGyldighetsperiode = LocalDate.of(2019, 1, 1).toXmlGregorianCalendar()
@@ -107,8 +108,8 @@ class ArbeidsforholdClientTest {
         val result = arbeidsforholdClient.finnArbeidsforhold(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
-            is Success<*> -> {
-                val arbeidsforhold = result.data as List<Arbeidsforhold>
+            is OppslagResult.Ok -> {
+                val arbeidsforhold = result.data
 
                 Assertions.assertEquals(2, arbeidsforhold.size)
 
@@ -118,7 +119,7 @@ class ArbeidsforholdClientTest {
                 Assertions.assertEquals(5678, arbeidsforhold[1].arbeidsforholdIDnav)
                 Assertions.assertEquals(1, arbeidsforhold[1].arbeidsavtale.size)
             }
-            is Failure -> Assertions.fail("was not expecting a Failure: ${result.errors}")
+            is OppslagResult.Feil -> Assertions.fail("was not expecting a Failure: ${result.feil}")
         }
     }
 
@@ -163,6 +164,7 @@ class ArbeidsforholdClientTest {
             })
         } returns HentArbeidsforholdHistorikkResponse().apply {
             arbeidsforhold = Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 1234
                 arbeidsavtale.add(Arbeidsavtale().apply {
                     fomGyldighetsperiode = LocalDate.of(2018, 1, 2).toXmlGregorianCalendar()
                     tomGyldighetsperiode = null
@@ -183,6 +185,7 @@ class ArbeidsforholdClientTest {
             })
         } returns HentArbeidsforholdHistorikkResponse().apply {
             arbeidsforhold = Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 5678
                 arbeidsavtale.add(Arbeidsavtale().apply {
                     fomGyldighetsperiode = LocalDate.of(2017, 1, 1).toXmlGregorianCalendar()
                     tomGyldighetsperiode = null
@@ -194,8 +197,8 @@ class ArbeidsforholdClientTest {
         val result = arbeidsforholdClient.finnArbeidsforhold(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
-            is Success<*> -> {
-                val arbeidsforhold = result.data as List<Arbeidsforhold>
+            is OppslagResult.Ok -> {
+                val arbeidsforhold = result.data
 
                 Assertions.assertEquals(2, arbeidsforhold.size)
 
@@ -205,7 +208,7 @@ class ArbeidsforholdClientTest {
                 Assertions.assertEquals(5678, arbeidsforhold[1].arbeidsforholdIDnav)
                 Assertions.assertEquals(1, arbeidsforhold[1].arbeidsavtale.size)
             }
-            is Failure -> Assertions.fail("was not expecting a Failure: ${result.errors}")
+            is OppslagResult.Feil -> Assertions.fail("was not expecting a Failure: ${result.feil}")
         }
     }
 
@@ -250,6 +253,7 @@ class ArbeidsforholdClientTest {
             })
         } returns HentArbeidsforholdHistorikkResponse().apply {
             arbeidsforhold = Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 1234
                 arbeidsavtale.add(Arbeidsavtale().apply {
                     fomGyldighetsperiode = LocalDate.of(2018, 1, 2).toXmlGregorianCalendar()
                     tomGyldighetsperiode = null
@@ -270,6 +274,7 @@ class ArbeidsforholdClientTest {
             })
         } returns HentArbeidsforholdHistorikkResponse().apply {
             arbeidsforhold = Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 5678
                 arbeidsavtale.add(Arbeidsavtale().apply {
                     fomGyldighetsperiode = LocalDate.of(2017, 1, 1).toXmlGregorianCalendar()
                     tomGyldighetsperiode = null
@@ -281,8 +286,8 @@ class ArbeidsforholdClientTest {
         val result = arbeidsforholdClient.finnArbeidsforhold(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
-            is Success<*> -> {
-                val arbeidsforhold = result.data as List<Arbeidsforhold>
+            is OppslagResult.Ok -> {
+                val arbeidsforhold = result.data
 
                 Assertions.assertEquals(2, arbeidsforhold.size)
 
@@ -292,7 +297,7 @@ class ArbeidsforholdClientTest {
                 Assertions.assertEquals(5678, arbeidsforhold[1].arbeidsforholdIDnav)
                 Assertions.assertEquals(1, arbeidsforhold[1].arbeidsavtale.size)
             }
-            is Failure -> Assertions.fail("was not expecting a Failure: ${result.errors}")
+            is OppslagResult.Feil -> Assertions.fail("was not expecting a Failure: ${result.feil}")
         }
     }
 }

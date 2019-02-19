@@ -4,12 +4,16 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.helse.*
-import no.nav.helse.ws.arbeidsfordeling.BehandlendeEnhetComponentTest
+import no.nav.helse.assertJsonEquals
+import no.nav.helse.bootstrapComponentTest
+import no.nav.helse.sparkel
 import org.json.JSONObject
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import kotlin.test.assertEquals
 
