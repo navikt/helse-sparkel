@@ -8,8 +8,7 @@ import io.ktor.routing.post
 import no.nav.helse.OppslagResult
 import no.nav.helse.receiveJson
 
-fun Route.sakOgBehandling(factory: () -> SakOgBehandlingClient) {
-    val sakOgBehandlingClient by lazy(factory)
+fun Route.sakOgBehandling(sakOgBehandlingClient: SakOgBehandlingClient) {
 
     post("api/sakogbehandling") {
         call.receiveJson().let { json ->

@@ -29,7 +29,11 @@ fun bootstrapComponentTest() : ComponentTestBootstrap {
             "ALLOW_INSECURE_SOAP_REQUESTS" to "true",
             "ORGANISASJON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/organisasjon"),
             "PERSON_ENDPOINTURL" to wireMockServer.baseUrl().plus("/person"),
-            "ARBEIDSFORDELING_ENDPOINTURL" to wireMockServer.baseUrl().plus("/arbeidsfordeling")
+            "ARBEIDSFORDELING_ENDPOINTURL" to wireMockServer.baseUrl().plus("/arbeidsfordeling"),
+            "SAK_OG_BEHANDLING_ENDPOINTURL" to wireMockServer.baseUrl().plus("/sakogbehandling"),
+            "HENT_SYKEPENGER_ENDPOINTURL" to wireMockServer.baseUrl().plus("/sykepenger"),
+            "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to wireMockServer.baseUrl().plus("/meldekort"),
+            "INNTEKT_ENDPOINTURL" to wireMockServer.baseUrl().plus("/inntekt")
     ))
 
     return ComponentTestBootstrap(

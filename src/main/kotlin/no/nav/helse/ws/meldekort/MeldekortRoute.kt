@@ -9,8 +9,7 @@ import no.nav.helse.OppslagResult
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-fun Route.meldekort(factory: () -> MeldekortClient) {
-    val client: MeldekortClient by lazy(factory)
+fun Route.meldekort(client: MeldekortClient) {
 
     get("api/meldekort/") {
         if (listOf("aktorId", "fom", "tom").all(call.request.queryParameters::contains)) {

@@ -82,6 +82,13 @@ class InntektComponentTest {
                 "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
                 "AKTORREGISTER_URL" to server.baseUrl(),
                 "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
+                "ORGANISASJON_ENDPOINTURL" to server.baseUrl().plus("/organisasjon"),
+                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
+                "ARBEIDSFORDELING_ENDPOINTURL" to server.baseUrl().plus("/arbeidsfordeling"),
+                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
+                "SAK_OG_BEHANDLING_ENDPOINTURL" to server.baseUrl().plus("/sakogbehandling"),
+                "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
+                "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
                 "JWT_ISSUER" to "test issuer",
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))

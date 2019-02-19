@@ -10,8 +10,7 @@ import no.nav.helse.OppslagResult
 private const val ATTRIBUTT_QUERY_PARAM = "attributt"
 private const val ORG_NR_PATH_PARAM = "orgnr"
 
-fun Route.organisasjon(factory: () -> OrganisasjonClient) {
-    val orgClient by lazy(factory)
+fun Route.organisasjon(orgClient: OrganisasjonClient) {
 
     get("api/organisasjon/{$ORG_NR_PATH_PARAM}") {
         val organisasjonsNummer = call.getOrganisasjonsNummer()

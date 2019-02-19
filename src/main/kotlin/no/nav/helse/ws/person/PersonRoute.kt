@@ -9,8 +9,7 @@ import no.nav.helse.OppslagResult
 import no.nav.helse.ws.AktørId
 import java.time.LocalDate
 
-fun Route.person(factory: () -> PersonClient) {
-    val personClient: PersonClient by lazy(factory)
+fun Route.person(personClient: PersonClient) {
 
     get("api/person/{aktør}") {
         call.parameters["aktør"]?.let { aktørid ->

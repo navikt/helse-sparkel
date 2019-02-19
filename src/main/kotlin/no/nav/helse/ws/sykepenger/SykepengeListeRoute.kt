@@ -10,10 +10,8 @@ import no.nav.helse.http.aktør.AktørregisterClient
 import no.nav.helse.ws.Fødselsnummer
 import java.time.LocalDate
 
-fun Route.sykepengeListe(factory: () -> SykepengerClient,
-                         aktørregisterClientFactory: () -> AktørregisterClient) {
-    val sykepenger by lazy(factory)
-    val aktørregisterClient by lazy(aktørregisterClientFactory)
+fun Route.sykepengeListe(sykepenger: SykepengerClient,
+                         aktørregisterClient: AktørregisterClient) {
 
     get("api/sykepengevedtak/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {

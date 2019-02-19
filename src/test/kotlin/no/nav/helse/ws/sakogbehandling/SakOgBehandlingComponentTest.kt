@@ -66,9 +66,18 @@ class SakOgBehandlingComponentTest {
 
         val env = Environment(mapOf(
                 "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
+                "SECURITY_TOKEN_SERVICE_REST_URL" to server.baseUrl().plus("/sts"),
                 "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
                 "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
                 "SAK_OG_BEHANDLING_ENDPOINTURL" to server.baseUrl().plus("/sakogbehandling"),
+                "AKTORREGISTER_URL" to server.baseUrl().plus("/aktor"),
+                "ORGANISASJON_ENDPOINTURL" to server.baseUrl().plus("/organisasjon"),
+                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
+                "ARBEIDSFORDELING_ENDPOINTURL" to server.baseUrl().plus("/arbeidsfordeling"),
+                "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
+                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
+                "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
+                "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
                 "JWT_ISSUER" to "test issuer",
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))

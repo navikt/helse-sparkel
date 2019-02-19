@@ -1,29 +1,21 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import io.ktor.application.call
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import no.nav.helse.OppslagResult
-import no.nav.helse.http.aktør.AktørregisterClient
-import no.nav.helse.map
-import no.nav.helse.ws.Fødselsnummer
-import no.nav.helse.ws.organisasjon.OrganisasjonClient
-import no.nav.helse.ws.organisasjon.OrganisasjonsAttributt
-import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
-import java.time.LocalDate
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import no.nav.helse.*
+import no.nav.helse.http.aktør.*
+import no.nav.helse.ws.*
+import no.nav.helse.ws.organisasjon.*
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
+import java.time.*
 
 fun Route.arbeidsforhold(
-        clientFactory: () -> ArbeidsforholdClient,
-        aktørregisterClientFactory: () -> AktørregisterClient,
-        organisasjonsClientFactory: () -> OrganisasjonClient
+        arbeidsforholdClient: ArbeidsforholdClient,
+        aktørregisterClient: AktørregisterClient,
+        organisasjonsClient: OrganisasjonClient
 ) {
-    val arbeidsforholdClient by lazy(clientFactory)
-    val aktørregisterClient by lazy(aktørregisterClientFactory)
-    val organisasjonsClient by lazy(organisasjonsClientFactory)
-
     get("api/arbeidsforhold/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
             call.respond(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom")

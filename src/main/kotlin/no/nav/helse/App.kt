@@ -11,7 +11,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.prometheus.client.*
 import io.prometheus.client.hotspot.*
-import no.nav.helse.http.aktør.*
 import no.nav.helse.maksdato.*
 import no.nav.helse.nais.*
 import no.nav.helse.sts.*
@@ -86,126 +85,41 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         }
     }
 
-    val stsClient by lazy {
-        stsClient(env.securityTokenServiceEndpointUrl,
-                env.securityTokenUsername to env.securityTokenPassword
-        )
-    }
-
-    val aktørregisterClient by lazy {
-        AktørregisterClient(env.aktørregisterUrl, StsRestClient(
-                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword
-        ))
-    }
-
-    val organisasjonClient by lazy {
-        val port = SoapPorts.OrganisasjonV5(env.organisasjonEndpointUrl)
-        if (env.allowInsecureSoapRequests) {
-            stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-        } else {
-            stsClient.configureFor(port)
-        }
-        OrganisasjonClient(port)
-    }
-
-    val personClient by lazy {
-        val port = SoapPorts.PersonV3(env.personEndpointUrl)
-        port.apply {
-            if (env.allowInsecureSoapRequests) {
-                stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClient.configureFor(port)
-            }
-        }
-        PersonClient(port)
-    }
-
-    val arbeidsfordelingClient by lazy {
-        val port = SoapPorts.ArbeidsfordelingV1(env.arbeidsfordelingEndpointUrl)
-        if (env.allowInsecureSoapRequests) {
-            stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-        } else {
-            stsClient.configureFor(port)
-        }
-        ArbeidsfordelingClient(port)
-    }
-
-
+    val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
+            env.securityTokenUsername to env.securityTokenPassword)
+    val stsClientRest = StsRestClient(
+            env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
+    val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
 
     routing {
         authenticate {
-            inntekt(
-                factory = {
-                    val port = SoapPorts.InntektV3(env.inntektEndpointUrl)
-                    if (env.allowInsecureSoapRequests) {
-                        stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                    } else {
-                        stsClient.configureFor(port)
-                    }
-                    InntektClient(port)
-                },
-                aktørregisterClientFactory = {
-                    aktørregisterClient
-                }
+            inntekt(inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
+                    aktørregisterClient = wsClients.aktør(env.aktørregisterUrl)
             )
-            arbeidsfordeling {
-                ArbeidsfordelingService(
-                        arbeidsfordelingClient = arbeidsfordelingClient,
-                        personClient = personClient
-                )
-            }
-            person {
-                personClient
-            }
-            arbeidsforhold(
-                    clientFactory = {
-                        val port = SoapPorts.ArbeidsforholdV3(env.arbeidsforholdEndpointUrl)
-                        if (env.allowInsecureSoapRequests) {
-                            stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                        } else {
-                            stsClient.configureFor(port)
-                        }
-                        ArbeidsforholdClient(port)
-                    },
-                    aktørregisterClientFactory = { aktørregisterClient },
-                    organisasjonsClientFactory = { organisasjonClient }
-            )
-            organisasjon {
-                organisasjonClient
-            }
 
-            sakOgBehandling{
-                val port = SoapPorts.SakOgBehandlingV1(env.sakOgBehandlingEndpointUrl)
-                if (env.allowInsecureSoapRequests) {
-                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                } else {
-                    stsClient.configureFor(port)
-                }
-                SakOgBehandlingClient(port)
-            }
-            sykepengeListe(
-                factory = {
-                    val port = SoapPorts.SykepengerV2(env.hentSykePengeListeEndpointUrl)
-                    if (env.allowInsecureSoapRequests) {
-                        stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                    } else {
-                        stsClient.configureFor(port)
-                    }
-                    SykepengerClient(port)
-                },
-                aktørregisterClientFactory = {
-                    aktørregisterClient
-                }
+            arbeidsfordeling(ArbeidsfordelingService(
+                        arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
+                        personClient = wsClients.person(env.personEndpointUrl))
             )
-            meldekort {
-                val port = SoapPorts.MeldekortUtbetalingsgrunnlagV1(env.meldekortEndpointUrl)
-                if (env.allowInsecureSoapRequests) {
-                    stsClient.configureFor(port, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-                } else {
-                    stsClient.configureFor(port)
-                }
-                MeldekortClient(port)
-            }
+
+            person(wsClients.person(env.personEndpointUrl))
+
+            arbeidsforhold(
+                    arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),
+                    aktørregisterClient = wsClients.aktør(env.aktørregisterUrl),
+                    organisasjonsClient = wsClients.organisasjon(env.organisasjonEndpointUrl)
+            )
+
+            organisasjon(wsClients.organisasjon(env.organisasjonEndpointUrl))
+
+            sakOgBehandling(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
+
+            sykepengeListe(
+                sykepenger = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
+                aktørregisterClient = wsClients.aktør(env.aktørregisterUrl)
+            )
+
+            meldekort(wsClients.meldekort(env.meldekortEndpointUrl))
 
             maksdato("http://maksdato")
         }

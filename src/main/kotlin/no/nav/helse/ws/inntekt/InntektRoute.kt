@@ -10,11 +10,9 @@ import no.nav.helse.http.aktør.AktørregisterClient
 import no.nav.helse.ws.Fødselsnummer
 import java.time.YearMonth
 
-fun Route.inntekt(factory: () -> InntektClient,
-                  aktørregisterClientFactory: () -> AktørregisterClient
+fun Route.inntekt(inntektClient:InntektClient,
+                  aktørregisterClient: AktørregisterClient
 ) {
-    val inntektClient by lazy(factory)
-    val aktørregisterClient by lazy(aktørregisterClientFactory)
 
     get("api/inntekt/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {

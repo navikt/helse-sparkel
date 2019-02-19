@@ -13,8 +13,7 @@ private const val HOVED_AKTOER_PATH_PARAM = "hovedAktoerId"
 private const val MED_AKTOER_QUERY_PARAM = "medAktoerId"
 private const val TEMA_QUERY_PARAM = "tema"
 
-fun Route.arbeidsfordeling(factory: () -> ArbeidsfordelingService) {
-    val arbeidsfordelingService: ArbeidsfordelingService by lazy(factory)
+fun Route.arbeidsfordeling(arbeidsfordelingService: ArbeidsfordelingService) {
 
     get("api/arbeidsfordeling/behandlende-enhet/{$HOVED_AKTOER_PATH_PARAM}") {
         val tema = call.getTema()
