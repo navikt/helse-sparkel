@@ -10,9 +10,14 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
 import no.nav.helse.common.toXmlGregorianCalendar
+import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.http.aktør.aktørregisterStub
-import no.nav.helse.sparkel
+import no.nav.helse.mockedSparkel
+import no.nav.helse.sts.StsRestClient
+import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.organisasjon.OrganisasjonMocks
+import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import org.json.JSONObject
@@ -84,7 +89,21 @@ class ArbeidsforholdComponentTest {
                 xml = org2Responses.registerXmlResponse
         )
 
-        withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
+        val stsClientWs = stsClient(bootstrap.env.securityTokenServiceEndpointUrl,
+                bootstrap.env.securityTokenUsername to bootstrap.env.securityTokenPassword)
+        val stsClientRest = StsRestClient(
+                bootstrap.env.stsRestUrl, bootstrap.env.securityTokenUsername, bootstrap.env.securityTokenPassword)
+
+        val wsClients = WsClients(stsClientWs, stsClientRest, bootstrap.env.allowInsecureSoapRequests)
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = bootstrap.env.jwtIssuer,
+                jwkProvider = bootstrap.jwkStub.stubbedJwkProvider(),
+                arbeidsforholdService = ArbeidsforholdService(
+                        arbeidsforholdClient = wsClients.arbeidsforhold(bootstrap.env.arbeidsforholdEndpointUrl),
+                        aktørregisterService = AktørregisterService(wsClients.aktør(bootstrap.env.aktørregisterUrl)),
+                        organisasjonService = OrganisasjonService(wsClients.organisasjon(bootstrap.env.organisasjonEndpointUrl))
+                ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/1831212532188?fom=2017-01-01&tom=2019-01-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")

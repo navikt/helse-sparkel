@@ -7,7 +7,10 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.bootstrapComponentTest
-import no.nav.helse.sparkel
+import no.nav.helse.mockedSparkel
+import no.nav.helse.sts.StsRestClient
+import no.nav.helse.ws.WsClients
+import no.nav.helse.ws.sts.stsClient
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -155,7 +158,18 @@ class OrganisasjonComponentTest {
         val url = "/api/organisasjon/$orgNr$queryString"
         log.info("URL=$url")
 
-        withTestApplication({sparkel(bootstrap.env, bootstrap.jwkStub.stubbedJwkProvider())}) {
+        val stsClientWs = stsClient(bootstrap.env.securityTokenServiceEndpointUrl,
+                bootstrap.env.securityTokenUsername to bootstrap.env.securityTokenPassword)
+        val stsClientRest = StsRestClient(
+                bootstrap.env.stsRestUrl, bootstrap.env.securityTokenUsername, bootstrap.env.securityTokenPassword)
+
+        val wsClients = WsClients(stsClientWs, stsClientRest, bootstrap.env.allowInsecureSoapRequests)
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = bootstrap.env.jwtIssuer,
+                jwkProvider = bootstrap.jwkStub.stubbedJwkProvider(),
+                organisasjonService = OrganisasjonService(wsClients.organisasjon(bootstrap.env.organisasjonEndpointUrl))
+        )}) {
             handleRequest(HttpMethod.Get, url) {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")

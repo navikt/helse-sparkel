@@ -1,16 +1,31 @@
 package no.nav.helse.ws.person
 
-import com.github.tomakehurst.wiremock.*
-import com.github.tomakehurst.wiremock.client.*
-import com.github.tomakehurst.wiremock.core.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-import io.prometheus.client.*
-import no.nav.helse.*
-import no.nav.helse.ws.*
-import org.json.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
+import io.prometheus.client.CollectorRegistry
+import no.nav.helse.Environment
+import no.nav.helse.JwtStub
+import no.nav.helse.assertJsonEquals
+import no.nav.helse.mockedSparkel
+import no.nav.helse.sts.StsRestClient
+import no.nav.helse.ws.WsClients
+import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.sts.stsClient
+import no.nav.helse.ws.stsStub
+import no.nav.helse.ws.withCallId
+import no.nav.helse.ws.withSamlAssertion
+import org.json.JSONObject
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class PersonComponentTest {
 
@@ -72,7 +87,18 @@ class PersonComponentTest {
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))
 
-        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
+        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
+                env.securityTokenUsername to env.securityTokenPassword)
+        val stsClientRest = StsRestClient(
+                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
+
+        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = env.jwtIssuer,
+                jwkProvider = jwtStub.stubbedJwkProvider(),
+                personService = PersonService(wsClients.person(env.personEndpointUrl))
+        )}) {
             handleRequest(HttpMethod.Get, "/api/person/1234567891011") {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {
@@ -114,7 +140,18 @@ class PersonComponentTest {
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))
 
-        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
+        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
+                env.securityTokenUsername to env.securityTokenPassword)
+        val stsClientRest = StsRestClient(
+                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
+
+        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = env.jwtIssuer,
+                jwkProvider = jwtStub.stubbedJwkProvider(),
+                personService = PersonService(wsClients.person(env.personEndpointUrl))
+        )}) {
             handleRequest(HttpMethod.Get, "/api/person/1234567891011/history") {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {

@@ -10,16 +10,13 @@ import no.nav.helse.OppslagResult
 private const val ATTRIBUTT_QUERY_PARAM = "attributt"
 private const val ORG_NR_PATH_PARAM = "orgnr"
 
-fun Route.organisasjon(orgClient: OrganisasjonClient) {
+fun Route.organisasjon(organisasjonService: OrganisasjonService) {
 
     get("api/organisasjon/{$ORG_NR_PATH_PARAM}") {
         val organisasjonsNummer = call.getOrganisasjonsNummer()
         val attributter = call.getAttributes()
 
-        val lookupResult = orgClient.hentOrganisasjon(
-                orgnr = organisasjonsNummer,
-                attributter = attributter
-        )
+        val lookupResult = organisasjonService.hentOrganisasjon(organisasjonsNummer, attributter)
 
         when (lookupResult) {
             is OppslagResult.Ok -> call.respond(lookupResult.data)
@@ -28,16 +25,10 @@ fun Route.organisasjon(orgClient: OrganisasjonClient) {
     }
 }
 
-private fun ApplicationCall.getOrganisasjonsNummer(): OrganisasjonsNummer {
-    return OrganisasjonsNummer(parameters[ORG_NR_PATH_PARAM]!!)
-}
+private fun ApplicationCall.getOrganisasjonsNummer() = OrganisasjonsNummer(parameters[ORG_NR_PATH_PARAM]!!)
 
-private fun ApplicationCall.getAttributes() : List<OrganisasjonsAttributt>{
-    val stringList = request.queryParameters.getAll(ATTRIBUTT_QUERY_PARAM)
-    if (stringList.isNullOrEmpty()) return listOf()
-    val attributter = mutableListOf<OrganisasjonsAttributt>()
-    stringList.forEach { it ->
-        attributter.add(OrganisasjonsAttributt(it))
-    }
-    return attributter.toList()
-}
+private fun ApplicationCall.getAttributes() =
+        request.queryParameters.getAll(ATTRIBUTT_QUERY_PARAM)
+                ?.map {
+                    OrganisasjonsAttributt(it)
+                } ?: emptyList()

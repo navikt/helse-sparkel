@@ -6,13 +6,10 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.OppslagResult
-import no.nav.helse.http.aktør.AktørregisterClient
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.AktørId
 import java.time.YearMonth
 
-fun Route.inntekt(inntektClient:InntektClient,
-                  aktørregisterClient: AktørregisterClient
-) {
+fun Route.inntekt(inntektService: InntektService) {
 
     get("api/inntekt/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
@@ -21,9 +18,7 @@ fun Route.inntekt(inntektClient:InntektClient,
             val fom = YearMonth.parse(call.request.queryParameters["fom"]!!)
             val tom = YearMonth.parse(call.request.queryParameters["tom"]!!)
 
-            val fnr = Fødselsnummer(aktørregisterClient.gjeldendeNorskIdent(call.parameters["aktorId"]!!))
-
-            val lookupResult = inntektClient.hentInntektListe(fnr, fom, tom)
+            val lookupResult = inntektService.hentInntekter(AktørId(call.parameters["aktorId"]!!), fom, tom)
             when (lookupResult) {
                 is OppslagResult.Ok -> call.respond(lookupResult.data)
                 is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)

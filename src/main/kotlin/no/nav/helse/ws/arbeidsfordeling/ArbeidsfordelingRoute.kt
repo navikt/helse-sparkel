@@ -37,20 +37,10 @@ fun Route.arbeidsfordeling(arbeidsfordelingService: ArbeidsfordelingService) {
     }
 }
 
-private fun ApplicationCall.getMedAktoerIder(): List<AktørId> {
-    val stringList = request.queryParameters.getAll(MED_AKTOER_QUERY_PARAM)
-    if (stringList.isNullOrEmpty()) return listOf()
-    val medAktoerer = mutableListOf<AktørId>()
-    stringList.forEach { it ->
-        medAktoerer.add(AktørId(it))
-    }
-    return medAktoerer.toList()
-}
+private fun ApplicationCall.getMedAktoerIder() = request.queryParameters.getAll(MED_AKTOER_QUERY_PARAM)?.map {
+        AktørId(it)
+    } ?: emptyList()
 
-private fun ApplicationCall.getHovedAktoerId(): AktørId {
-    return AktørId(parameters[HOVED_AKTOER_PATH_PARAM]!!)
-}
+private fun ApplicationCall.getHovedAktoerId() = AktørId(parameters[HOVED_AKTOER_PATH_PARAM]!!)
 
-private fun ApplicationCall.getTema() : Tema? {
-    return if (request.queryParameters.contains(TEMA_QUERY_PARAM)) Tema(request.queryParameters[TEMA_QUERY_PARAM]!!) else null
-}
+private fun ApplicationCall.getTema() = if (request.queryParameters.contains(TEMA_QUERY_PARAM)) Tema(request.queryParameters[TEMA_QUERY_PARAM]!!) else null

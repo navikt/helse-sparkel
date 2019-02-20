@@ -12,10 +12,14 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Environment
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
+import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.http.aktør.aktørregisterStub
-import no.nav.helse.sparkel
+import no.nav.helse.mockedSparkel
+import no.nav.helse.sts.StsRestClient
 import no.nav.helse.sts.stsRestStub
+import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
@@ -93,7 +97,20 @@ class InntektComponentTest {
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))
 
-        withTestApplication({sparkel(env, jwtStub.stubbedJwkProvider())}) {
+        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
+                env.securityTokenUsername to env.securityTokenPassword)
+        val stsClientRest = StsRestClient(
+                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
+
+        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = env.jwtIssuer,
+                jwkProvider = jwtStub.stubbedJwkProvider(),
+                inntektService = InntektService(
+                        inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
+                        aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
+                ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/1831212532188?fom=2017-01&tom=2018-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")

@@ -1,33 +1,50 @@
 package no.nav.helse
 
-import com.auth0.jwk.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
-import io.ktor.features.*
-import io.ktor.http.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.prometheus.client.*
-import io.prometheus.client.hotspot.*
-import no.nav.helse.maksdato.*
-import no.nav.helse.nais.*
-import no.nav.helse.sts.*
-import no.nav.helse.ws.*
-import no.nav.helse.ws.arbeidsfordeling.*
-import no.nav.helse.ws.arbeidsforhold.*
-import no.nav.helse.ws.inntekt.*
-import no.nav.helse.ws.meldekort.*
-import no.nav.helse.ws.organisasjon.*
-import no.nav.helse.ws.person.*
-import no.nav.helse.ws.sakogbehandling.*
-import no.nav.helse.ws.sts.*
-import no.nav.helse.ws.sykepenger.*
-import org.slf4j.event.*
-import java.net.*
-import java.util.*
-import java.util.concurrent.*
+import com.auth0.jwk.JwkProvider
+import com.auth0.jwk.JwkProviderBuilder
+import io.ktor.application.Application
+import io.ktor.application.install
+import io.ktor.application.log
+import io.ktor.auth.Authentication
+import io.ktor.auth.authenticate
+import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.auth.jwt.jwt
+import io.ktor.features.CallId
+import io.ktor.features.CallLogging
+import io.ktor.features.ContentNegotiation
+import io.ktor.features.callIdMdc
+import io.ktor.http.ContentType
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.hotspot.DefaultExports
+import no.nav.helse.http.aktør.AktørregisterService
+import no.nav.helse.maksdato.maksdato
+import no.nav.helse.nais.nais
+import no.nav.helse.sts.StsRestClient
+import no.nav.helse.ws.WsClients
+import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
+import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
+import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
+import no.nav.helse.ws.inntekt.InntektService
+import no.nav.helse.ws.inntekt.inntekt
+import no.nav.helse.ws.meldekort.MeldekortService
+import no.nav.helse.ws.meldekort.meldekort
+import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.organisasjon.organisasjon
+import no.nav.helse.ws.person.PersonService
+import no.nav.helse.ws.person.person
+import no.nav.helse.ws.sakogbehandling.SakOgBehandlingService
+import no.nav.helse.ws.sakogbehandling.sakOgBehandling
+import no.nav.helse.ws.sts.stsClient
+import no.nav.helse.ws.sykepenger.SykepengelisteService
+import no.nav.helse.ws.sykepenger.sykepengeListe
+import org.slf4j.event.Level
+import java.net.URL
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
 private val authorizedUsers = listOf("srvspinne", "srvspa", "srvpleiepengesokna", "srvpleiepenger-opp")
@@ -43,7 +60,48 @@ fun main() {
                 .rateLimited(10, 1, TimeUnit.MINUTES)
                 .build()
 
-        sparkel(env, jwkProvider)
+        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
+                env.securityTokenUsername to env.securityTokenPassword)
+        val stsClientRest = StsRestClient(
+                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
+
+        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+
+        val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
+
+        val personClient = wsClients.person(env.personEndpointUrl)
+        val organisasjonClient = wsClients.organisasjon(env.organisasjonEndpointUrl)
+
+        val inntektService = InntektService(
+                inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
+                aktørregisterService = aktørregisterService
+        )
+
+        val arbeidsfordelingService = ArbeidsfordelingService(
+                arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
+                personClient = personClient)
+
+        val personService = PersonService(personClient)
+
+        val organisasjonService = OrganisasjonService(organisasjonClient)
+
+        val arbeidsforholdService = ArbeidsforholdService(
+                arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),
+                aktørregisterService = aktørregisterService,
+                organisasjonService = organisasjonService
+        )
+
+        val sakOgBehandlingService = SakOgBehandlingService(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
+
+        val sykepengelisteService = SykepengelisteService(
+                sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
+                aktørregisterService = aktørregisterService
+        )
+
+        val meldekortServie = MeldekortService(wsClients.meldekort(env.meldekortEndpointUrl))
+
+        sparkel(env.jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService, meldekortServie,
+                organisasjonService, personService, sakOgBehandlingService, sykepengelisteService)
     }
 
     app.start(wait = false)
@@ -53,7 +111,11 @@ fun main() {
     })
 }
 
-fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
+fun Application.sparkel(jwtIssuer: String, jwkProvider: JwkProvider, arbeidsfordelingService: ArbeidsfordelingService,
+                        arbeidsforholdService: ArbeidsforholdService, inntektService: InntektService,
+                        meldekortService: MeldekortService, organisasjonService: OrganisasjonService,
+                        personService: PersonService, sakOgBehandlingService: SakOgBehandlingService,
+                        sykepengelisteService: SykepengelisteService) {
     install(CallId) {
         header("Nav-Call-Id")
 
@@ -71,7 +133,7 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
 
     install(Authentication) {
         jwt {
-            verifier(jwkProvider, env.jwtIssuer)
+            verifier(jwkProvider, jwtIssuer)
             realm = "Helse Sparkel"
             validate { credentials ->
                 if (credentials.payload.subject in authorizedUsers) {
@@ -85,41 +147,24 @@ fun Application.sparkel(env: Environment, jwkProvider: JwkProvider) {
         }
     }
 
-    val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
-            env.securityTokenUsername to env.securityTokenPassword)
-    val stsClientRest = StsRestClient(
-            env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
-    val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
-
     routing {
         authenticate {
-            inntekt(inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
-                    aktørregisterClient = wsClients.aktør(env.aktørregisterUrl)
-            )
 
-            arbeidsfordeling(ArbeidsfordelingService(
-                        arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
-                        personClient = wsClients.person(env.personEndpointUrl))
-            )
+            inntekt(inntektService)
 
-            person(wsClients.person(env.personEndpointUrl))
+            arbeidsfordeling(arbeidsfordelingService)
 
-            arbeidsforhold(
-                    arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),
-                    aktørregisterClient = wsClients.aktør(env.aktørregisterUrl),
-                    organisasjonsClient = wsClients.organisasjon(env.organisasjonEndpointUrl)
-            )
+            person(personService)
 
-            organisasjon(wsClients.organisasjon(env.organisasjonEndpointUrl))
+            arbeidsforhold(arbeidsforholdService)
 
-            sakOgBehandling(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
+            organisasjon(organisasjonService)
 
-            sykepengeListe(
-                sykepenger = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
-                aktørregisterClient = wsClients.aktør(env.aktørregisterUrl)
-            )
+            sakOgBehandling(sakOgBehandlingService)
 
-            meldekort(wsClients.meldekort(env.meldekortEndpointUrl))
+            sykepengeListe(sykepengelisteService)
+
+            meldekort(meldekortService)
 
             maksdato("http://maksdato")
         }
