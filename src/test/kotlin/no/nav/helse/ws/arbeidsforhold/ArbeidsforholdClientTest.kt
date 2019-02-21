@@ -1,8 +1,9 @@
 package no.nav.helse.ws.arbeidsforhold
 
+import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import io.prometheus.client.CollectorRegistry
+import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.Fødselsnummer
@@ -16,22 +17,69 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkRequest
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkResponse
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.time.LocalDate
 
 class ArbeidsforholdClientTest {
 
-    @BeforeEach
-    fun `clear prometheus registry before test`() {
-        CollectorRegistry.defaultRegistry.clear()
+    @Test
+    fun `skal returnere feil når arbeidsforholdoppslag gir feil`() {
+        val arbeidsforholdV3 = mockk<ArbeidsforholdV3>()
+
+        every {
+            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(any())
+        } throws(Exception("SOAP fault"))
+
+        val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
+        val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+
+        when (actual) {
+            is OppslagResult.Feil -> {
+                when (actual.feil) {
+                    is Feil.Exception -> {
+                        Assertions.assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
+                        Assertions.assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
+                    }
+                    else -> fail { "Expected Feil.Exception to be returned" }
+                }
+            }
+            else -> fail { "Expected OppslagResult.Feil to be returned" }
+        }
     }
 
-    @AfterEach
-    fun `clear prometheus registry after test`() {
-        CollectorRegistry.defaultRegistry.clear()
+    @Test
+    fun `skal returnere feil når historikkoppslag gir feil`() {
+        val arbeidsforholdV3 = mockk<ArbeidsforholdV3>()
+
+        every {
+            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(any())
+        } returns FinnArbeidsforholdPrArbeidstakerResponse().apply {
+            arbeidsforhold.add(Arbeidsforhold().apply {
+                arbeidsforholdIDnav = 1234
+            })
+        }
+
+        every {
+            arbeidsforholdV3.hentArbeidsforholdHistorikk(any())
+        } throws(Exception("SOAP fault"))
+
+        val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
+        val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+
+        when (actual) {
+            is OppslagResult.Feil -> {
+                when (actual.feil) {
+                    is Feil.Exception -> {
+                        Assertions.assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
+                        Assertions.assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
+                    }
+                    else -> fail { "Expected Feil.Exception to be returned" }
+                }
+            }
+            else -> fail { "Expected OppslagResult.Feil to be returned" }
+        }
     }
 
     @Test
