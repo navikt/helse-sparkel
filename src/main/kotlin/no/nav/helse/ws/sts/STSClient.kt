@@ -4,6 +4,7 @@ import org.apache.cxf.Bus
 import org.apache.cxf.BusFactory
 import org.apache.cxf.binding.soap.Soap12
 import org.apache.cxf.binding.soap.SoapMessage
+import org.apache.cxf.configuration.jsse.TLSClientParameters
 import org.apache.cxf.endpoint.Client
 import org.apache.cxf.ext.logging.LoggingFeature
 import org.apache.cxf.frontend.ClientProxy
@@ -16,9 +17,9 @@ import org.apache.neethi.Policy
 
 val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:ws/untPolicy.xml"
 val STS_SAML_POLICY = "classpath:ws/requestSamlPolicy.xml"
-val STS_SAML_POLICY_NO_TRANSPORT_BINDING = "classpath:ws/requestSamlPolicyNoTransportBinding.xml";
+val STS_SAML_POLICY_NO_TRANSPORT_BINDING = "classpath:ws/requestSamlPolicyNoTransportBinding.xml"
 
-fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
+fun stsClient(stsUrl: String, credentials: Pair<String, String>, disableCNCheck: Boolean = false): STSClient {
     val bus = BusFactory.getDefaultBus()
     return STSClient(bus).apply {
         isEnableAppliesTo = false
@@ -31,7 +32,9 @@ fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
                 SecurityConstants.USERNAME to credentials.first,
                 SecurityConstants.PASSWORD to credentials.second
         )
-
+        if (disableCNCheck) {
+            setTlsClientParameters(TLSClientParameters().apply { isDisableCNCheck = true })
+        }
         setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
     }
 }
@@ -43,12 +46,12 @@ fun STSClient.configureFor(servicePort: Any) {
 fun STSClient.configureFor(servicePort: Any, policyUri: String) {
     val client = ClientProxy.getClient(servicePort)
     client.configureSTS(this, policyUri)
+
 }
 
 fun Client.configureSTS(stsClient: STSClient, policyUri: String = STS_SAML_POLICY) {
     requestContext[SecurityConstants.STS_CLIENT] = stsClient
     requestContext[SecurityConstants.CACHE_ISSUED_TOKEN_IN_ENDPOINT] = true
-
     setClientEndpointPolicy(bus.resolvePolicy(policyUri))
 }
 

@@ -22,6 +22,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     val stsRestUrl: String by lazyEnvVar("SECURITY_TOKEN_SERVICE_REST_URL")
     val allowInsecureSoapRequests: Boolean by lazyEnvVar("ALLOW_INSECURE_SOAP_REQUESTS", "false") { value -> "true" == value }
+    val disableCNCheck: Boolean by lazyEnvVar("DISABLE_CN_CHECK", "false") { "true" == it }
 
     private fun lazyEnvVar(key: String): ReadOnlyProperty<Environment, String> {
         return lazyEnvVar(key, null) { value -> value }
