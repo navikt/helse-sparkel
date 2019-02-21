@@ -10,7 +10,7 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.Diskresjonskode
 import no.nav.helse.ws.person.GeografiskOmraade
 import no.nav.helse.ws.person.GeografiskTilknytning
-import no.nav.helse.ws.person.PersonClient
+import no.nav.helse.ws.person.PersonService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -23,20 +23,20 @@ class ArbeidsfordelingServiceTest {
         val expected = OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("En feil oppstod"))
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == aktørId
             })
         } returns expected
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         verify(exactly = 1) {
-            personClient.geografiskTilknytning(any())
+            personService.geografiskTilknytning(any())
         }
 
         when (actual) {
@@ -55,26 +55,26 @@ class ArbeidsfordelingServiceTest {
         val expected = OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("En feil oppstod"))
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == aktørId
             })
         } returns OppslagResult.Ok(GeografiskTilknytning(null, null))
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == medaktørId
             })
         } returns expected
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, listOf(medaktørId), tema)
 
         verify(exactly = 2) {
-            personClient.geografiskTilknytning(any())
+            personService.geografiskTilknytning(any())
         }
 
         when (actual) {
@@ -92,12 +92,12 @@ class ArbeidsfordelingServiceTest {
         val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         val geografiskTilknytning = GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030103"))
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
@@ -114,7 +114,7 @@ class ArbeidsfordelingServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
@@ -133,14 +133,14 @@ class ArbeidsfordelingServiceTest {
         val expected = Enhet("2103", "NAV Viken")
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         val geografiskTilknytning = GeografiskTilknytning(
                 Diskresjonskode("SPSF", "Sperret adresse, strengt fortrolig", kode = 6),
                 GeografiskOmraade("Bydel", "030103"))
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
@@ -157,7 +157,7 @@ class ArbeidsfordelingServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
@@ -176,14 +176,14 @@ class ArbeidsfordelingServiceTest {
         val expected = Enhet("2103", "NAV Viken")
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         val geografiskTilknytning = GeografiskTilknytning(
                 Diskresjonskode("SPSF", "Sperret adresse, strengt fortrolig", kode = 7),
                 GeografiskOmraade("Bydel", "030103"))
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
@@ -200,7 +200,7 @@ class ArbeidsfordelingServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
@@ -222,14 +222,14 @@ class ArbeidsfordelingServiceTest {
         val expected = Enhet("2103", "NAV Viken")
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         val geografiskTilknytningHovedaktør = GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030103"))
         val geografiskTilknytningMedaktørIkkeKode6 = GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030104"))
         val geografiskTilknytningMedaktørKode6 = GeografiskTilknytning(Diskresjonskode("SPSF", kode = 6), GeografiskOmraade("Bydel", "030105"))
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == hovedAktørId
             })
         } returns geografiskTilknytningHovedaktør.let {
@@ -237,7 +237,7 @@ class ArbeidsfordelingServiceTest {
         }
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == medaktørIdIkkeKode6
             })
         } returns geografiskTilknytningMedaktørIkkeKode6.let {
@@ -245,7 +245,7 @@ class ArbeidsfordelingServiceTest {
         }
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == medaktørIdKode6
             })
         } returns geografiskTilknytningMedaktørKode6.let {
@@ -262,7 +262,7 @@ class ArbeidsfordelingServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(hovedAktørId, listOf(
                 medaktørIdIkkeKode6, medaktørIdKode6
@@ -285,13 +285,13 @@ class ArbeidsfordelingServiceTest {
         val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         val geografiskTilknytningHovedaktør = GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030103"))
         val geografiskTilknytningMedaktørIkkeKode6 = GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030104"))
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == hovedAktørId
             })
         } returns geografiskTilknytningHovedaktør.let {
@@ -299,7 +299,7 @@ class ArbeidsfordelingServiceTest {
         }
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == medaktørIdIkkeKode6
             })
         } returns geografiskTilknytningMedaktørIkkeKode6.let {
@@ -316,7 +316,7 @@ class ArbeidsfordelingServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(hovedAktørId, listOf(
                 medaktørIdIkkeKode6
@@ -337,12 +337,12 @@ class ArbeidsfordelingServiceTest {
         val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
-        val personClient = mockk<PersonClient>()
+        val personService = mockk<PersonService>()
 
         val geografiskTilknytning = GeografiskTilknytning(null, null)
 
         every {
-            personClient.geografiskTilknytning(match {
+            personService.geografiskTilknytning(match {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
@@ -359,7 +359,7 @@ class ArbeidsfordelingServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personClient)
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 

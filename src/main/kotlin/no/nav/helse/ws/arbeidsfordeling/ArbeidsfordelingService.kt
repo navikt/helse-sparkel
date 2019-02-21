@@ -4,14 +4,14 @@ import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.GeografiskTilknytning
-import no.nav.helse.ws.person.PersonClient
+import no.nav.helse.ws.person.PersonService
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("ArbeidsfordelingService")
 
 class ArbeidsfordelingService(
-        val arbeidsfordelingClient: ArbeidsfordelingClient,
-        val personClient: PersonClient
+        private val arbeidsfordelingClient: ArbeidsfordelingClient,
+        private val personService: PersonService
 ) {
     fun getBehandlendeEnhet(
             hovedAktoer: AktørId,
@@ -19,7 +19,7 @@ class ArbeidsfordelingService(
             tema: Tema
     ) : OppslagResult<Feil, Enhet> {
         // Geografisk tilknytning for Hovedaktør
-        val geografiskTilknytningHovedAktoerOppslagResponse = personClient.geografiskTilknytning(hovedAktoer)
+        val geografiskTilknytningHovedAktoerOppslagResponse = personService.geografiskTilknytning(hovedAktoer)
         if (geografiskTilknytningHovedAktoerOppslagResponse is OppslagResult.Feil) {
             return geografiskTilknytningHovedAktoerOppslagResponse
         }
@@ -28,7 +28,7 @@ class ArbeidsfordelingService(
         // Geografisk tilknytning for eventuelle Medaktører
         val geografiskTilknytningMedAktoerer = mutableListOf<GeografiskTilknytning>()
         medAktoerer.forEach { medAktoer ->
-            val geografiskTilknytningMedAktoerOppslagResponse = personClient.geografiskTilknytning(medAktoer)
+            val geografiskTilknytningMedAktoerOppslagResponse = personService.geografiskTilknytning(medAktoer)
             if (geografiskTilknytningMedAktoerOppslagResponse is OppslagResult.Feil) {
                 return geografiskTilknytningMedAktoerOppslagResponse
             }

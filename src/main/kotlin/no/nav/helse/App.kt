@@ -69,21 +69,18 @@ fun main() {
 
         val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
 
-        val personClient = wsClients.person(env.personEndpointUrl)
-        val organisasjonClient = wsClients.organisasjon(env.organisasjonEndpointUrl)
-
         val inntektService = InntektService(
                 inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
                 aktørregisterService = aktørregisterService
         )
 
+        val personService = PersonService(wsClients.person(env.personEndpointUrl))
+
         val arbeidsfordelingService = ArbeidsfordelingService(
                 arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
-                personClient = personClient)
+                personService = personService)
 
-        val personService = PersonService(personClient)
-
-        val organisasjonService = OrganisasjonService(organisasjonClient)
+        val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
 
         val arbeidsforholdService = ArbeidsforholdService(
                 arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),

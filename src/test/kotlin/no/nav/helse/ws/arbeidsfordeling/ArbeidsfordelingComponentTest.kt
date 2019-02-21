@@ -11,6 +11,7 @@ import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.person.PersonClient
+import no.nav.helse.ws.person.PersonService
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetsstatus
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
@@ -63,7 +64,7 @@ class ArbeidsfordelingComponentTest {
 
         val arbeidsfordelingService = ArbeidsfordelingService(
                 arbeidsfordelingClient = ArbeidsfordelingClient(arbeidsfordelingV1Mock),
-                personClient = PersonClient(personV3Mock)
+                personService = PersonService(PersonClient(personV3Mock))
         )
 
         val jwkStub = JwtStub("test issuer")
