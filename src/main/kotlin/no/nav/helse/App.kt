@@ -111,11 +111,18 @@ fun main() {
     })
 }
 
-fun Application.sparkel(jwtIssuer: String, jwkProvider: JwkProvider, arbeidsfordelingService: ArbeidsfordelingService,
-                        arbeidsforholdService: ArbeidsforholdService, inntektService: InntektService,
-                        meldekortService: MeldekortService, organisasjonService: OrganisasjonService,
-                        personService: PersonService, sakOgBehandlingService: SakOgBehandlingService,
-                        sykepengelisteService: SykepengelisteService) {
+fun Application.sparkel(
+        jwtIssuer: String,
+        jwkProvider: JwkProvider,
+        arbeidsfordelingService: ArbeidsfordelingService,
+        arbeidsforholdService: ArbeidsforholdService,
+        inntektService: InntektService,
+        meldekortService: MeldekortService,
+        organisasjonService: OrganisasjonService,
+        personService: PersonService,
+        sakOgBehandlingService: SakOgBehandlingService,
+        sykepengelisteService: SykepengelisteService
+) {
     install(CallId) {
         header("Nav-Call-Id")
 
