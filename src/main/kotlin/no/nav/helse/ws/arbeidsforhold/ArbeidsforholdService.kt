@@ -12,7 +12,7 @@ import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
-    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Organisasjon>> {
+    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsgiver>> {
         val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
         return when (lookupResult) {
@@ -24,16 +24,15 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     it is Organisasjon
                 }.map {
                     it as Organisasjon
+                }.map {
+                    Arbeidsgiver.Organisasjon(it.orgnummer, it.navn ?: "")
                 }.map { organisasjon ->
-                    if (organisasjon.navn.isNullOrBlank()) {
+                    if (organisasjon.navn.isBlank()) {
                         organisasjonService.hentOrganisasjon(
-                                orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
+                                orgnr = OrganisasjonsNummer(organisasjon.organisasjonsnummer),
                                 attributter = listOf(OrganisasjonsAttributt("navn"))
                         ).map { organisasjonResponse ->
-                            Organisasjon().apply {
-                                navn = organisasjonResponse.navn
-                                orgnummer = organisasjon.orgnummer
-                            }
+                            Arbeidsgiver.Organisasjon(organisasjon.organisasjonsnummer, organisasjonResponse.navn ?: "")
                         }
                     } else {
                         OppslagResult.Ok(organisasjon)
@@ -51,4 +50,8 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
             }
         }
     }
+}
+
+sealed class Arbeidsgiver {
+    data class Organisasjon(val organisasjonsnummer: String, val navn: String): Arbeidsgiver()
 }

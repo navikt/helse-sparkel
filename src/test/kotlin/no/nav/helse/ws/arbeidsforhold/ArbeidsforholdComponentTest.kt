@@ -86,7 +86,7 @@ class ArbeidsforholdComponentTest {
                         arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
-            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {
+            handleRequest(HttpMethod.Get, "/api/arbeidsgivere/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
@@ -98,13 +98,13 @@ class ArbeidsforholdComponentTest {
 }
 
 private val expectedJson = """
-    {
-        "organisasjoner": [{
-            "organisasjonsnummer": "913548221",
-            "navn": "EQUINOR AS, AVD STATOIL SOKKELVIRKSOMHET"
-        },{
-            "organisasjonsnummer": "984054564",
-            "navn": "NAV, AVD WALDEMAR THRANES GATE"
-        }]
-    }
+{
+    "arbeidsgivere": [{
+        "organisasjonsnummer": "913548221",
+        "navn": "EQUINOR AS, AVD STATOIL SOKKELVIRKSOMHET"
+    },{
+        "organisasjonsnummer": "984054564",
+        "navn": "NAV, AVD WALDEMAR THRANES GATE"
+    }]
+}
 """.trimIndent()
