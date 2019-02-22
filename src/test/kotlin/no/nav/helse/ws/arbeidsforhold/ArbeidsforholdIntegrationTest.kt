@@ -19,7 +19,6 @@ import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -123,57 +122,6 @@ class ArbeidsforholdIntegrationTest {
             }
         }
     }
-
-    @Test
-    fun `skal hente historiske arbeidsavtaler for hvert arbeidsforhold`() {
-
-        val aktørId = AktørId("08088806280")
-        val fom = LocalDate.parse("2017-01-01")
-        val tom = LocalDate.parse("2019-01-01")
-
-        val expected = listOf(
-                Arbeidsforhold().apply {
-                    arbeidsforholdID = "7132068136"
-                    arbeidsforholdIDnav = 46590219
-                    with (arbeidsavtale) {
-                        add(Arbeidsavtale())
-                    }
-                },
-                Arbeidsforhold().apply {
-                    arbeidsforholdID = "00000009692000000005"
-                    arbeidsforholdIDnav = 44669403
-                    with (arbeidsavtale) {
-                        add(Arbeidsavtale())
-                    }
-                }
-        )
-
-        arbeidsforholdStub(
-                server = server,
-                scenario = "arbeidsforhold_hent_arbeidsforhold",
-                request = finnArbeidsforholdPrArbeidstakerStub(aktørId.aktor, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
-                response = WireMock.okXml(finnArbeidsforholdPrArbeidstaker_response),
-                historikk = listOf(
-                        Pair(hentArbeidsforholdHistorikkStub("38009429"), WireMock.ok(finnHistorikkForArbeidsforhold_response_1)),
-                        Pair(hentArbeidsforholdHistorikkStub("44669403"), WireMock.ok(finnHistorikkForArbeidsforhold_response_2))
-                )
-        ) { arbeidsforholdClient ->
-            val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(aktørId, fom, tom)
-
-            when (actual) {
-                is OppslagResult.Ok -> {
-                    assertEquals(expected.size, actual.data.size)
-                    expected.forEachIndexed { index, expectedArbeidsforhold ->
-                        assertEquals(expectedArbeidsforhold.arbeidsforholdID, actual.data[index].arbeidsforholdID)
-                        assertEquals(expectedArbeidsforhold.arbeidsforholdIDnav, actual.data[index].arbeidsforholdIDnav)
-
-                        assertEquals(expectedArbeidsforhold.arbeidsavtale.size, actual.data[index].arbeidsavtale.size)
-                    }
-                }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
-            }
-        }
-    }
 }
 
 fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: MappingBuilder, response: ResponseDefinitionBuilder, historikk: List<Pair<MappingBuilder, ResponseDefinitionBuilder>> = emptyList(), test: (ArbeidsforholdClient) -> Unit) {
@@ -202,27 +150,6 @@ fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: Mappin
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsforhold_stub_called"))
-
-    var prevState = "arbeidsforhold_stub_called"
-    historikk.forEachIndexed { index, value ->
-        WireMock.stubFor(stsStub(stsUsername, stsPassword)
-                .willReturn(samlAssertionResponse(tokenSubject, tokenIssuer, tokenIssuerName,
-                        tokenDigest, tokenSignature, tokenCertificate))
-                .inScenario(scenario)
-                .whenScenarioStateIs(prevState)
-                .willSetStateTo("security_token_service_called"))
-
-        val nextState = "arbeidsforhold_historikk_${index + 1}_stub_called"
-        WireMock.stubFor(value.first
-                .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
-                        tokenDigest, tokenSignature, tokenCertificate)
-                .withCallId("Sett inn call id her")
-                .willReturn(value.second)
-                .inScenario(scenario)
-                .whenScenarioStateIs("security_token_service_called")
-                .willSetStateTo(nextState))
-        prevState = nextState
-    }
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
     val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
@@ -333,88 +260,6 @@ private val finnArbeidsforholdPrArbeidstaker_response = """
          </parameters>
       </ns2:finnArbeidsforholdPrArbeidstakerResponse>
    </soap:Body>
-</soap:Envelope>
-""".trimIndent()
-
-private val finnHistorikkForArbeidsforhold_response_1 = """
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    <soap:Body>
-        <ns2:hentArbeidsforholdHistorikkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3">
-            <parameters>
-                <arbeidsforhold applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" opphavREF="0475917" opprettelsestidspunkt="2019-01-21T10:36:17.129+01:00" opprettetAv="Z990603" sistBekreftet="2019-01-21T10:36:17.000+01:00">
-                    <arbeidsforholdID>7132068136</arbeidsforholdID>
-                    <arbeidsforholdIDnav>46590219</arbeidsforholdIDnav>
-                    <ansettelsesPeriode applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" opphavREF="0475917">
-                        <periode>
-                            <fom>2017-01-01T00:00:00.000+01:00</fom>
-                        </periode>
-                    </ansettelsesPeriode>
-                    <arbeidsforholdstype kodeRef="ordinaertArbeidsforhold">Ordinært arbeidsforhold</arbeidsforholdstype>
-                    <arbeidsavtale applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" fomGyldighetsperiode="2017-01-01T00:00:00.000+01:00" opphavREF="0475917">
-                        <arbeidstidsordning kodeRef="ikkeSkift">Ikke skift</arbeidstidsordning>
-                        <avloenningstype kodeRef="fast">Fastlønn</avloenningstype>
-                        <yrke kodeRef="0017561">KINOMASKINIST</yrke>
-                        <avtaltArbeidstimerPerUke>40.0</avtaltArbeidstimerPerUke>
-                        <stillingsprosent>100.0</stillingsprosent>
-                        <beregnetAntallTimerPrUke>40.0</beregnetAntallTimerPrUke>
-                    </arbeidsavtale>
-                    <arbeidsgiver xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns4:Organisasjon">
-                        <orgnummer>973861778</orgnummer>
-                    </arbeidsgiver>
-                    <arbeidstaker>
-                        <ident>
-                            <ident>01092021692</ident>
-                        </ident>
-                    </arbeidstaker>
-                    <opplysningspliktig xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns4:Organisasjon">
-                        <orgnummer>923609016</orgnummer>
-                    </opplysningspliktig>
-                    <arbeidsforholdInnrapportertEtterAOrdningen>true</arbeidsforholdInnrapportertEtterAOrdningen>
-                </arbeidsforhold>
-            </parameters>
-        </ns2:hentArbeidsforholdHistorikkResponse>
-    </soap:Body>
-</soap:Envelope>
-""".trimIndent()
-
-private val finnHistorikkForArbeidsforhold_response_2 = """
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    <soap:Body>
-        <ns2:hentArbeidsforholdHistorikkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3">
-            <parameters>
-                <arbeidsforhold applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" opphavREF="0475917" opprettelsestidspunkt="2019-01-21T10:36:17.129+01:00" opprettetAv="Z990603" sistBekreftet="2019-01-21T10:36:17.000+01:00">
-                    <arbeidsforholdID>00000009692000000005</arbeidsforholdID>
-                    <arbeidsforholdIDnav>44669403</arbeidsforholdIDnav>
-                    <ansettelsesPeriode applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" opphavREF="0475917">
-                        <periode>
-                            <fom>2017-01-01T00:00:00.000+01:00</fom>
-                        </periode>
-                    </ansettelsesPeriode>
-                    <arbeidsforholdstype kodeRef="ordinaertArbeidsforhold">Ordinært arbeidsforhold</arbeidsforholdstype>
-                    <arbeidsavtale applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" fomGyldighetsperiode="2017-01-01T00:00:00.000+01:00" opphavREF="0475917">
-                        <arbeidstidsordning kodeRef="ikkeSkift">Ikke skift</arbeidstidsordning>
-                        <avloenningstype kodeRef="fast">Fastlønn</avloenningstype>
-                        <yrke kodeRef="0017561">KINOMASKINIST</yrke>
-                        <avtaltArbeidstimerPerUke>40.0</avtaltArbeidstimerPerUke>
-                        <stillingsprosent>100.0</stillingsprosent>
-                        <beregnetAntallTimerPrUke>40.0</beregnetAntallTimerPrUke>
-                    </arbeidsavtale>
-                    <arbeidsgiver xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns4:Organisasjon">
-                        <orgnummer>973861778</orgnummer>
-                    </arbeidsgiver>
-                    <arbeidstaker>
-                        <ident>
-                            <ident>01092021692</ident>
-                        </ident>
-                    </arbeidstaker>
-                    <opplysningspliktig xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns4:Organisasjon">
-                        <orgnummer>923609016</orgnummer>
-                    </opplysningspliktig>
-                    <arbeidsforholdInnrapportertEtterAOrdningen>true</arbeidsforholdInnrapportertEtterAOrdningen>
-                </arbeidsforhold>
-            </parameters>
-        </ns2:hentArbeidsforholdHistorikkResponse>
-    </soap:Body>
 </soap:Envelope>
 """.trimIndent()
 
