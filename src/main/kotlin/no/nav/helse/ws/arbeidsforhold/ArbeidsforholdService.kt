@@ -24,6 +24,8 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     it is Organisasjon
                 }.map {
                     it as Organisasjon
+                }.distinctBy {
+                    it.orgnummer
                 }.map {
                     Arbeidsgiver.Organisasjon(it.orgnummer, it.navn ?: "")
                 }.map { organisasjon ->
