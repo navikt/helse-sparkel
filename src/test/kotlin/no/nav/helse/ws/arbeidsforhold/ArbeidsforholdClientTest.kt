@@ -6,7 +6,7 @@ import io.mockk.mockk
 import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
@@ -33,7 +33,7 @@ class ArbeidsforholdClientTest {
         } throws(Exception("SOAP fault"))
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when (actual) {
             is OppslagResult.Feil -> {
@@ -66,7 +66,7 @@ class ArbeidsforholdClientTest {
         } throws(Exception("SOAP fault"))
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when (actual) {
             is OppslagResult.Feil -> {
@@ -153,7 +153,7 @@ class ArbeidsforholdClientTest {
         }
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
             is OppslagResult.Ok -> {
@@ -242,7 +242,7 @@ class ArbeidsforholdClientTest {
         }
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
             is OppslagResult.Ok -> {
@@ -331,7 +331,7 @@ class ArbeidsforholdClientTest {
         }
 
         val arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
-        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(Fødselsnummer("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
+        val result = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
             is OppslagResult.Ok -> {

@@ -85,7 +85,6 @@ fun main() {
 
         val arbeidsforholdService = ArbeidsforholdService(
                 arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),
-                aktørregisterService = aktørregisterService,
                 organisasjonService = organisasjonService
         )
 

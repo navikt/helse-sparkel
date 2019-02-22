@@ -7,7 +7,7 @@ import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.flatMap
 import no.nav.helse.map
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.NorskIdent
@@ -29,8 +29,8 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
 
     private val log = LoggerFactory.getLogger("ArbeidsforholdClient")
 
-    fun finnArbeidsforhold(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate) =
-            finnArbeidsforholdForFnr(fnr, fom, tom).map { arbeidsforholdResponse ->
+    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
+            finnArbeidsforholdForFnr(aktørId, fom, tom).map { arbeidsforholdResponse ->
                 arbeidsforholdResponse.arbeidsforhold!!
                         .map { arbeidsforhold ->
                             arbeidsforhold!!
@@ -39,8 +39,8 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                 it.toList()
             }
 
-    fun finnArbeidsforholdMedHistorikkOverArbeidsavtaler(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsforhold>> {
-        return finnArbeidsforholdForFnr(fnr, fom, tom).map { arbeidsforholdResponse ->
+    fun finnArbeidsforholdMedHistorikkOverArbeidsavtaler(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsforhold>> {
+        return finnArbeidsforholdForFnr(aktørId, fom, tom).map { arbeidsforholdResponse ->
             arbeidsforholdResponse.arbeidsforhold
         }.flatMap { listeOverArbeidsforhold ->
             listeOverArbeidsforhold.map { arbeidsforhold ->
@@ -58,10 +58,10 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
         }
     }
 
-    private fun finnArbeidsforholdForFnr(fnr: Fødselsnummer, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, FinnArbeidsforholdPrArbeidstakerResponse> {
+    private fun finnArbeidsforholdForFnr(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, FinnArbeidsforholdPrArbeidstakerResponse> {
         val request = FinnArbeidsforholdPrArbeidstakerRequest()
                 .apply {
-                    ident = NorskIdent().apply { ident = fnr.value }
+                    ident = NorskIdent().apply { ident = aktørId.aktor }
                     arbeidsforholdIPeriode = Periode().apply {
                         this.fom = fom.toXmlGregorianCalendar()
                         this.tom = tom.toXmlGregorianCalendar()

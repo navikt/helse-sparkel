@@ -9,8 +9,6 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
-import no.nav.helse.http.aktør.AktørregisterClient
-import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
@@ -31,15 +29,9 @@ class ArbeidsforholdComponentTest {
     @Test
     fun `en liste over arbeidsgivere skal returneres`() {
         val arbeidsforholdV3 = mockk<ArbeidsforholdV3>()
-        val aktørregisterClient = mockk<AktørregisterClient>()
         val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val aktørId = AktørId("1831212532188")
-        val fnr = "08088806280"
-
-        every {
-            aktørregisterClient.gjeldendeNorskIdent(aktørId.aktor)
-        } returns fnr
 
         every {
             arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(any())
@@ -92,7 +84,6 @@ class ArbeidsforholdComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 arbeidsforholdService = ArbeidsforholdService(
                         arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
-                        aktørregisterService = AktørregisterService(aktørregisterClient),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {

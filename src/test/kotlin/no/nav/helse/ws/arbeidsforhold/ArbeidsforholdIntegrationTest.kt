@@ -12,7 +12,7 @@ import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.sts.stsClient
@@ -57,7 +57,7 @@ class ArbeidsforholdIntegrationTest {
     @Test
     fun `skal svare med en liste over arbeidsgivere`() {
 
-        val fnr = Fødselsnummer("08088806280")
+        val aktørId = AktørId("08088806280")
         val fom = LocalDate.parse("2017-01-01")
         val tom = LocalDate.parse("2019-01-01")
 
@@ -75,10 +75,10 @@ class ArbeidsforholdIntegrationTest {
         arbeidsforholdStub(
                 server = server,
                 scenario = "arbeidsforhold_hent_arbeidsforhold",
-                request = finnArbeidsforholdPrArbeidstakerStub(fnr.value, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
+                request = finnArbeidsforholdPrArbeidstakerStub(aktørId.aktor, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
                 response = WireMock.okXml(finnArbeidsforholdPrArbeidstaker_response)
         ) { arbeidsforholdClient ->
-            val actual = arbeidsforholdClient.finnArbeidsforhold(fnr, fom, tom)
+            val actual = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Ok -> {
@@ -96,17 +96,17 @@ class ArbeidsforholdIntegrationTest {
     @Test
     fun `skal svare med feil når tjenesten svarer med feil`() {
 
-        val fnr = Fødselsnummer("08088806280")
+        val aktørId = AktørId("08088806280")
         val fom = LocalDate.parse("2017-01-01")
         val tom = LocalDate.parse("2019-01-01")
 
         arbeidsforholdStub(
                 server = server,
                 scenario = "arbeidsforhold_ugyldig_aktør",
-                request = finnArbeidsforholdPrArbeidstakerStub(fnr.value, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
-                response = WireMock.serverError().withHeader("Content-Type", "text/xml;charset=UTF-8").withBody(ugyldigAktørResponse(fnr.value))
+                request = finnArbeidsforholdPrArbeidstakerStub(aktørId.aktor, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
+                response = WireMock.serverError().withHeader("Content-Type", "text/xml;charset=UTF-8").withBody(ugyldigAktørResponse(aktørId.aktor))
         ) { arbeidsforholdClient ->
-            val actual = arbeidsforholdClient.finnArbeidsforhold(fnr, fom, tom)
+            val actual = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Feil -> {
@@ -127,7 +127,7 @@ class ArbeidsforholdIntegrationTest {
     @Test
     fun `skal hente historiske arbeidsavtaler for hvert arbeidsforhold`() {
 
-        val fnr = Fødselsnummer("08088806280")
+        val aktørId = AktørId("08088806280")
         val fom = LocalDate.parse("2017-01-01")
         val tom = LocalDate.parse("2019-01-01")
 
@@ -151,14 +151,14 @@ class ArbeidsforholdIntegrationTest {
         arbeidsforholdStub(
                 server = server,
                 scenario = "arbeidsforhold_hent_arbeidsforhold",
-                request = finnArbeidsforholdPrArbeidstakerStub(fnr.value, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
+                request = finnArbeidsforholdPrArbeidstakerStub(aktørId.aktor, fom.toXmlGregorianCalendar().toXMLFormat(), tom.toXmlGregorianCalendar().toXMLFormat()),
                 response = WireMock.okXml(finnArbeidsforholdPrArbeidstaker_response),
                 historikk = listOf(
                         Pair(hentArbeidsforholdHistorikkStub("38009429"), WireMock.ok(finnHistorikkForArbeidsforhold_response_1)),
                         Pair(hentArbeidsforholdHistorikkStub("44669403"), WireMock.ok(finnHistorikkForArbeidsforhold_response_2))
                 )
         ) { arbeidsforholdClient ->
-            val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(fnr, fom, tom)
+            val actual = arbeidsforholdClient.finnArbeidsforholdMedHistorikkOverArbeidsavtaler(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Ok -> {
