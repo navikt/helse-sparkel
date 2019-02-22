@@ -4,6 +4,7 @@ import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
+import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.OrganisasjonsAttributt
@@ -23,7 +24,11 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     list.map { arbeidsforhold ->
                         Arbeidsforhold(arbeidsforhold.arbeidsgiver.let { aktør ->
                             when (aktør) {
-                                is Organisasjon -> Arbeidsgiver.Organisasjon(aktør.orgnummer, aktør.navn ?: "")
+                                is Organisasjon -> {
+                                    val navn = aktør.navn ?: organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer(aktør.orgnummer)).orElse { "FEIL VED HENTING AV NAVN" }
+                                    Arbeidsgiver.Organisasjon(aktør.orgnummer, navn)
+                                }
+
                                 else -> Arbeidsgiver.Organisasjon("0000000000", "UKJENT ARBEIDSGIVERTYPE")
                             }
                         }, arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(), arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate())

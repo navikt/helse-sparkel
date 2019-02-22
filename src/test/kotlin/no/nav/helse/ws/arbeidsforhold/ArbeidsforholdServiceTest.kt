@@ -80,7 +80,7 @@ class ArbeidsforholdServiceTest {
     }
 
     @Test
-    fun `skal returnere arbeidsgiver selv om navn er tomt`() {
+    fun `skal hente navn på arbeidsgiver når navn er tomt`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         val organisasjonService = mockk<OrganisasjonService>()
 
@@ -89,7 +89,7 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", ""), LocalDate.parse("2019-01-01"))
+                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", "MATBUTIKKEN AS"), LocalDate.parse("2019-01-01"))
         )
 
         every {
@@ -107,6 +107,10 @@ class ArbeidsforholdServiceTest {
             OppslagResult.Ok(it)
         }
 
+        every {
+            organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
+        } returns OppslagResult.Ok("MATBUTIKKEN AS")
+
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
@@ -119,6 +123,52 @@ class ArbeidsforholdServiceTest {
             is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
         }
     }
+
+    @Test
+    fun `feil ved henting av navn skal ikke medføre feil`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        val organisasjonService = mockk<OrganisasjonService>()
+
+        val aktørId = AktørId("123456789")
+        val fom = LocalDate.parse("2019-01-01")
+        val tom = LocalDate.parse("2019-02-01")
+
+        val expected = listOf(
+                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", "FEIL VED HENTING AV NAVN"), LocalDate.parse("2019-01-01"))
+        )
+
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
+        } returns listOf(Arbeidsforhold().apply {
+            arbeidsgiver = Organisasjon().apply {
+                orgnummer = "22334455"
+            }
+            ansettelsesPeriode = AnsettelsesPeriode().apply {
+                periode = Gyldighetsperiode().apply {
+                    this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                }
+            }
+        }).let {
+            OppslagResult.Ok(it)
+        }
+
+        every {
+            organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
+        } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("Feil ved henting av navn"))
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
+
+        when (actual) {
+            is OppslagResult.Ok -> {
+                assertEquals(expected.size, actual.data.size)
+                expected.forEachIndexed { index, value ->
+                    assertEquals(value, actual.data[index])
+                }
+            }
+            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+        }
+    }
+
 
     @Test
     fun `ukjent arbeidsgivertype skal merkes som ukjent`() {

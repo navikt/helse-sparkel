@@ -66,6 +66,18 @@ class ArbeidsforholdComponentTest {
             }
         }
 
+        every {
+            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+                it.orgnummer == "11223344"
+            })
+        } returns HentNoekkelinfoOrganisasjonResponse().apply {
+            navn = UstrukturertNavn().apply {
+                with (navnelinje) {
+                    add("MATBUTIKKEN AS")
+                }
+            }
+        }
+
         val jwkStub = JwtStub("test issuer")
         val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
@@ -174,7 +186,7 @@ private val expectedJson_arbeidsforhold = """
     "arbeidsforhold": [{
         "arbeidsgiver": {
             "organisasjonsnummer": "11223344",
-            "navn": ""
+            "navn": "MATBUTIKKEN AS"
         },
         "startdato": "2019-01-01"
     },{

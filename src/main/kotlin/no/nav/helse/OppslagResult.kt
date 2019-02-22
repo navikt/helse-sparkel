@@ -24,3 +24,11 @@ fun <A, B, C> OppslagResult<A, B>.flatMap(mapper: (B) -> OppslagResult<A, C>) =
         is OppslagResult.Ok -> mapper(this.data)
         is OppslagResult.Feil -> this
     }
+
+fun <A, B, C> OppslagResult<A, B>.fold(ifLeft: (A) -> C, ifRight: (B) -> C) =
+    when (this) {
+        is OppslagResult.Ok -> ifRight(this.data)
+        is OppslagResult.Feil -> ifLeft(this.feil)
+    }
+
+fun <B> OppslagResult<*, B>.orElse(provider: () -> B) = fold({ provider() }, { it })
