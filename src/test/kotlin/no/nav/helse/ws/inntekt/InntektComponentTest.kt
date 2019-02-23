@@ -11,12 +11,10 @@ import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.http.aktør.AktørregisterClient
-import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
@@ -28,7 +26,6 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntektsstatuse
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsbeskrivelse
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsinntekt
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -41,17 +38,15 @@ class InntektComponentTest {
     @Test
     fun `skal svare med liste av inntekter`() {
         val inntektV3 = mockk<InntektV3>()
-        val aktørregisterClient = mockk<AktørregisterClient>()
 
         val aktørId = AktørId("11987654321")
-        val fnr = Fødselsnummer("12345678911")
         val fom = YearMonth.parse("2019-01")
 
         val expected = HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
-                    ident = PersonIdent().apply {
-                        personIdent = fnr.value
+                    ident = AktoerId().apply {
+                        aktoerId = aktørId.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -80,8 +75,8 @@ class InntektComponentTest {
                                         virksomhet = Organisasjon().apply {
                                             orgnummer = "11223344"
                                         }
-                                        inntektsmottaker = PersonIdent().apply {
-                                            personIdent = fnr.value
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
                                         }
                                         isInngaarIGrunnlagForTrekk = true
                                         isUtloeserArbeidsgiveravgift = true
@@ -104,20 +99,13 @@ class InntektComponentTest {
             inntektV3.hentInntektListeBolk(any())
         } returns expected
 
-        every {
-            aktørregisterClient.gjeldendeNorskIdent(aktørId.aktor)
-        } returns fnr.value
-
         val jwkStub = JwtStub("test issuer")
         val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(
-                        inntektClient = InntektClient(inntektV3),
-                        aktørregisterService = AktørregisterService(aktørregisterClient)
-                ))}) {
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -131,18 +119,12 @@ class InntektComponentTest {
     @Test
     fun `skal svare med feil ved feil`() {
         val inntektV3 = mockk<InntektV3>()
-        val aktørregisterClient = mockk<AktørregisterClient>()
 
         val aktørId = AktørId("11987654321")
-        val fnr = Fødselsnummer("12345678911")
 
         every {
             inntektV3.hentInntektListeBolk(any())
         } throws (Exception("SOAP fault"))
-
-        every {
-            aktørregisterClient.gjeldendeNorskIdent(aktørId.aktor)
-        } returns fnr.value
 
         val jwkStub = JwtStub("test issuer")
         val token = jwkStub.createTokenFor("srvpleiepengesokna")
@@ -150,10 +132,7 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(
-                        inntektClient = InntektClient(inntektV3),
-                        aktørregisterService = AktørregisterService(aktørregisterClient)
-                ))}) {
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -171,7 +150,7 @@ private val expectedJson = """
   "arbeidsInntektIdentListe": [
     {
       "ident": {
-        "personIdent": "12345678911"
+        "aktoerId": "11987654321"
       },
       "arbeidsInntektMaaned": [
         {
@@ -180,7 +159,7 @@ private val expectedJson = """
               {
                 "utloeserArbeidsgiveravgift": true,
                 "inntektsmottaker": {
-                  "personIdent": "12345678911"
+                  "aktoerId": "11987654321"
                 },
                 "opplysningspliktig": {
                   "orgnummer": "11223344"

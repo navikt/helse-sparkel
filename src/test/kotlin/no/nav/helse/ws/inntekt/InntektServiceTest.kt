@@ -6,16 +6,15 @@ import io.mockk.mockk
 import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.Fødselsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.math.BigDecimal
@@ -27,21 +26,15 @@ class InntektServiceTest {
     fun `skal gi feil når oppslag gir feil`() {
         val aktør = AktørId("11987654321")
 
-        val fnr = Fødselsnummer("12345678911")
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
         val inntektClient = mockk<InntektClient>()
         every {
-            inntektClient.hentInntektListe(fnr, fom, tom)
+            inntektClient.hentInntektListe(aktør, fom, tom)
         } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("SOAP fault", Exception("SOAP fault")))
 
-        val aktørregisterService = mockk<AktørregisterService>()
-        every {
-            aktørregisterService.fødselsnummerForAktør(aktør)
-        } returns fnr.value
-
-        val actual = InntektService(inntektClient, aktørregisterService).hentInntekter(aktør, fom, tom)
+        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom)
 
         when (actual) {
             is OppslagResult.Feil -> {
@@ -61,7 +54,6 @@ class InntektServiceTest {
     fun `skal returnere liste over inntekter`() {
         val aktør = AktørId("11987654321")
 
-        val fnr = Fødselsnummer("12345678911")
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
@@ -69,7 +61,7 @@ class InntektServiceTest {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
                     ident = PersonIdent().apply {
-                        personIdent = fnr.value
+                        personIdent = aktør.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -89,12 +81,12 @@ class InntektServiceTest {
 
         val inntektClient = mockk<InntektClient>()
         every {
-            inntektClient.hentInntektListe(fnr, fom, tom)
+            inntektClient.hentInntektListe(aktør, fom, tom)
         } returns HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
                     ident = PersonIdent().apply {
-                        personIdent = fnr.value
+                        personIdent = aktør.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -114,13 +106,7 @@ class InntektServiceTest {
             OppslagResult.Ok(it)
         }
 
-        val aktørregisterService = mockk<AktørregisterService>()
-        every {
-            aktørregisterService.fødselsnummerForAktør(aktør)
-        } returns fnr.value
-
-        val actual = InntektService(inntektClient, aktørregisterService).hentInntekter(aktør, fom, tom)
-
+        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom)
 
         when (actual) {
             is OppslagResult.Ok -> {

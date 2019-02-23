@@ -6,13 +6,13 @@ import io.mockk.mockk
 import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -25,7 +25,7 @@ class InntektClientTest {
 
     @Test
     fun `skal gi feil når oppslag gir feil`() {
-        val fnr = Fødselsnummer("12345678911")
+        val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
@@ -34,7 +34,7 @@ class InntektClientTest {
             inntektV3.hentInntektListeBolk(any())
         } throws (Exception("SOAP fault"))
 
-        val actual = InntektClient(inntektV3).hentInntektListe(fnr, fom, tom)
+        val actual = InntektClient(inntektV3).hentInntektListe(aktørId, fom, tom)
 
         when (actual) {
             is OppslagResult.Feil -> {
@@ -52,15 +52,15 @@ class InntektClientTest {
 
     @Test
     fun `skal returnere liste over inntekter`() {
-        val fnr = Fødselsnummer("12345678911")
+        val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
         val expected = HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
-                    ident = PersonIdent().apply {
-                        personIdent = fnr.value
+                    ident = AktoerId().apply {
+                        aktoerId = aktørId.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -81,8 +81,8 @@ class InntektClientTest {
         val inntektV3 = mockk<InntektV3>()
         every {
             inntektV3.hentInntektListeBolk(match {
-                it.identListe.size == 1 && it.identListe[0] is PersonIdent
-                        && (it.identListe[0] as PersonIdent).personIdent == fnr.value
+                it.identListe.size == 1 && it.identListe[0] is AktoerId
+                        && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
                         && it.formaal.value == "Foreldrepenger"
                         && it.ainntektsfilter.value == "ForeldrepengerA-Inntekt"
                         && it.uttrekksperiode.maanedFom == fom.toXmlGregorianCalendar()
@@ -91,8 +91,8 @@ class InntektClientTest {
         } returns HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
-                    ident = PersonIdent().apply {
-                        personIdent = fnr.value
+                    ident = AktoerId().apply {
+                        aktoerId = aktørId.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -110,7 +110,7 @@ class InntektClientTest {
             }
         }
 
-        val actual = InntektClient(inntektV3).hentInntektListe(fnr, fom, tom)
+        val actual = InntektClient(inntektV3).hentInntektListe(aktørId, fom, tom)
 
         when (actual) {
             is OppslagResult.Ok -> {
@@ -118,8 +118,8 @@ class InntektClientTest {
                 expected.arbeidsInntektIdentListe.forEachIndexed { index, arbeidsInntektIdent ->
                     val actualArbeidsInntektIdent = actual.data.arbeidsInntektIdentListe[index]
 
-                    assertTrue(actualArbeidsInntektIdent.ident is PersonIdent)
-                    assertEquals((arbeidsInntektIdent.ident as PersonIdent).personIdent, (actualArbeidsInntektIdent.ident as PersonIdent).personIdent)
+                    assertTrue(actualArbeidsInntektIdent.ident is AktoerId)
+                    assertEquals((arbeidsInntektIdent.ident as AktoerId).aktoerId, (actualArbeidsInntektIdent.ident as AktoerId).aktoerId)
 
                     assertEquals(arbeidsInntektIdent.arbeidsInntektMaaned.size, actualArbeidsInntektIdent.arbeidsInntektMaaned.size)
 

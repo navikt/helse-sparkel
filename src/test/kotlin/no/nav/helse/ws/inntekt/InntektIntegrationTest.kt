@@ -11,7 +11,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.Fødselsnummer
+import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.sts.stsClient
@@ -53,7 +53,7 @@ class InntektIntegrationTest {
 
     @Test
     fun `skal svare med feil når tjenesten svarer med feil`() {
-        val fnr = Fødselsnummer("12345678911")
+        val aktørId = AktørId("12345678911")
         val fom = YearMonth.parse("2017-01")
         val tom = YearMonth.parse("2019-01")
 
@@ -63,10 +63,10 @@ class InntektIntegrationTest {
         inntektStub(
                 server = server,
                 scenario = "inntektskomponenten_feil",
-                request = hentInntektListeBolkStub(fnr.value, "2017-01Z", "2019-01Z", filter, formål),
+                request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
                 response = WireMock.serverError().withBody(hentInntektListeBolk_fault_response)
         ) { inntektClient ->
-            val actual = inntektClient.hentInntektListe(fnr, fom, tom)
+            val actual = inntektClient.hentInntektListe(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Feil -> {
@@ -86,7 +86,7 @@ class InntektIntegrationTest {
 
     @Test
     fun `skal svare med liste over inntekter`() {
-        val fnr = Fødselsnummer("12345678911")
+        val aktørId = AktørId("12345678911")
         val fom = YearMonth.parse("2017-01")
         val tom = YearMonth.parse("2019-01")
 
@@ -96,10 +96,10 @@ class InntektIntegrationTest {
         inntektStub(
                 server = server,
                 scenario = "inntektskomponenten_feil",
-                request = hentInntektListeBolkStub(fnr.value, "2017-01Z", "2019-01Z", filter, formål),
+                request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
                 response = WireMock.okXml(hentInntektListeBolk_response)
         ) { inntektClient ->
-            val actual = inntektClient.hentInntektListe(fnr, fom, tom)
+            val actual = inntektClient.hentInntektListe(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Ok -> {
@@ -186,8 +186,8 @@ private val hentInntektListeBolk_response = """
                         <virksomhet xsi:type="ns4:Organisasjon">
                            <orgnummer>973861778</orgnummer>
                         </virksomhet>
-                        <inntektsmottaker xsi:type="ns4:PersonIdent">
-                           <personIdent>13119924167</personIdent>
+                        <inntektsmottaker xsi:type="ns4:AktoerId">
+                           <aktoerId>13119924167</aktoerId>
                         </inntektsmottaker>
                         <inngaarIGrunnlagForTrekk>true</inngaarIGrunnlagForTrekk>
                         <utloeserArbeidsgiveravgift>true</utloeserArbeidsgiveravgift>
@@ -213,8 +213,8 @@ private val hentInntektListeBolk_response = """
                         <virksomhet xsi:type="ns4:Organisasjon">
                            <orgnummer>973861778</orgnummer>
                         </virksomhet>
-                        <inntektsmottaker xsi:type="ns4:PersonIdent">
-                           <personIdent>13119924167</personIdent>
+                        <inntektsmottaker xsi:type="ns4:AktoerId">
+                           <aktoerId>13119924167</aktoerId>
                         </inntektsmottaker>
                         <inngaarIGrunnlagForTrekk>true</inngaarIGrunnlagForTrekk>
                         <utloeserArbeidsgiveravgift>true</utloeserArbeidsgiveravgift>
@@ -223,8 +223,8 @@ private val hentInntektListeBolk_response = """
                      </inntektListe>
                   </arbeidsInntektInformasjon>
                </arbeidsInntektMaaned>
-               <ident xsi:type="ns4:PersonIdent" xmlns:ns4="http://nav.no/tjeneste/virksomhet/inntekt/v3/informasjon/inntekt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                  <personIdent>13119924167</personIdent>
+               <ident xsi:type="ns4:AktoerId" xmlns:ns4="http://nav.no/tjeneste/virksomhet/inntekt/v3/informasjon/inntekt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                  <aktoerId>13119924167</aktoerId>
                </ident>
             </arbeidsInntektIdentListe>
          </response>

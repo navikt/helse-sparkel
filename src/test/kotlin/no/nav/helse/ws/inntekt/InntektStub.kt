@@ -8,7 +8,7 @@ import no.nav.helse.ws.withSoapAction
 fun hentInntektListeBolkStub(ident: String, månedFom: String, månedTom: String, filter: String, formål: String): MappingBuilder {
     return WireMock.post("/inntekt")
             .withSoapAction("http://nav.no/tjeneste/virksomhet/inntekt/v3/Inntekt_v3/hentInntektListeBolkRequest")
-            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/identListe/personIdent/text()",
+            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/identListe/aktoerId/text()",
                     inntektNamespace, WireMock.equalTo(ident)))
             .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/v3:hentInntektListeBolk/request/ainntektsfilter/text()",
                     inntektNamespace, WireMock.equalTo(filter)))

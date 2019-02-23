@@ -68,12 +68,7 @@ fun main() {
 
         val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
 
-        val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
-
-        val inntektService = InntektService(
-                inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
-                aktørregisterService = aktørregisterService
-        )
+        val inntektService = InntektService(wsClients.inntekt(env.inntektEndpointUrl))
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
@@ -92,7 +87,7 @@ fun main() {
 
         val sykepengelisteService = SykepengelisteService(
                 sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
-                aktørregisterService = aktørregisterService
+                aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
         )
 
         val meldekortServie = MeldekortService(wsClients.meldekort(env.meldekortEndpointUrl))
