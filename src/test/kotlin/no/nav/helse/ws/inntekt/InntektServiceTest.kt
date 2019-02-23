@@ -7,11 +7,11 @@ import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -60,8 +60,8 @@ class InntektServiceTest {
         val expected = HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
-                    ident = PersonIdent().apply {
-                        personIdent = aktør.aktor
+                    ident = AktoerId().apply {
+                        aktoerId = aktør.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -85,8 +85,8 @@ class InntektServiceTest {
         } returns HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
-                    ident = PersonIdent().apply {
-                        personIdent = aktør.aktor
+                    ident = AktoerId().apply {
+                        aktoerId = aktør.aktor
                     }
                     with (arbeidsInntektMaaned) {
                         add(ArbeidsInntektMaaned().apply {
@@ -114,8 +114,8 @@ class InntektServiceTest {
                 expected.arbeidsInntektIdentListe.forEachIndexed { index, arbeidsInntektIdent ->
                     val actualArbeidsInntektIdent = actual.data.arbeidsInntektIdentListe[index]
 
-                    assertTrue(actualArbeidsInntektIdent.ident is PersonIdent)
-                    assertEquals((arbeidsInntektIdent.ident as PersonIdent).personIdent, (actualArbeidsInntektIdent.ident as PersonIdent).personIdent)
+                    assertTrue(actualArbeidsInntektIdent.ident is AktoerId)
+                    assertEquals((arbeidsInntektIdent.ident as AktoerId).aktoerId, (actualArbeidsInntektIdent.ident as AktoerId).aktoerId)
 
                     assertEquals(arbeidsInntektIdent.arbeidsInntektMaaned.size, actualArbeidsInntektIdent.arbeidsInntektMaaned.size)
 
