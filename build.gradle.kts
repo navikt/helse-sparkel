@@ -31,7 +31,9 @@ dependencies {
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("net.logstash.logback:logstash-logback-encoder:5.2")
     compile("io.ktor:ktor-server-netty:$ktorVersion")
-    compile("io.ktor:ktor-auth-jwt:$ktorVersion")
+    compile("io.ktor:ktor-auth-jwt:$ktorVersion") {
+        exclude(group = "junit")
+    }
     compile("io.prometheus:simpleclient_common:$prometheusVersion")
     compile("io.prometheus:simpleclient_hotspot:$prometheusVersion")
 
@@ -60,7 +62,9 @@ dependencies {
     compile(tjenestespesifikasjon("nav-meldekortUtbetalingsgrunnlag-v1-tjenestespesifikasjon"))
 
     testCompile("io.mockk:mockk:$mockkVersion")
-    testCompile("com.github.tomakehurst:wiremock:$wireMockVersion")
+    testCompile("com.github.tomakehurst:wiremock:$wireMockVersion") {
+        exclude(group = "junit")
+    }
     testCompile("com.google.guava:guava:20.0")
     testCompile("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testCompile("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
@@ -68,6 +72,7 @@ dependencies {
     testCompile("org.assertj:assertj-core:$assertJVersion")
 
     testCompile("io.ktor:ktor-server-test-host:$ktorVersion") {
+        exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
     }
 }
