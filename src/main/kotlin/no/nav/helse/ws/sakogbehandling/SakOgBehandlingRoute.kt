@@ -1,27 +1,18 @@
 package no.nav.helse.ws.sakogbehandling
 
-import io.ktor.application.call
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.post
-import no.nav.helse.OppslagResult
-import no.nav.helse.receiveJson
-import no.nav.helse.ws.AktørId
+import io.ktor.application.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import no.nav.helse.*
+import no.nav.helse.ws.*
 
 fun Route.sakOgBehandling(sakOgBehandlingService: SakOgBehandlingService) {
 
-    post("api/sakogbehandling") {
-        call.receiveJson().let { json ->
-            if (!json.has("aktorId")) {
-                call.respond(HttpStatusCode.BadRequest, "you need to supply aktorId=12345678910")
-            } else {
-                val lookupResult = sakOgBehandlingService.finnSakOgBehandling(AktørId(json.getString("aktorId")))
-                when (lookupResult) {
-                    is OppslagResult.Ok -> call.respond(lookupResult.data)
-                    is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
-                }
-            }
+    get("api/sakogbehandling/{aktorId}") {
+        val lookupResult = sakOgBehandlingService.finnSakOgBehandling(AktørId(call.parameters["aktorId"]!!))
+        when (lookupResult) {
+            is OppslagResult.Ok -> call.respond(lookupResult.data)
+            is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
         }
     }
 }
