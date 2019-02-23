@@ -14,13 +14,21 @@ sealed class OppslagResult<out E, out S> {
     data class Ok<out S>(val data: S) : OppslagResult<Nothing, S>()
 }
 
-fun <A, B, C> OppslagResult<A, B>.map(mapper: (B) -> C) =
+fun <A, B, C> OppslagResult<A, B>.map(ifRight: (B) -> C) =
     flatMap {
-        OppslagResult.Ok(mapper(it))
+        OppslagResult.Ok(ifRight(it))
     }
 
-fun <A, B, C> OppslagResult<A, B>.flatMap(mapper: (B) -> OppslagResult<A, C>) =
+fun <A, B, C> OppslagResult<A, B>.flatMap(ifRight: (B) -> OppslagResult<A, C>) =
     when (this) {
-        is OppslagResult.Ok -> mapper(this.data)
+        is OppslagResult.Ok -> ifRight(this.data)
         is OppslagResult.Feil -> this
     }
+
+fun <A, B, C> OppslagResult<A, B>.fold(ifLeft: (A) -> C, ifRight: (B) -> C) =
+    when (this) {
+        is OppslagResult.Ok -> ifRight(this.data)
+        is OppslagResult.Feil -> ifLeft(this.feil)
+    }
+
+fun <B> OppslagResult<*, B>.orElse(ifLeft: () -> B) = fold({ ifLeft() }, { it })

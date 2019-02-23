@@ -29,21 +29,3 @@ private val aaregNamespace = mapOf(
         "soap" to "http://schemas.xmlsoap.org/soap/envelope/",
         "ns2" to "http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3"
 )
-
-/*
-
-<soap:Body><ns2:finnArbeidsforholdPrArbeidstaker
-                                                               | xmlns:ns2="http://nav.no/tjeneste/virksomhet/arbeidsforho
-                                                               | ld/v3">
-
-                                                               <parameters><ident><ident>08088806280</ident></ide
-                                                               | nt>
-                                                               <arbeidsforholdIPeriode><fom>2017-01-01T00:00:00.000+0
-                                                               | 1:00</fom><tom>2019-01-01T00:00:00.000+01:00</tom></arbei
-                                                               | dsforholdIPeriode><rapportertSomRegelverk
-                                                               | kodeRef="A_ORDNINGEN">A_ORDNINGEN</rapportertSomRegelverk
-                                                               | ></parameters></ns2:finnArbeidsforholdPrArbeidstaker></so
-                                                               | ap:Body></soap:Envelope>
-
-
- */

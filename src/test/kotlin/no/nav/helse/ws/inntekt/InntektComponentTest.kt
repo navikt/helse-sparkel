@@ -1,197 +1,148 @@
 package no.nav.helse.ws.inntekt
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Environment
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
-import no.nav.helse.http.aktør.AktørregisterService
-import no.nav.helse.http.aktør.aktørregisterStub
+import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
-import no.nav.helse.sts.StsRestClient
-import no.nav.helse.sts.stsRestStub
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.samlAssertionResponse
-import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
+import no.nav.helse.ws.AktørId
+import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Fordel
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Informasjonsstatuser
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.InntektsInformasjonsopphav
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntektsperiodetype
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntektsstatuser
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsbeskrivelse
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsinntekt
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
+import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-
+import java.math.BigDecimal
+import java.time.YearMonth
 
 class InntektComponentTest {
 
-    companion object {
-        val server: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            server.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            server.stop()
-        }
-    }
-
-    @BeforeEach
-    fun configure() {
-        WireMock.configureFor(server.port())
-    }
-
-    @AfterEach
-    fun `clear prometheus registry`() {
-        CollectorRegistry.defaultRegistry.clear()
-    }
-
     @Test
-    fun `that response is json`() {
-        val jwtStub = JwtStub("test issuer")
-        val token = jwtStub.createTokenFor("srvspinne")
+    fun `skal svare med liste av inntekter`() {
+        val inntektV3 = mockk<InntektV3>()
 
-        WireMock.stubFor(stsRestStub())
-        WireMock.stubFor(aktørregisterStub("1831212532188", "1831212532188", "13119924167"))
+        val aktørId = AktørId("11987654321")
+        val fom = YearMonth.parse("2019-01")
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")))
+        val expected = HentInntektListeBolkResponse().apply {
+            with (arbeidsInntektIdentListe) {
+                add(ArbeidsInntektIdent().apply {
+                    ident = AktoerId().apply {
+                        aktoerId = aktørId.aktor
+                    }
+                    with (arbeidsInntektMaaned) {
+                        add(ArbeidsInntektMaaned().apply {
+                            aarMaaned = fom.toXmlGregorianCalendar()
+                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
+                                with (inntektListe) {
+                                    add(Loennsinntekt().apply {
+                                        beloep = BigDecimal.valueOf(2500)
+                                        fordel = Fordel().apply {
+                                            value = "kontantytelse"
+                                        }
+                                        inntektskilde = InntektsInformasjonsopphav().apply {
+                                            value = "A-ordningen"
+                                        }
+                                        inntektsperiodetype = Inntektsperiodetype().apply {
+                                            value = "Maaned"
+                                        }
+                                        inntektsstatus = Inntektsstatuser().apply {
+                                            value = "LoependeInnrapportert"
+                                        }
+                                        levereringstidspunkt = fom.toXmlGregorianCalendar()
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "11223344"
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "11223344"
+                                        }
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        isInngaarIGrunnlagForTrekk = true
+                                        isUtloeserArbeidsgiveravgift = true
+                                        informasjonsstatus = Informasjonsstatuser().apply {
+                                            value = "InngaarAlltid"
+                                        }
+                                        beskrivelse = Loennsbeskrivelse().apply {
+                                            value = "fastloenn"
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        }
 
-        WireMock.stubFor(hentInntektListeBolkStub("13119924167", "2017-01Z", "2018-01Z")
-                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")
-                .withCallId("Sett inn call id her")
-                .willReturn(WireMock.okXml(hentInntektListeBolk_response)))
+        every {
+            inntektV3.hentInntektListeBolk(any())
+        } returns expected
 
-        val env = Environment(mapOf(
-                "SECURITY_TOKEN_SERVICE_REST_URL" to server.baseUrl(),
-                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
-                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
-                "AKTORREGISTER_URL" to server.baseUrl(),
-                "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
-                "ORGANISASJON_ENDPOINTURL" to server.baseUrl().plus("/organisasjon"),
-                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
-                "ARBEIDSFORDELING_ENDPOINTURL" to server.baseUrl().plus("/arbeidsfordeling"),
-                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
-                "SAK_OG_BEHANDLING_ENDPOINTURL" to server.baseUrl().plus("/sakogbehandling"),
-                "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
-                "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
-                "JWT_ISSUER" to "test issuer",
-                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
-        ))
-
-        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
-                env.securityTokenUsername to env.securityTokenPassword)
-        val stsClientRest = StsRestClient(
-                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
-
-        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
-                jwtIssuer = env.jwtIssuer,
-                jwkProvider = jwtStub.stubbedJwkProvider(),
-                inntektService = InntektService(
-                        inntektClient = wsClients.inntekt(env.inntektEndpointUrl),
-                        aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
-                ))}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/1831212532188?fom=2017-01&tom=2018-01") {
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                Assertions.assertEquals(200, response.status()?.value)
+                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
             }
         }
     }
-}
 
-private val hentInntektListeBolk_response = """
-<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-   <soap:Body>
-      <ns2:hentInntektListeBolkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/inntekt/v3">
-         <response>
-            <arbeidsInntektIdentListe>
-               <arbeidsInntektMaaned>
-                  <aarMaaned>2017-12+01:00</aarMaaned>
-                  <arbeidsInntektInformasjon>
-                     <inntektListe xsi:type="ns4:Loennsinntekt" xmlns:ns4="http://nav.no/tjeneste/virksomhet/inntekt/v3/informasjon/inntekt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                        <beloep>40000</beloep>
-                        <fordel>kontantytelse</fordel>
-                        <inntektskilde>A-ordningen</inntektskilde>
-                        <inntektsperiodetype>Maaned</inntektsperiodetype>
-                        <inntektsstatus>LoependeInnrapportert</inntektsstatus>
-                        <levereringstidspunkt>2018-12-05T09:50:10.777+01:00</levereringstidspunkt>
-                        <utbetaltIPeriode>2017-12</utbetaltIPeriode>
-                        <opplysningspliktig xsi:type="ns4:Organisasjon">
-                           <orgnummer>973861778</orgnummer>
-                        </opplysningspliktig>
-                        <virksomhet xsi:type="ns4:Organisasjon">
-                           <orgnummer>973861778</orgnummer>
-                        </virksomhet>
-                        <inntektsmottaker xsi:type="ns4:PersonIdent">
-                           <personIdent>13119924167</personIdent>
-                        </inntektsmottaker>
-                        <inngaarIGrunnlagForTrekk>true</inngaarIGrunnlagForTrekk>
-                        <utloeserArbeidsgiveravgift>true</utloeserArbeidsgiveravgift>
-                        <informasjonsstatus>InngaarAlltid</informasjonsstatus>
-                        <beskrivelse>fastloenn</beskrivelse>
-                     </inntektListe>
-                  </arbeidsInntektInformasjon>
-               </arbeidsInntektMaaned>
-               <arbeidsInntektMaaned>
-                  <aarMaaned>2018-01+01:00</aarMaaned>
-                  <arbeidsInntektInformasjon>
-                     <inntektListe xsi:type="ns4:Loennsinntekt" xmlns:ns4="http://nav.no/tjeneste/virksomhet/inntekt/v3/informasjon/inntekt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                        <beloep>40000</beloep>
-                        <fordel>kontantytelse</fordel>
-                        <inntektskilde>A-ordningen</inntektskilde>
-                        <inntektsperiodetype>Maaned</inntektsperiodetype>
-                        <inntektsstatus>LoependeInnrapportert</inntektsstatus>
-                        <levereringstidspunkt>2018-12-05T09:50:10.777+01:00</levereringstidspunkt>
-                        <utbetaltIPeriode>2018-01</utbetaltIPeriode>
-                        <opplysningspliktig xsi:type="ns4:Organisasjon">
-                           <orgnummer>973861778</orgnummer>
-                        </opplysningspliktig>
-                        <virksomhet xsi:type="ns4:Organisasjon">
-                           <orgnummer>973861778</orgnummer>
-                        </virksomhet>
-                        <inntektsmottaker xsi:type="ns4:PersonIdent">
-                           <personIdent>13119924167</personIdent>
-                        </inntektsmottaker>
-                        <inngaarIGrunnlagForTrekk>true</inngaarIGrunnlagForTrekk>
-                        <utloeserArbeidsgiveravgift>true</utloeserArbeidsgiveravgift>
-                        <informasjonsstatus>InngaarAlltid</informasjonsstatus>
-                        <beskrivelse>fastloenn</beskrivelse>
-                     </inntektListe>
-                  </arbeidsInntektInformasjon>
-               </arbeidsInntektMaaned>
-               <ident xsi:type="ns4:PersonIdent" xmlns:ns4="http://nav.no/tjeneste/virksomhet/inntekt/v3/informasjon/inntekt" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                  <personIdent>13119924167</personIdent>
-               </ident>
-            </arbeidsInntektIdentListe>
-         </response>
-      </ns2:hentInntektListeBolkResponse>
-   </soap:Body>
-</soap:Envelope>
-""".trimIndent()
+    @Test
+    fun `skal svare med feil ved feil`() {
+        val inntektV3 = mockk<InntektV3>()
+
+        val aktørId = AktørId("11987654321")
+
+        every {
+            inntektV3.hentInntektListeBolk(any())
+        } throws (Exception("SOAP fault"))
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=2019-01&tom=2019-02") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
+                assertJsonEquals(JSONObject(expectedJson_fault), JSONObject(response.content))
+            }
+        }
+    }
+}
 
 private val expectedJson = """
 {
@@ -199,7 +150,7 @@ private val expectedJson = """
   "arbeidsInntektIdentListe": [
     {
       "ident": {
-        "personIdent": "13119924167"
+        "aktoerId": "11987654321"
       },
       "arbeidsInntektMaaned": [
         {
@@ -208,20 +159,20 @@ private val expectedJson = """
               {
                 "utloeserArbeidsgiveravgift": true,
                 "inntektsmottaker": {
-                  "personIdent": "13119924167"
+                  "aktoerId": "11987654321"
                 },
                 "opplysningspliktig": {
-                  "orgnummer": "973861778"
+                  "orgnummer": "11223344"
                 },
                 "informasjonsstatus": {
                   "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Informasjonsstatuser",
                   "value": "InngaarAlltid"
                 },
                 "virksomhet": {
-                  "orgnummer": "973861778"
+                  "orgnummer": "11223344"
                 },
-                "beloep": 40000,
-                "levereringstidspunkt": "2018-12-05T09:50:10.777+01:00",
+                "beloep": 2500,
+                "levereringstidspunkt": "2019-01-01T00:00:00.000Z",
                 "inntektsstatus": {
                   "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Inntektsstatuser",
                   "value": "LoependeInnrapportert"
@@ -243,69 +194,25 @@ private val expectedJson = """
                   "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/InntektsInformasjonsopphav",
                   "value": "A-ordningen"
                 },
-                "utbetaltIPeriode": "2017-12"
+                "utbetaltIPeriode": "2019-01-01T00:00:00.000Z"
               }
             ],
             "arbeidsforholdListe": [],
             "forskuddstrekkListe": [],
             "fradragListe": []
           },
-          "aarMaaned": "2017-12+01:00",
-          "avvikListe": []
-        },
-        {
-          "arbeidsInntektInformasjon": {
-            "inntektListe": [
-              {
-                "utloeserArbeidsgiveravgift": true,
-                "inntektsmottaker": {
-                  "personIdent": "13119924167"
-                },
-                "opplysningspliktig": {
-                  "orgnummer": "973861778"
-                },
-                "informasjonsstatus": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Informasjonsstatuser",
-                  "value": "InngaarAlltid"
-                },
-                "virksomhet": {
-                  "orgnummer": "973861778"
-                },
-                "beloep": 40000,
-                "levereringstidspunkt": "2018-12-05T09:50:10.777+01:00",
-                "inntektsstatus": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Inntektsstatuser",
-                  "value": "LoependeInnrapportert"
-                },
-                "inngaarIGrunnlagForTrekk": true,
-                "inntektsperiodetype": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Inntektsperiodetyper",
-                  "value": "Maaned"
-                },
-                "fordel": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Fordel",
-                  "value": "kontantytelse"
-                },
-                "beskrivelse": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Loennsbeskrivelse",
-                  "value": "fastloenn"
-                },
-                "inntektskilde": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/InntektsInformasjonsopphav",
-                  "value": "A-ordningen"
-                },
-                "utbetaltIPeriode": "2018-01"
-              }
-            ],
-            "arbeidsforholdListe": [],
-            "forskuddstrekkListe": [],
-            "fradragListe": []
-          },
-          "aarMaaned": "2018-01+01:00",
+          "aarMaaned": "2019-01-01T00:00:00.000Z",
           "avvikListe": []
         }
       ]
     }
   ]
+}
+""".trimIndent()
+
+private val expectedJson_fault = """
+{
+    "exception":"java.lang.Exception: SOAP fault",
+    "feilmelding":"SOAP fault"
 }
 """.trimIndent()
