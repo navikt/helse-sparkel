@@ -10,7 +10,7 @@ private val log = LoggerFactory.getLogger("AktørregisterClient")
 class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 
     fun gjeldendeIdenter(ident: String): List<Ident> {
-        log.info("lookup gjeldende identer with ident=${ident}")
+        log.info("lookup gjeldende identer with ident=$ident")
 
         val bearer = stsRestClient.token()
 
@@ -36,7 +36,7 @@ class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient
         }
     }
 
-    fun gjeldendeIdent(ident: String, type: IdentType): String {
+    private fun gjeldendeIdent(ident: String, type: IdentType): String {
         return gjeldendeIdenter(ident).first {
             it.type == type
         }.ident

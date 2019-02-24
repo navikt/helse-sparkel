@@ -44,7 +44,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
         return when (lookupResult) {
             is OppslagResult.Feil -> lookupResult
             is OppslagResult.Ok -> {
-                lookupResult.data.map {
+                lookupResult.data.asSequence().map {
                     it.arbeidsgiver
                 }.filter {
                     it is Organisasjon
@@ -65,7 +65,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     } else {
                         OppslagResult.Ok(organisasjon)
                     }
-                }.let {
+                }.toList().let {
                     OppslagResult.Ok(it.map { oppslagResultat ->
                         when (oppslagResultat) {
                             is OppslagResult.Ok -> oppslagResultat.data

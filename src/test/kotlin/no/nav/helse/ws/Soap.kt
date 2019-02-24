@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.matching.MatchesXPathPattern
 
 fun MappingBuilder.withSoapAction(action: String): MappingBuilder {
     return withHeader("Content-Type", WireMock.containing("text/xml"))
-            .withHeader("SOAPAction", WireMock.equalTo("\"${action}\""))
+            .withHeader("SOAPAction", WireMock.equalTo("\"$action\""))
 }
 
 fun MappingBuilder.withCallId(callId: String = "Sett inn call id her"): MappingBuilder {

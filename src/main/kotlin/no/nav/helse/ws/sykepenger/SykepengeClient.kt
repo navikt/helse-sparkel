@@ -32,14 +32,13 @@ class SykepengerClient(private val sykepenger: SykepengerV2) {
     }
 
     fun createSykepengerListeRequest(fnr: String, fraOgMed: LocalDate, tilOgMed: LocalDate): HentSykepengerListeRequest {
-        val request = HentSykepengerListeRequest()
-                .apply { this.ident = fnr }
+        return HentSykepengerListeRequest()
+                .apply { ident = fnr }
                 .apply {
-                    this.sykmelding = Periode()
-                            .apply { this.fom = fraOgMed.toXmlGregorianCalendar() }
-                            .apply { this.tom = tilOgMed.toXmlGregorianCalendar() }
+                    sykmelding = Periode()
+                            .apply { fom = fraOgMed.toXmlGregorianCalendar() }
+                            .apply { tom = tilOgMed.toXmlGregorianCalendar() }
                 }
-        return request
     }
 }
 
@@ -58,7 +57,7 @@ fun HentSykepengerListeResponse.toSykepengerVedtak(fnr: String): Collection<Syke
 
 fun Sykmeldingsperiode.toSykepengerVedtak(fnr: String): Collection<SykepengerVedtak> {
     return when {
-        this.vedtakListe.isEmpty() -> emptyList<SykepengerVedtak>()
+        this.vedtakListe.isEmpty() -> emptyList()
         else -> this.vedtakListe.map { it.toSykepengerVedtak(fnr) }
     }
 }

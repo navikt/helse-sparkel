@@ -8,8 +8,6 @@ import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
 import java.time.*
 import javax.xml.datatype.*
 
-private val datatypeFactory = DatatypeFactory.newInstance()
-
 object PersonMapper {
     fun toPerson(response: HentPersonResponse): Person {
         val tpsPerson = response.person

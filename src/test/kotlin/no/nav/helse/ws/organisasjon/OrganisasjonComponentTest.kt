@@ -43,7 +43,7 @@ class OrganisasjonComponentTest {
 
     @BeforeEach
     @AfterEach
-    fun `reset`() {
+    fun reset() {
         bootstrap.reset()
     }
 
@@ -150,7 +150,7 @@ class OrganisasjonComponentTest {
             expectedHttpCode : Int = 200
     ) {
         var queryString= "?"
-        attributter.forEach { it ->
+        attributter.forEach {
             queryString = queryString.plus("attributt=$it&")
         }
         queryString = queryString.removeSuffix("?").removeSuffix("&")

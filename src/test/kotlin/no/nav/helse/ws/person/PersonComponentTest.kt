@@ -91,7 +91,7 @@ class PersonComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_person_response), JSONObject(response.content))
@@ -119,7 +119,7 @@ class PersonComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
                 val actualJson = JSONObject(response.content)
@@ -200,7 +200,7 @@ class PersonComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/history") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_personhistorikk_response), JSONObject(response.content))
@@ -228,7 +228,7 @@ class PersonComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/history") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
                 val actualJson = JSONObject(response.content)
@@ -271,7 +271,7 @@ class PersonComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_response), JSONObject(response.content))
@@ -299,7 +299,7 @@ class PersonComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
                 val actualJson = JSONObject(response.content)

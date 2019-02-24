@@ -49,15 +49,6 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
         }
     }
 
-    fun ping(): OppslagResult<Feil, String> {
-        return try {
-            port.ping()
-            OppslagResult.Ok("pong")
-        } catch (ex: Exception) {
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("${ex.javaClass.simpleName} : ${ex.message}", ex))
-        }
-    }
-
     private fun toSak(sak: Sak): List<MeldekortUtbetalingsgrunnlagSak> {
         return when {
             sak.vedtakListe.isEmpty() -> sakUtenVedtak(sak)

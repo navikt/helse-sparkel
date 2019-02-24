@@ -63,7 +63,7 @@ class StsRestClient(val baseUrl: String, val username: String, val password: Str
                 return isExpired(token)
             }
 
-            fun isExpired(token: Token): Boolean {
+            private fun isExpired(token: Token): Boolean {
                 return token.expirationTime.isBefore(LocalDateTime.now())
             }
         }

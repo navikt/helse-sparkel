@@ -7,8 +7,6 @@ import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonService
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger("ArbeidsfordelingService")
-
 class ArbeidsfordelingService(
         private val arbeidsfordelingClient: ArbeidsfordelingClient,
         private val personService: PersonService

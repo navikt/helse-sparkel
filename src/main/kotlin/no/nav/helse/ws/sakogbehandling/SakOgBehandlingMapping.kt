@@ -7,7 +7,7 @@ import java.time.*
 fun mapSak(sOgBSak: no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.finnsakogbehandlingskjedeliste.Sak): Sak {
     val sisteBehandling = sOgBSak.behandlingskjede?.let {
         it.asSequence()
-          .sortedByDescending{ it.slutt.toGregorianCalendar() }
+          .sortedByDescending{ kjede -> kjede.slutt.toGregorianCalendar() }
           .firstOrNull()
     }
 

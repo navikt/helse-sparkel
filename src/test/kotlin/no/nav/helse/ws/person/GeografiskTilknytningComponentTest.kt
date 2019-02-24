@@ -57,7 +57,7 @@ class GeografiskTilknytningComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 Assertions.assertEquals(HttpStatusCode.Forbidden.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_kode_6_response), JSONObject(response.content))
@@ -100,7 +100,7 @@ class GeografiskTilknytningComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 Assertions.assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_response("Land", "030155")), JSONObject(response.content))
@@ -141,7 +141,7 @@ class GeografiskTilknytningComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 Assertions.assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_response("Land", "030103")), JSONObject(response.content))
@@ -182,7 +182,7 @@ class GeografiskTilknytningComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 Assertions.assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_response("Kommune", "030104")), JSONObject(response.content))
@@ -223,7 +223,7 @@ class GeografiskTilknytningComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 Assertions.assertEquals(HttpStatusCode.OK.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_response("Bydel", "030105")), JSONObject(response.content))
@@ -261,7 +261,7 @@ class GeografiskTilknytningComponentTest {
                 personService = PersonService(PersonClient(personV3))
         )}) {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 Assertions.assertEquals(HttpStatusCode.NotFound.value, response.status()?.value)
                 assertJsonEquals(JSONObject(expected_geografisk_tilknytning_empty_response), JSONObject(response.content))

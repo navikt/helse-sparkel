@@ -89,7 +89,7 @@ class SakOgBehandlingComponentTest {
         )}) {
             handleRequest(HttpMethod.Get, "api/sakogbehandling/1234567890123") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(200, response.status()?.value)
                 assertJsonEquals(JSONArray(expectedJson), JSONArray(response.content))

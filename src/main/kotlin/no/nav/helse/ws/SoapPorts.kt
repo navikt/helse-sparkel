@@ -37,24 +37,6 @@ object SoapPorts {
                 portName = "Arbeidsforhold_v3Port")
     }
 
-    fun InfotrygdBeregningsgrunnlagConsumerConfig(serviceUrl: String): InfotrygdBeregningsgrunnlagV1 {
-        return createServicePort(serviceUrl,
-                serviceClazz = InfotrygdBeregningsgrunnlagV1::class.java,
-                wsdl = "wsdl/no/nav/tjeneste/virksomhet/infotrygdBeregningsgrunnlag/v1/Binding.wsdl",
-                namespace = "http://nav.no/tjeneste/virksomhet/infotrygdBeregningsgrunnlag/v1/Binding",
-                svcName = "infotrygdBeregningsgrunnlag_v1",
-                portName = "infotrygdBeregningsgrunnlag_v1Port")
-    }
-
-    fun InfotrygdSakV1(serviceUrl: String): InfotrygdSakV1 {
-        return createServicePort(serviceUrl,
-                serviceClazz = InfotrygdSakV1::class.java,
-                wsdl = "wsdl/no/nav/tjeneste/virksomhet/infotrygdSak/v1/Binding.wsdl",
-                namespace = "http://nav.no/tjeneste/virksomhet/infotrygdSak/v1/Binding",
-                svcName = "InfotrygdSak_v1",
-                portName = "infotrygdSak_v1Port")
-    }
-
     fun InntektV3(serviceUrl: String): InntektV3 {
         return createServicePort(serviceUrl,
                 serviceClazz = InntektV3::class.java,
@@ -62,15 +44,6 @@ object SoapPorts {
                 namespace = "http://nav.no/tjeneste/virksomhet/inntekt/v3/Binding",
                 svcName = "Inntekt_v3",
                 portName = "Inntekt_v3Port")
-    }
-
-    fun MedlemskapV2(serviceUrl: String): MedlemskapV2 {
-        return createServicePort(serviceUrl,
-                serviceClazz = MedlemskapV2::class.java,
-                wsdl = "wsdl/no/nav/tjeneste/virksomhet/medlemskap/v2/MedlemskapV2.wsdl",
-                namespace = "http://nav.no/tjeneste/virksomhet/medlemskap/v2",
-                svcName = "Medlemskap_v2",
-                portName = "Medlemskap_v2Port")
     }
 
     fun OrganisasjonV5(serviceUrl: String): OrganisasjonV5 {
@@ -118,7 +91,7 @@ object SoapPorts {
                 portName = "meldekortUtbetalingsgrunnlag_v1Port")
     }
 
-    fun <PORT_TYPE> createServicePort(serviceUrl: String, serviceClazz: Class<PORT_TYPE>, wsdl: String, namespace: String, svcName: String, portName: String): PORT_TYPE {
+    private fun <PORT_TYPE> createServicePort(serviceUrl: String, serviceClazz: Class<PORT_TYPE>, wsdl: String, namespace: String, svcName: String, portName: String): PORT_TYPE {
         val factory = JaxWsProxyFactoryBean().apply {
             address = serviceUrl
             wsdlURL = wsdl

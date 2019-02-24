@@ -242,7 +242,7 @@ private val hentPerson_not_found_response = """
 </soapenv:Envelope>
 """.trimIndent()
 
-private val hentPersonhistorikk_response = """
+private const val hentPersonhistorikk_response = """
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
    <soapenv:Body>
       <ns2:hentPersonhistorikkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">

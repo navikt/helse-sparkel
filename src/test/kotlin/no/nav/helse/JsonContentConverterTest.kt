@@ -48,7 +48,7 @@ class JsonContentConverterTest {
         }
     }
 
-    fun testJsonResponse(stubbedResponse: Any, responseAssertion: (String) -> Unit) {
+    private fun testJsonResponse(stubbedResponse: Any, responseAssertion: (String) -> Unit) {
         withTestApplication {
             application.install(ContentNegotiation) {
                 register(ContentType.Application.Json, JsonContentConverter())

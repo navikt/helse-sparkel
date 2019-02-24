@@ -89,7 +89,7 @@ java {
 }
 
 buildScan {
-    setTermsOfServiceUrl("https://gradle.com/terms-of-service")
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
     setTermsOfServiceAgree("yes")
 }
 
@@ -98,9 +98,9 @@ tasks.named<Jar>("jar") {
 
     manifest {
         attributes["Main-Class"] = mainClass
-        attributes["Class-Path"] = configurations["compile"].map {
+        attributes["Class-Path"] = configurations["compile"].joinToString(separator = " ") {
             it.name
-        }.joinToString(separator = " ")
+        }
     }
 
     doLast {

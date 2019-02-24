@@ -13,7 +13,7 @@ import no.nav.helse.ws.sts.*
 import no.nav.helse.ws.sykepenger.*
 import org.apache.cxf.ws.security.trust.*
 
-class WsClients(val stsClientWs: STSClient, val stsClientRest: StsRestClient, val allowInsecureRequests: Boolean) {
+class WsClients(private val stsClientWs: STSClient, private val stsClientRest: StsRestClient, private val allowInsecureRequests: Boolean) {
 
     fun aktør(endpointUrl: String) = AktørregisterClient(endpointUrl, stsClientRest)
 
