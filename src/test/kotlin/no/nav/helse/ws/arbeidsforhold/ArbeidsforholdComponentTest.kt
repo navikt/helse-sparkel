@@ -3,6 +3,7 @@ package no.nav.helse.ws.arbeidsforhold
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.mockk.every
@@ -29,6 +30,114 @@ import java.time.LocalDate
 import kotlin.test.assertEquals
 
 class ArbeidsforholdComponentTest {
+
+    @Test
+    fun `feil returneres når fom ikke er satt`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom ikke er satt`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2019-01-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når fom er ugyldig`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "fom must be specified as yyyy-mm-dd"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=foo&tom=2019-01-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom er ugyldig`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "tom must be specified as yyyy-mm-dd"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2019-01-01&tom=foo") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
 
     @Test
     fun `en liste over arbeidsforhold skal returneres`() {
@@ -168,6 +277,114 @@ class ArbeidsforholdComponentTest {
             }.apply {
                 assertEquals(200, response.status()?.value)
                 assertJsonEquals(JSONObject(expectedJson_arbeidsgivere), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når fom ikke er satt for arbeidsgivere`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsgivere/${aktørId.aktor}") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom ikke er satt for arbeidsgivere`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsgivere/${aktørId.aktor}?fom=2019-01-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når fom er ugyldig for arbeidsgivere`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "fom must be specified as yyyy-mm-dd"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsgivere/${aktørId.aktor}?fom=foo&tom=2019-01-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom er ugyldig for arbeidsgivere`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "tom must be specified as yyyy-mm-dd"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsgivere/${aktørId.aktor}?fom=2019-01-01&tom=foo") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
     }
