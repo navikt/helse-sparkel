@@ -38,7 +38,9 @@ class ArbeidsforholdComponentTest {
         val aktørId = AktørId("1831212532188")
 
         every {
-            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(any())
+            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(match {
+                it.ident.ident == aktørId.aktor
+            })
         } returns FinnArbeidsforholdPrArbeidstakerResponse().apply {
             with (arbeidsforhold) {
                 add(Arbeidsforhold().apply {
@@ -106,7 +108,9 @@ class ArbeidsforholdComponentTest {
         val aktørId = AktørId("1831212532188")
 
         every {
-            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(any())
+            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(match {
+                it.ident.ident == aktørId.aktor
+            })
         } returns FinnArbeidsforholdPrArbeidstakerResponse().apply {
             with (arbeidsforhold) {
                 add(Arbeidsforhold().apply {

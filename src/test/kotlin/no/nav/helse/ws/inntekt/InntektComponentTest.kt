@@ -96,7 +96,9 @@ class InntektComponentTest {
         }
 
         every {
-            inntektV3.hentInntektListeBolk(any())
+            inntektV3.hentInntektListeBolk(match {
+                it.identListe.size == 1 && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
+            })
         } returns expected
 
         val jwkStub = JwtStub("test issuer")
@@ -123,7 +125,9 @@ class InntektComponentTest {
         val aktørId = AktørId("11987654321")
 
         every {
-            inntektV3.hentInntektListeBolk(any())
+            inntektV3.hentInntektListeBolk(match {
+                it.identListe.size == 1 && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
+            })
         } throws (Exception("SOAP fault"))
 
         val jwkStub = JwtStub("test issuer")
