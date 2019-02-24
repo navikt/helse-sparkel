@@ -3,6 +3,7 @@ package no.nav.helse.ws.arbeidsfordeling
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.mockk.every
@@ -24,6 +25,32 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class ArbeidsfordelingComponentTest {
+
+    @Test
+    fun `returnerer feil når tema ikke er satt`() {
+        val aktør = "11987654321"
+        val expectedJson = """
+            {
+                "error": "Requesten må inneholde query parameter 'tema'"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvspa")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsfordeling/behandlende-enhet/$aktør") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+            }
+        }
+    }
 
     @Test
     fun `returnerer enhet for aktør`() {
