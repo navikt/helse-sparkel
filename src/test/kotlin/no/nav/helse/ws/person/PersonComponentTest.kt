@@ -1,263 +1,356 @@
 package no.nav.helse.ws.person
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
-import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Environment
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
+import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
-import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.samlAssertionResponse
-import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
+import no.nav.helse.ws.AktørId
+import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningPersonIkkeFunnet
+import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
+import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonhistorikkPersonIkkeFunnet
+import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
+import no.nav.tjeneste.virksomhet.person.v3.feil.PersonIkkeFunnet
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bostedsadresse
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.BostedsadressePeriode
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bydel
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Gateadresse
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Landkoder
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Periode
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.PersonstatusPeriode
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personstatuser
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Postnummer
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Statsborgerskap
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.StatsborgerskapPeriode
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningResponse
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonhistorikkResponse
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class PersonComponentTest {
 
-    companion object {
-        val server: WireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            server.start()
-        }
-
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            server.stop()
-        }
-    }
-
-    @BeforeEach
-    fun configure() {
-        WireMock.configureFor(server.port())
-    }
-
-    @AfterEach
-    fun `clear prometheus registry`() {
-        CollectorRegistry.defaultRegistry.clear()
-    }
-
     @Test
-    fun `person lookup responds with json`() {
-        val jwtStub = JwtStub("test issuer")
-        val token = jwtStub.createTokenFor("srvspinne")
+    fun `skal svare med person`() {
+        val aktørId = AktørId("1234567891011")
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")))
-        WireMock.stubFor(hentPersonStub("1234567891011")
-                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")
-                .withCallId("Sett inn call id her")
-                .willReturn(WireMock.ok(hentPerson_response)))
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentPerson(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } returns HentPersonResponse().apply {
+            person = Person().apply {
+                aktoer = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                personnavn = Personnavn().apply {
+                    etternavn = "LOLNES"
+                    mellomnavn = "PIKENES"
+                    fornavn = "JENNY"
+                }
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "K"
+                    }
+                }
+                bostedsadresse = Bostedsadresse().apply {
+                    strukturertAdresse = Gateadresse().apply {
+                        landkode = Landkoder().apply {
+                            value = "NOR"
+                        }
+                    }
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = LocalDate.parse("1984-07-08").toXmlGregorianCalendar()
+                }
+            }
+        }
 
-        val env = Environment(mapOf(
-                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_REST_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
-                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
-                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
-                "AKTORREGISTER_URL" to server.baseUrl().plus("/aktor"),
-                "ORGANISASJON_ENDPOINTURL" to server.baseUrl().plus("/organisasjon"),
-                "ARBEIDSFORDELING_ENDPOINTURL" to server.baseUrl().plus("/arbeidsfordeling"),
-                "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
-                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
-                "SAK_OG_BEHANDLING_ENDPOINTURL" to server.baseUrl().plus("/sakogbehandling"),
-                "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
-                "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
-                "JWT_ISSUER" to "test issuer",
-                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
-        ))
-
-        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
-                env.securityTokenUsername to env.securityTokenPassword)
-        val stsClientRest = StsRestClient(
-                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
-
-        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
-                jwtIssuer = env.jwtIssuer,
-                jwkProvider = jwtStub.stubbedJwkProvider(),
-                personService = PersonService(wsClients.person(env.personEndpointUrl))
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
         )}) {
-            handleRequest(HttpMethod.Get, "/api/person/1234567891011") {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {
-                assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONObject("""{"fdato":"1984-07-08","etternavn":"LOLNES","mellomnavn":"PIKENES","id":{"aktor":"1234567891011"},"fornavn":"JENNY","kjønn":"KVINNE","bostedsland":"NOR"}"""), JSONObject(response.content))
+                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
+                assertJsonEquals(JSONObject(expected_person_response), JSONObject(response.content))
             }
         }
     }
 
     @Test
-    fun `person history lookup responds with json`() {
-        val jwtStub = JwtStub("test issuer")
-        val token = jwtStub.createTokenFor("srvspinne")
+    fun `skal svare med feil når personoppslag gir feil`() {
+        val aktørId = AktørId("1234567891011")
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")))
-        WireMock.stubFor(hentPersonhistorikkStub("1234567891011")
-                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")
-                .withCallId("Sett inn call id her")
-                .willReturn(WireMock.ok(hentPersonhistorikk_response)))
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentPerson(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } throws(HentPersonPersonIkkeFunnet("Person ikke funnet", PersonIkkeFunnet()))
 
-        val env = Environment(mapOf(
-                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_REST_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
-                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
-                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
-                "AKTORREGISTER_URL" to server.baseUrl().plus("/aktor"),
-                "ORGANISASJON_ENDPOINTURL" to server.baseUrl().plus("/organisasjon"),
-                "ARBEIDSFORDELING_ENDPOINTURL" to server.baseUrl().plus("/arbeidsfordeling"),
-                "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
-                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
-                "SAK_OG_BEHANDLING_ENDPOINTURL" to server.baseUrl().plus("/sakogbehandling"),
-                "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
-                "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
-                "JWT_ISSUER" to "test issuer",
-                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
-        ))
-
-        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
-                env.securityTokenUsername to env.securityTokenPassword)
-        val stsClientRest = StsRestClient(
-                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
-
-        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
-                jwtIssuer = env.jwtIssuer,
-                jwkProvider = jwtStub.stubbedJwkProvider(),
-                personService = PersonService(wsClients.person(env.personEndpointUrl))
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
         )}) {
-            handleRequest(HttpMethod.Get, "/api/person/1234567891011/history") {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
                 addHeader(HttpHeaders.Authorization, "Bearer ${token}")
             }.apply {
-                assertEquals(200, response.status()?.value)
-                val expectedJson = """{"statsborgerskap":[{"fom":"1920-09-01","verdi":"NOR"}],"bostedsadresser":[{"fom":"1920-09-01","verdi":"SANNERGATA 2, 0557"}],"statuser":[{"fom":"1920-09-01","verdi":"BOSA"}],"id":{"aktor":"1234567891011"}}"""
-                val actualJson = response.content
-                assertJsonEquals(JSONObject(expectedJson), JSONObject(actualJson))
+                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
+                val actualJson = JSONObject(response.content)
+
+                assertTrue(actualJson.has("exception"))
+                assertEquals("Person ikke funnet", actualJson.get("feilmelding"))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med personhistorikk`() {
+        val aktørId = AktørId("1234567891011")
+
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentPersonhistorikk(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } returns HentPersonhistorikkResponse().apply {
+            aktoer = AktoerId().apply {
+                aktoerId = aktørId.aktor
+            }
+            with(personstatusListe) {
+                add(PersonstatusPeriode().apply {
+                    periode = Periode().apply {
+                        fom = LocalDate.now().minusYears(3).toXmlGregorianCalendar()
+                        tom = LocalDate.now().toXmlGregorianCalendar()
+                    }
+                    personstatus = Personstatuser().apply {
+                        value = "BOSA"
+                    }
+                })
+            }
+            with(statsborgerskapListe) {
+                add(StatsborgerskapPeriode().apply {
+                    periode = Periode().apply {
+                        fom = LocalDate.now().minusYears(3).toXmlGregorianCalendar()
+                        tom = LocalDate.now().toXmlGregorianCalendar()
+                    }
+                    statsborgerskap = Statsborgerskap().apply {
+                        land = Landkoder().apply {
+                            value = "NOR"
+                        }
+                    }
+                })
+            }
+            with(bostedsadressePeriodeListe) {
+                add(BostedsadressePeriode().apply {
+                    periode = Periode().apply {
+                        fom = LocalDate.now().minusYears(3).toXmlGregorianCalendar()
+                        tom = LocalDate.now().toXmlGregorianCalendar()
+                    }
+                    bostedsadresse = Bostedsadresse().apply {
+                        strukturertAdresse = Gateadresse().apply {
+                            landkode = Landkoder().apply {
+                                value = "NOR"
+                            }
+                            poststed = Postnummer().apply {
+                                value = "0557"
+                            }
+                            kommunenummer = "0301"
+                            gatenummer = 16188
+                            gatenavn = "SANNERGATA"
+                            husnummer = 2
+                        }
+                    }
+                })
+            }
+        }
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/history") {
+                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+            }.apply {
+                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
+                assertJsonEquals(JSONObject(expected_personhistorikk_response), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med feil når personhistorikk gir feil`() {
+        val aktørId = AktørId("1234567891011")
+
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentPersonhistorikk(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } throws(HentPersonhistorikkPersonIkkeFunnet("Person ikke funnet", PersonIkkeFunnet()))
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/history") {
+                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+            }.apply {
+                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
+                val actualJson = JSONObject(response.content)
+
+                assertTrue(actualJson.has("exception"))
+                assertEquals("Person ikke funnet", actualJson.get("feilmelding"))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med geografisk tilknytning`() {
+        val aktørId = AktørId("1234567891011")
+
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentGeografiskTilknytning(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } returns HentGeografiskTilknytningResponse().apply {
+            aktoer = AktoerId().apply {
+                aktoerId = aktørId.aktor
+            }
+            navn = Personnavn().apply {
+                etternavn = "BLYANT"
+                mellomnavn = "SMEKKER"
+                sammensattNavn = "BLYANT SMEKKER"
+            }
+            geografiskTilknytning = Bydel().apply {
+                geografiskTilknytning = "030103"
+            }
+        }
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
+                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+            }.apply {
+                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
+                assertJsonEquals(JSONObject(expected_geografisk_tilknytning_response), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med feil når geografisk tilknytningoppslag gir feil`() {
+        val aktørId = AktørId("1234567891011")
+
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentGeografiskTilknytning(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } throws(HentGeografiskTilknytningPersonIkkeFunnet("Person ikke funnet", PersonIkkeFunnet()))
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
+                addHeader(HttpHeaders.Authorization, "Bearer ${token}")
+            }.apply {
+                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
+                val actualJson = JSONObject(response.content)
+
+                assertTrue(actualJson.has("exception"))
+                assertEquals("Person ikke funnet", actualJson.get("feilmelding"))
             }
         }
     }
 }
 
-private val hentPerson_response = """
-<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-   <soapenv:Header xmlns:wsa="http://www.w3.org/2005/08/addressing">
-      <wsa:Action>http://nav.no/tjeneste/virksomhet/person/v3/Person_v3/hentPersonResponse</wsa:Action>
-   </soapenv:Header>
-   <soapenv:Body>
-      <ns2:hentPersonResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
-         <response>
-            <person xsi:type="ns3:Bruker" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-               <bostedsadresse endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
-                  <strukturertAdresse xsi:type="ns3:Gateadresse">
-                     <landkode>NOR</landkode>
-                     <tilleggsadresseType>Offisiell adresse</tilleggsadresseType>
-                     <poststed>0557</poststed>
-                     <kommunenummer>0301</kommunenummer>
-                     <gatenavn>SANNERGATA</gatenavn>
-                     <husnummer>2</husnummer>
-                  </strukturertAdresse>
-               </bostedsadresse>
-               <sivilstand endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret" fomGyldighetsperiode="2018-03-01T00:00:00.000+01:00">
-                  <sivilstand>NULL</sivilstand>
-               </sivilstand>
-               <statsborgerskap endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
-                  <land>NOR</land>
-               </statsborgerskap>
-               <aktoer xsi:type="ns3:AktoerId">
-                  <aktoerId>1234567891011</aktoerId>
-               </aktoer>
-               <kjoenn>
-                  <kjoenn>K</kjoenn>
-               </kjoenn>
-               <personnavn endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
-                  <etternavn>LOLNES</etternavn>
-                  <fornavn>JENNY</fornavn>
-                  <mellomnavn>PIKENES</mellomnavn>
-                  <sammensattNavn>LOLNES JENNY PIKENES</sammensattNavn>
-               </personnavn>
-               <personstatus endringstidspunkt="2018-11-07T00:00:00.000+01:00" endretAv="SKD" endringstype="endret">
-                  <personstatus>BOSA</personstatus>
-               </personstatus>
-               <foedselsdato>
-                  <foedselsdato>1984-07-08+02:00</foedselsdato>
-               </foedselsdato>
-               <gjeldendePostadressetype>BOSTEDSADRESSE</gjeldendePostadressetype>
-               <geografiskTilknytning xsi:type="ns3:Bydel">
-                  <geografiskTilknytning>030103</geografiskTilknytning>
-               </geografiskTilknytning>
-            </person>
-         </response>
-      </ns2:hentPersonResponse>
-   </soapenv:Body>
-</soapenv:Envelope>
+private val expected_person_response = """
+{
+    "fdato": "1984-07-08",
+    "etternavn": "LOLNES",
+    "mellomnavn": "PIKENES",
+    "id": {
+        "aktor": "1234567891011"
+    },
+    "fornavn": "JENNY",
+    "kjønn": "KVINNE",
+    "bostedsland": "NOR"
+}
 """.trimIndent()
 
-private val hentPersonhistorikk_response = """
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-   <soapenv:Body>
-      <ns2:hentPersonhistorikkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
-         <response>
-            <aktoer xsi:type="ns3:AktoerId" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-               <aktoerId>1234567891011</aktoerId>
-            </aktoer>
-            <personstatusListe endringstidspunkt="2019-01-21T00:00:00.000+01:00" endretAv="SKD" endringstype="endret">
-               <periode>
-                  <fom>1920-09-01T00:00:00.000+01:00</fom>
-               </periode>
-               <personstatus>BOSA</personstatus>
-            </personstatusListe>
-            <statsborgerskapListe endringstidspunkt="2019-01-21T00:00:00.000+01:00" endretAv="AJOURHD, SKD" endringstype="endret">
-               <periode>
-                  <fom>1920-09-01T00:00:00.000+01:00</fom>
-               </periode>
-               <statsborgerskap>
-                  <land>NOR</land>
-               </statsborgerskap>
-            </statsborgerskapListe>
-            <bostedsadressePeriodeListe endringstidspunkt="2019-01-21T00:00:00.000+01:00" endretAv="SKD" endringstype="endret">
-               <periode>
-                  <fom>1920-09-01T00:00:00.000+01:00</fom>
-               </periode>
-               <bostedsadresse>
-                  <strukturertAdresse xsi:type="ns3:Gateadresse" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                     <landkode>NOR</landkode>
-                     <poststed>0557</poststed>
-                     <kommunenummer>0301</kommunenummer>
-                     <gatenummer>16188</gatenummer>
-                     <gatenavn>SANNERGATA</gatenavn>
-                     <husnummer>2</husnummer>
-                  </strukturertAdresse>
-               </bostedsadresse>
-            </bostedsadressePeriodeListe>
-         </response>
-      </ns2:hentPersonhistorikkResponse>
-   </soapenv:Body>
-</soapenv:Envelope>
-    """
+private val expected_personhistorikk_response = """
+{
+    "bostedsadresser": [{
+        "tom": "2019-02-24",
+        "fom": "2016-02-24",
+        "verdi": "SANNERGATA 2, 0557"
+    }],
+    "statsborgerskap": [{
+        "tom": "2019-02-24",
+        "fom": "2016-02-24",
+        "verdi": "NOR"
+    }],
+    "statuser": [{
+        "tom": "2019-02-24",
+        "fom": "2016-02-24",
+        "verdi": "BOSA"
+    }],
+    "id":{
+        "aktor": "1234567891011"
+    }
+}
+""".trimIndent()
+
+private val expected_geografisk_tilknytning_response = """
+{
+    "kode": "030103",
+    "type": "BYDEL"
+}
+""".trimIndent()
