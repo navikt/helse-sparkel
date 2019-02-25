@@ -56,8 +56,8 @@ class InntektIntegrationTest {
         val fom = YearMonth.parse("2017-01")
         val tom = YearMonth.parse("2019-01")
 
-        val filter = "ForeldrepengerA-Inntekt"
-        val formål = "Foreldrepenger"
+        val filter = "8-28"
+        val formål = "Sykepenger"
 
         inntektStub(
                 server = server,
@@ -65,7 +65,7 @@ class InntektIntegrationTest {
                 request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
                 response = WireMock.serverError().withBody(hentInntektListeBolk_fault_response)
         ) { inntektClient ->
-            val actual = inntektClient.hentInntektListe(aktørId, fom, tom)
+            val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Feil -> {
@@ -85,8 +85,8 @@ class InntektIntegrationTest {
         val fom = YearMonth.parse("2017-01")
         val tom = YearMonth.parse("2019-01")
 
-        val filter = "ForeldrepengerA-Inntekt"
-        val formål = "Foreldrepenger"
+        val filter = "8-28"
+        val formål = "Sykepenger"
 
         inntektStub(
                 server = server,
@@ -94,7 +94,7 @@ class InntektIntegrationTest {
                 request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
                 response = WireMock.okXml(hentInntektListeBolk_response)
         ) { inntektClient ->
-            val actual = inntektClient.hentInntektListe(aktørId, fom, tom)
+            val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
                 is OppslagResult.Ok -> {

@@ -17,16 +17,19 @@ import java.time.YearMonth
 class InntektClient(private val inntektV3: InntektV3) {
     private val log = LoggerFactory.getLogger(InntektClient::class.java)
 
-    fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth): OppslagResult<Exception, HentInntektListeBolkResponse> {
+    fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Beregningsgrunnlagfilter)
+    fun hentSammenligningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Sammenligningsgrunnlagfilter)
+
+    private fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth, filter: String): OppslagResult<Exception, HentInntektListeBolkResponse> {
         val request = HentInntektListeBolkRequest().apply {
             identListe.add(AktoerId().apply {
                 aktoerId = aktørId.aktor
             })
             formaal = Formaal().apply {
-                value = "Foreldrepenger"
+                value = "Sykepenger"
             }
             ainntektsfilter = Ainntektsfilter().apply {
-                value = "ForeldrepengerA-Inntekt"
+                value = filter
             }
             uttrekksperiode = Uttrekksperiode().apply {
                 maanedFom = fom.toXmlGregorianCalendar()
@@ -40,6 +43,11 @@ class InntektClient(private val inntektV3: InntektV3) {
             log.error("Error during inntekt lookup", ex)
             OppslagResult.Feil(ex)
         }
+    }
+
+    companion object {
+        private const val Sammenligningsgrunnlagfilter = "8-30"
+        private const val Beregningsgrunnlagfilter = "8-28"
     }
 }
 
