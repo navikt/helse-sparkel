@@ -1,9 +1,8 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feil
+import no.nav.helse.Feilårsak
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -19,6 +18,7 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.N
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -154,7 +154,7 @@ class ArbeidsforholdServiceTest {
 
         every {
             organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
-        } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("Feil ved henting av navn"))
+        } returns OppslagResult.Feil(Feilårsak.FeilFraTjeneste)
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
@@ -235,19 +235,12 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("SOAP fault"))
+        } returns OppslagResult.Feil(Exception("SOAP fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-
-                when (actual.feil) {
-                    is Feil.Feilmelding -> assertEquals("SOAP fault", (actual.feil as Feil.Feilmelding).feilmelding)
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
             is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }
@@ -355,19 +348,12 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("SOAP fault"))
+        } returns OppslagResult.Feil(Exception("SOAP fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-
-                when (actual.feil) {
-                    is Feil.Feilmelding -> assertEquals("SOAP fault", (actual.feil as Feil.Feilmelding).feilmelding)
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
             is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }
@@ -399,19 +385,12 @@ class ArbeidsforholdServiceTest {
 
         every {
             organisasjonService.hentOrganisasjon(any(), any())
-        } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("SOAP fault"))
+        } returns OppslagResult.Feil(Feilårsak.FeilFraTjeneste)
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-
-                when (actual.feil) {
-                    is Feil.Feilmelding -> assertEquals("SOAP fault", (actual.feil as Feil.Feilmelding).feilmelding)
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.FeilFraTjeneste)
             is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }

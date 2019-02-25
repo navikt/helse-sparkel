@@ -1,8 +1,6 @@
 package no.nav.helse.ws.organisasjon
 
-import io.ktor.http.HttpStatusCode
 import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -34,22 +32,13 @@ class ComponentTest {
     @Test
     fun stubbedLookupWithError() {
         val organisasjonClient = OrganisasjonClient(OrganisasjonV5MisbehavingStub())
-        val expected = OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("SOAPy stuff got besmirched", Exception("SOAPy stuff got besmirched")))
+        val expected = OppslagResult.Feil(Exception("SOAPy stuff got besmirched"))
         val actual = organisasjonClient.hentOrganisasjon(
                 orgnr = OrganisasjonsNummer("12345")
         )
         when (actual) {
             is OppslagResult.Ok -> fail { "This lookup was expected to fail, but it didn't" }
-            is OppslagResult.Feil -> {
-                assertEquals(expected.httpCode, actual.httpCode)
-                when (actual.feil) {
-                    is Feil.Exception -> {
-                        assertEquals(expected.feil.feilmelding, (actual.feil as Feil.Exception).feilmelding)
-                        assertEquals(expected.feil.exception.message, (actual.feil as Feil.Exception).exception.message)
-                    }
-                    else -> fail { "Expected an exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertEquals(expected.feil.message, actual.feil.message)
         }
     }
 

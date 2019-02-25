@@ -3,7 +3,6 @@ package no.nav.helse.ws.person
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -44,12 +43,7 @@ class PersonClientTest {
         }
 
         when (result) {
-            is OppslagResult.Feil -> {
-                when (result.feil) {
-                    is Feil.Exception -> assertEquals("SOAP fault", (result.feil as Feil.Exception).feilmelding)
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertEquals("SOAP fault", result.feil.message)
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }
@@ -140,12 +134,7 @@ class PersonClientTest {
         }
 
         when (result) {
-            is OppslagResult.Feil -> {
-                when (result.feil) {
-                    is Feil.Exception -> assertEquals("SOAP fault", (result.feil as Feil.Exception).feilmelding)
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertEquals("SOAP fault", result.feil.message)
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }

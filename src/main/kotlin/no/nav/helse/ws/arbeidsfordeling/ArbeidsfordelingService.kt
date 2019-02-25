@@ -1,11 +1,11 @@
 package no.nav.helse.ws.arbeidsfordeling
 
-import no.nav.helse.Feil
+import no.nav.helse.Feilårsak
 import no.nav.helse.OppslagResult
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonService
-import org.slf4j.LoggerFactory
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 
 class ArbeidsfordelingService(
         private val arbeidsfordelingClient: ArbeidsfordelingClient,
@@ -15,7 +15,7 @@ class ArbeidsfordelingService(
             hovedAktoer: AktørId,
             medAktoerer: List<AktørId> = listOf(),
             tema: Tema
-    ) : OppslagResult<Feil, Enhet> {
+    ) : OppslagResult<Feilårsak, Enhet> {
         // Geografisk tilknytning for Hovedaktør
         val geografiskTilknytningHovedAktoerOppslagResponse = personService.geografiskTilknytning(hovedAktoer)
         if (geografiskTilknytningHovedAktoerOppslagResponse is OppslagResult.Feil) {
@@ -39,8 +39,18 @@ class ArbeidsfordelingService(
                 forHovedAktoer = geografiskTilknytningHovedAktoer,
                 forMedAktoerer = geografiskTilknytningMedAktoerer.toList()
         )
-        // Gjør oppslag for å finne enhet
-        return arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema)
+
+        val result = arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema)
+        return when (result) {
+            is OppslagResult.Ok -> result
+            is OppslagResult.Feil -> {
+                OppslagResult.Feil(when (result.feil) {
+                    is IngenEnhetFunnetException -> Feilårsak.IkkeFunnet
+                    is FinnBehandlendeEnhetListeUgyldigInput -> Feilårsak.FeilFraTjeneste
+                    else -> Feilårsak.UkjentFeil
+                })
+            }
+        }
     }
 
     private fun velgGjeldendeGeografiskeTilknytning(

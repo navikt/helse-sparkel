@@ -1,6 +1,6 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.Feil
+import no.nav.helse.Feilårsak
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
@@ -9,16 +9,24 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.OrganisasjonsAttributt
 import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
-    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsforhold>> {
+    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feilårsak, List<Arbeidsforhold>> {
         val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
         return when (lookupResult) {
-            is OppslagResult.Feil -> lookupResult
+            is OppslagResult.Feil -> {
+                OppslagResult.Feil(when (lookupResult.feil) {
+                    is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
+                    is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
+                    else -> Feilårsak.UkjentFeil
+                })
+            }
             is OppslagResult.Ok -> {
                 lookupResult.map { list ->
                     list.map { arbeidsforhold ->
@@ -38,11 +46,17 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
         }
     }
 
-    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<Arbeidsgiver>> {
+    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feilårsak, List<Arbeidsgiver>> {
         val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
         return when (lookupResult) {
-            is OppslagResult.Feil -> lookupResult
+            is OppslagResult.Feil -> {
+                OppslagResult.Feil(when (lookupResult.feil) {
+                    is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
+                    is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
+                    else -> Feilårsak.UkjentFeil
+                })
+            }
             is OppslagResult.Ok -> {
                 lookupResult.data.asSequence().map {
                     it.arbeidsgiver

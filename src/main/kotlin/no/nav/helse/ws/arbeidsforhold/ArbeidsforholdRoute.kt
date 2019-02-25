@@ -6,6 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.OppslagResult
+import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
@@ -34,7 +35,7 @@ fun Route.arbeidsforhold(
 
             when (lookupResult) {
                 is OppslagResult.Ok -> call.respond(ArbeidsforholdResponse(lookupResult.data))
-                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
+                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
         }
     }
@@ -60,7 +61,7 @@ fun Route.arbeidsforhold(
 
             when (lookupResult) {
                 is OppslagResult.Ok -> call.respond(ArbeidsgivereResponse(lookupResult.data))
-                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
+                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
         }
     }

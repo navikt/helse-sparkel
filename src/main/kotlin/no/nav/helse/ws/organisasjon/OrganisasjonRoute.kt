@@ -6,6 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.OppslagResult
+import no.nav.helse.respondFeil
 
 private const val ATTRIBUTT_QUERY_PARAM = "attributt"
 private const val ORG_NR_PATH_PARAM = "orgnr"
@@ -20,7 +21,7 @@ fun Route.organisasjon(organisasjonService: OrganisasjonService) {
 
         when (lookupResult) {
             is OppslagResult.Ok -> call.respond(lookupResult.data)
-            is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
+            is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
         }
     }
 }

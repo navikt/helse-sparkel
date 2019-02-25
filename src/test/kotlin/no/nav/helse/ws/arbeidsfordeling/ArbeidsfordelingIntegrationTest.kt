@@ -8,8 +8,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
@@ -20,8 +18,10 @@ import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import no.nav.helse.ws.withSoapAction
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -100,12 +100,8 @@ class ArbeidsfordelingIntegrationTest {
             when (actual) {
                 is OppslagResult.Feil -> {
                     when (actual.feil) {
-                        is Feil.Exception -> {
-                            Assertions.assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-                            Assertions.assertEquals("'$tema' er en ugyldig kode for kodeverket: 'Tema'", (actual.feil as Feil.Exception).feilmelding)
-                            Assertions.assertEquals("no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput", (actual.feil as Feil.Exception).exception.javaClass.name)
-                        }
-                        else -> fail { "Expected Feil.Exception to be returned" }
+                        is FinnBehandlendeEnhetListeUgyldigInput -> assertEquals("'$tema' er en ugyldig kode for kodeverket: 'Tema'", actual.feil.message)
+                        else -> fail { "Expected FinnBehandlendeEnhetListeUgyldigInput to be returned" }
                     }
                 }
                 is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }

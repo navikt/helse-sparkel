@@ -1,9 +1,8 @@
 package no.nav.helse.ws.inntekt
 
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feil
+import no.nav.helse.Feilårsak
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -32,20 +31,12 @@ class InntektServiceTest {
         val inntektClient = mockk<InntektClient>()
         every {
             inntektClient.hentInntektListe(aktør, fom, tom)
-        } returns OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("SOAP fault", Exception("SOAP fault")))
+        } returns OppslagResult.Feil(Exception("SOAP fault"))
 
         val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                when (actual.feil) {
-                    is Feil.Exception -> {
-                        assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-                        assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
-                    }
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }

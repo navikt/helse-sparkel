@@ -1,10 +1,8 @@
 package no.nav.helse.ws.arbeidsfordeling
 
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.ws.person.Diskresjonskode
 import no.nav.helse.ws.person.GeografiskOmraade
@@ -15,6 +13,7 @@ import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetstyper
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.meldinger.FinnBehandlendeEnhetListeResponse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
@@ -163,13 +162,7 @@ class ArbeidsfordelingClientTest {
 
         when (actual) {
             is OppslagResult.Feil -> {
-                when (actual.feil) {
-                    is Feil.Feilmelding -> {
-                        assertEquals(HttpStatusCode.NotFound, actual.httpCode)
-                        assertEquals("Ingen enheter funnet", (actual.feil as Feil.Feilmelding).feilmelding)
-                    }
-                    else -> fail { "Expected Feil.Feilmelding to be returned" }
-                }
+                assertTrue(actual.feil is IngenEnhetFunnetException)
             }
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
@@ -194,12 +187,7 @@ class ArbeidsfordelingClientTest {
         }
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                when (actual.feil) {
-                    is Feil.Exception -> assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }

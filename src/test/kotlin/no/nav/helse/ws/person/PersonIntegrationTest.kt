@@ -7,8 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.like
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.AktørId
@@ -18,6 +16,7 @@ import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
+import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -88,12 +87,8 @@ class PersonIntegrationTest {
             when (actual) {
                 is OppslagResult.Feil -> {
                     when (actual.feil) {
-                        is Feil.Exception -> {
-                            assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-                            assertEquals("Ingen forekomster funnet", (actual.feil as Feil.Exception).feilmelding)
-                            assertEquals("no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet", (actual.feil as Feil.Exception).exception.javaClass.name)
-                        }
-                        else -> fail { "Expected Feil.Exception to be returned" }
+                        is HentPersonPersonIkkeFunnet -> assertEquals("Ingen forekomster funnet", actual.feil.message)
+                        else -> fail { "Expected HentPersonPersonIkkeFunnet to be returned" }
                     }
                 }
                 is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }

@@ -30,7 +30,6 @@ import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningR
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -112,11 +111,8 @@ class PersonComponentTest {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
-                val actualJson = JSONObject(response.content)
-
-                assertTrue(actualJson.has("exception"))
-                assertEquals("Person ikke funnet", actualJson.get("feilmelding"))
+                assertEquals(HttpStatusCode.NotFound, response.status())
+                assertJsonEquals(JSONObject(expected_not_found_response), JSONObject(response.content))
             }
         }
     }
@@ -183,11 +179,8 @@ class PersonComponentTest {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}/geografisk-tilknytning") {
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
-                val actualJson = JSONObject(response.content)
-
-                assertTrue(actualJson.has("exception"))
-                assertEquals("Person ikke funnet", actualJson.get("feilmelding"))
+                assertEquals(HttpStatusCode.NotFound, response.status())
+                assertJsonEquals(JSONObject(expected_not_found_response), JSONObject(response.content))
             }
         }
     }
@@ -211,5 +204,11 @@ private val expected_geografisk_tilknytning_response = """
 {
     "kode": "030103",
     "type": "BYDEL"
+}
+""".trimIndent()
+
+private val expected_not_found_response = """
+{
+    "feilmelding": "Resource not found"
 }
 """.trimIndent()

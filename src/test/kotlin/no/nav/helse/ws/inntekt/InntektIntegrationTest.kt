@@ -7,8 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.AktørId
@@ -24,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.time.YearMonth
+import javax.xml.ws.soap.SOAPFaultException
 import kotlin.test.assertEquals
 
 class InntektIntegrationTest {
@@ -70,13 +69,9 @@ class InntektIntegrationTest {
 
             when (actual) {
                 is OppslagResult.Feil -> {
-                    assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
                     when (actual.feil) {
-                        is Feil.Exception -> {
-                            assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
-                            assertEquals("javax.xml.ws.soap.SOAPFaultException", (actual.feil as Feil.Exception).exception.javaClass.name)
-                        }
-                        else -> fail { "Expected Feil.Exception to be returned" }
+                        is SOAPFaultException -> assertEquals("SOAP fault", actual.feil.message)
+                        else -> fail { "Expected SOAPFaultException to be returned" }
                     }
                 }
                 is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }

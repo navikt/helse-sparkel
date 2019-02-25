@@ -1,7 +1,5 @@
 package no.nav.helse.ws.sykepenger
 
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
@@ -20,14 +18,14 @@ class SykepengerClient(private val sykepenger: SykepengerV2) {
 
     private val log = LoggerFactory.getLogger("SykepengeClient")
 
-    fun finnSykepengeVedtak(fnr: Fødselsnummer, fraOgMed: LocalDate, tilOgMed: LocalDate): OppslagResult<Feil, Collection<SykepengerVedtak>> {
+    fun finnSykepengeVedtak(fnr: Fødselsnummer, fraOgMed: LocalDate, tilOgMed: LocalDate): OppslagResult<Exception, Collection<SykepengerVedtak>> {
         val request = createSykepengerListeRequest(fnr.value, fraOgMed, tilOgMed)
         return try {
             val remoteResult = sykepenger.hentSykepengerListe(request)
             OppslagResult.Ok(remoteResult.toSykepengerVedtak(fnr.value))
         } catch (ex: Exception) {
             log.error("Error while doing sak og behndling lookup", ex)
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
+            OppslagResult.Feil(ex)
         }
     }
 

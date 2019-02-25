@@ -87,7 +87,7 @@ object OrganisasjonMocks {
     fun sparkelNotImplementedResponse() : String {
         return """
             {
-                "feilmelding": "Støtter ikke alle etterspurte attributter."
+                "feilmelding": "Not implemented"
             }
         """.trimIndent()
     }

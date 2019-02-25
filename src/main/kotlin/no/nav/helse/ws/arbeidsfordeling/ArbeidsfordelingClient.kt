@@ -1,7 +1,5 @@
 package no.nav.helse.ws.arbeidsfordeling
 
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
@@ -19,7 +17,7 @@ class ArbeidsfordelingClient(
     fun getBehandlendeEnhet(
             gjeldendeGeografiskTilknytning: GeografiskTilknytning,
             gjeldendeTema : Tema
-    ) : OppslagResult<Feil, Enhet> {
+    ) : OppslagResult<Exception, Enhet> {
         val request = FinnBehandlendeEnhetListeRequest().apply {
             arbeidsfordelingKriterier = ArbeidsfordelingKriterier().apply {
                 tema = no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Tema().apply {
@@ -40,18 +38,17 @@ class ArbeidsfordelingClient(
         }
 
         return try {
-            val enhet = BehandlendeEnhetMapper.tilEnhet(arbeidsfordelingV1.finnBehandlendeEnhetListe(request))
-            return if (enhet == null) {
-                OppslagResult.Feil(HttpStatusCode.NotFound, Feil.Feilmelding("Ingen enheter funnet"))
-            } else {
-                OppslagResult.Ok(enhet)
-            }
-        } catch (cause: Throwable) {
+            BehandlendeEnhetMapper.tilEnhet(arbeidsfordelingV1.finnBehandlendeEnhetListe(request))?.let {
+                OppslagResult.Ok(it)
+            } ?: OppslagResult.Feil(IngenEnhetFunnetException())
+        } catch (cause: Exception) {
             log.error("Feil ved oppslag på behandlende enhet", cause)
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(cause.message ?: "Ingen detaljer", cause))
+            OppslagResult.Feil(cause)
         }
 
     }
 }
+
+class IngenEnhetFunnetException: Exception()
 
 data class Tema(val value: String)

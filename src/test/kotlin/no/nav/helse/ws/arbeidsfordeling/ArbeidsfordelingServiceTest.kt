@@ -1,10 +1,9 @@
 package no.nav.helse.ws.arbeidsfordeling
 
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Feil
+import no.nav.helse.Feilårsak
 import no.nav.helse.OppslagResult
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.Diskresjonskode
@@ -20,7 +19,7 @@ class ArbeidsfordelingServiceTest {
     fun `skal returnere feil når personoppslag for hovedaktør gir feil`() {
         val aktørId = AktørId("1831212532200")
         val tema = Tema("SYK")
-        val expected = OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("En feil oppstod"))
+        val expected = OppslagResult.Feil(Feilårsak.UkjentFeil)
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
         val personService = mockk<PersonService>()
@@ -52,7 +51,7 @@ class ArbeidsfordelingServiceTest {
         val aktørId = AktørId("1831212532200")
         val medaktørId = AktørId("1831212532201")
         val tema = Tema("SYK")
-        val expected = OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Feilmelding("En feil oppstod"))
+        val expected = OppslagResult.Feil(Feilårsak.UkjentFeil)
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
         val personService = mockk<PersonService>()

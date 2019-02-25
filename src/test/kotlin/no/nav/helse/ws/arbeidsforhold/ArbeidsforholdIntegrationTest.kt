@@ -7,8 +7,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
@@ -19,6 +17,7 @@ import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -109,13 +108,9 @@ class ArbeidsforholdIntegrationTest {
 
             when (actual) {
                 is OppslagResult.Feil -> {
-                    assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
                     when (actual.feil) {
-                        is Feil.Exception -> {
-                            assertEquals("Person med ident: 08088806280 ble ikke funnet i kall mot AktørId", (actual.feil as Feil.Exception).feilmelding)
-                            assertEquals("no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput", (actual.feil as Feil.Exception).exception.javaClass.name)
-                        }
-                        else -> fail { "Expected Feil.Exception to be returned" }
+                        is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> assertEquals("Person med ident: 08088806280 ble ikke funnet i kall mot AktørId", actual.feil.message)
+                        else -> fail { "Expected FinnArbeidsforholdPrArbeidstakerUgyldigInput to be returned" }
                     }
                 }
                 is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }

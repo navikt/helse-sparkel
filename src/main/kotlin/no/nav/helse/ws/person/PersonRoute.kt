@@ -6,6 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.OppslagResult
+import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 
 fun Route.person(personService: PersonService) {
@@ -15,7 +16,7 @@ fun Route.person(personService: PersonService) {
             val lookupResult = personService.personInfo(AktørId(aktørid))
             when (lookupResult) {
                 is OppslagResult.Ok -> call.respond(lookupResult.data)
-                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
+                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
         } ?: call.respond(HttpStatusCode.BadRequest, "An aktørid must be specified")
     }
@@ -29,7 +30,7 @@ fun Route.person(personService: PersonService) {
                     lookupResult.data.harGeografisOmraade() -> call.respond(lookupResult.data.geografiskOmraade!!)
                     else -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Aktøren har ingen geografisk tilknytning."))
                 }
-                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
+                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
         } ?: call.respond(HttpStatusCode.BadRequest, "En Aktør ID må oppgis.")
     }

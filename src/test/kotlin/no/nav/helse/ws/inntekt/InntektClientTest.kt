@@ -1,9 +1,7 @@
 package no.nav.helse.ws.inntekt
 
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -37,15 +35,7 @@ class InntektClientTest {
         val actual = InntektClient(inntektV3).hentInntektListe(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                when (actual.feil) {
-                    is Feil.Exception -> {
-                        assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-                        assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
-                    }
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }

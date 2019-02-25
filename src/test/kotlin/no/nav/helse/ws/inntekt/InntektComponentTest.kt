@@ -324,7 +324,6 @@ private val expectedJson = """
 
 private val expectedJson_fault = """
 {
-    "exception":"java.lang.Exception: SOAP fault",
-    "feilmelding":"SOAP fault"
+    "feilmelding":"Unknown error"
 }
 """.trimIndent()

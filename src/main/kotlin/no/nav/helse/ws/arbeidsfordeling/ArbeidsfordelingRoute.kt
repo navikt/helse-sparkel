@@ -7,6 +7,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.OppslagResult
+import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 
 private const val HOVED_AKTOER_PATH_PARAM = "hovedAktoerId"
@@ -31,7 +32,7 @@ fun Route.arbeidsfordeling(arbeidsfordelingService: ArbeidsfordelingService) {
 
             when (oppslagResult) {
                 is OppslagResult.Ok -> call.respond(oppslagResult.data)
-                is OppslagResult.Feil -> call.respond(oppslagResult.httpCode, oppslagResult.feil)
+                is OppslagResult.Feil -> call.respondFeil(oppslagResult.feil)
             }
         }
     }

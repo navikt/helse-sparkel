@@ -1,7 +1,5 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.map
@@ -29,7 +27,7 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                 it.toList()
             }
 
-    private fun finnArbeidsforholdForFnr(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, FinnArbeidsforholdPrArbeidstakerResponse> {
+    private fun finnArbeidsforholdForFnr(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Exception, FinnArbeidsforholdPrArbeidstakerResponse> {
         val request = FinnArbeidsforholdPrArbeidstakerRequest()
                 .apply {
                     ident = NorskIdent().apply { ident = aktørId.aktor }
@@ -46,7 +44,7 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
             OppslagResult.Ok(arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request))
         } catch (ex: Exception) {
             log.error("Error while doing arbeidsforhold lookup", ex)
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
+            OppslagResult.Feil(ex)
         }
     }
 }

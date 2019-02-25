@@ -1,13 +1,12 @@
 package no.nav.helse
 
-import io.ktor.http.HttpStatusCode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class OppslagResultTest {
 
     private val okVal = OppslagResult.Ok("OK")
-    private val feilVal = OppslagResult.Feil(HttpStatusCode.NotFound, Feil.Feilmelding("Feil"))
+    private val feilVal = OppslagResult.Feil("Feil")
 
     @Test
     fun `høyreverdi kan mappes til ny verdi`() {

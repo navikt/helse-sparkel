@@ -1,10 +1,12 @@
 package no.nav.helse.ws.sakogbehandling
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import no.nav.helse.*
-import no.nav.helse.ws.*
+import io.ktor.application.call
+import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.get
+import no.nav.helse.OppslagResult
+import no.nav.helse.respondFeil
+import no.nav.helse.ws.AktørId
 
 fun Route.sakOgBehandling(sakOgBehandlingService: SakOgBehandlingService) {
 
@@ -12,7 +14,7 @@ fun Route.sakOgBehandling(sakOgBehandlingService: SakOgBehandlingService) {
         val lookupResult = sakOgBehandlingService.finnSakOgBehandling(AktørId(call.parameters["aktorId"]!!))
         when (lookupResult) {
             is OppslagResult.Ok -> call.respond(lookupResult.data)
-            is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
+            is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
         }
     }
 }

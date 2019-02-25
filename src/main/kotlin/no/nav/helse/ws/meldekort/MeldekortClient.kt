@@ -1,7 +1,5 @@
 package no.nav.helse.ws.meldekort
 
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
@@ -21,7 +19,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
 
     private val log = LoggerFactory.getLogger("MeldekortClient")
 
-    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, List<MeldekortUtbetalingsgrunnlagSak>> {
+    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult<Exception, List<MeldekortUtbetalingsgrunnlagSak>> {
         return try {
             val request = FinnMeldekortUtbetalingsgrunnlagListeRequest()
                     .apply {
@@ -45,7 +43,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
             OppslagResult.Ok(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
         } catch (ex: Exception) {
             log.error("Error while doing meldekort lookup", ex)
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception("${ex.javaClass.simpleName} : ${ex.message}", ex))
+            OppslagResult.Feil(ex)
         }
     }
 

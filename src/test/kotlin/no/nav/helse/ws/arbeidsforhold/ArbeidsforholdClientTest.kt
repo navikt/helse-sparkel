@@ -1,9 +1,7 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import io.ktor.http.HttpStatusCode
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -16,6 +14,7 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.R
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.time.LocalDate
@@ -34,15 +33,7 @@ class ArbeidsforholdClientTest {
         val actual = arbeidsforholdClient.finnArbeidsforhold(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                when (actual.feil) {
-                    is Feil.Exception -> {
-                        Assertions.assertEquals(HttpStatusCode.InternalServerError, actual.httpCode)
-                        Assertions.assertEquals("SOAP fault", (actual.feil as Feil.Exception).feilmelding)
-                    }
-                    else -> fail { "Expected Feil.Exception to be returned" }
-                }
-            }
+            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
             else -> fail { "Expected OppslagResult.Feil to be returned" }
         }
     }

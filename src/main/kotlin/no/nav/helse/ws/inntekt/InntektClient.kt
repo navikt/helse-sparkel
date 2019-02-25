@@ -1,7 +1,5 @@
 package no.nav.helse.ws.inntekt
 
-import io.ktor.http.HttpStatusCode
-import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -19,7 +17,7 @@ import java.time.YearMonth
 class InntektClient(private val inntektV3: InntektV3) {
     private val log = LoggerFactory.getLogger(InntektClient::class.java)
 
-    fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth): OppslagResult<Feil, HentInntektListeBolkResponse> {
+    fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth): OppslagResult<Exception, HentInntektListeBolkResponse> {
         val request = HentInntektListeBolkRequest().apply {
             identListe.add(AktoerId().apply {
                 aktoerId = aktørId.aktor
@@ -40,7 +38,7 @@ class InntektClient(private val inntektV3: InntektV3) {
             OppslagResult.Ok(inntektV3.hentInntektListeBolk(request))
         } catch (ex: Exception) {
             log.error("Error during inntekt lookup", ex)
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
+            OppslagResult.Feil(ex)
         }
     }
 }
