@@ -105,6 +105,62 @@ class InntektIntegrationTest {
             }
         }
     }
+
+    @Test
+    fun `skal svare med feil når tjenesten svarer med feil for sammenligningsgrunnlag`() {
+        val aktørId = AktørId("12345678911")
+        val fom = YearMonth.parse("2017-01")
+        val tom = YearMonth.parse("2019-01")
+
+        val filter = "8-30"
+        val formål = "Sykepenger"
+
+        inntektStub(
+                server = server,
+                scenario = "inntektskomponenten_feil",
+                request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
+                response = WireMock.serverError().withBody(hentInntektListeBolk_fault_response)
+        ) { inntektClient ->
+            val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
+
+            when (actual) {
+                is OppslagResult.Feil -> {
+                    when (actual.feil) {
+                        is SOAPFaultException -> assertEquals("SOAP fault", actual.feil.message)
+                        else -> fail { "Expected SOAPFaultException to be returned" }
+                    }
+                }
+                is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med liste over inntekter for sammenligningsgrunnlag`() {
+        val aktørId = AktørId("12345678911")
+        val fom = YearMonth.parse("2017-01")
+        val tom = YearMonth.parse("2019-01")
+
+        val filter = "8-30"
+        val formål = "Sykepenger"
+
+        inntektStub(
+                server = server,
+                scenario = "inntektskomponenten_feil",
+                request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
+                response = WireMock.okXml(hentInntektListeBolk_response)
+        ) { inntektClient ->
+            val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
+
+            when (actual) {
+                is OppslagResult.Ok -> {
+                    assertEquals(1, actual.data.arbeidsInntektIdentListe.size)
+                    assertEquals(2, actual.data.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
+                }
+                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            }
+        }
+    }
 }
 
 fun inntektStub(server: WireMockServer, scenario: String, request: MappingBuilder, response: ResponseDefinitionBuilder, test: (InntektClient) -> Unit) {
