@@ -41,7 +41,7 @@ class InntektComponentTest {
 
         val expected = """
             {
-                "error": "you need to supply query parameter fom and tom"
+                "feilmelding": "you need to supply query parameter fom and tom"
             }
         """.trimIndent()
 
@@ -68,7 +68,7 @@ class InntektComponentTest {
 
         val expected = """
             {
-                "error": "you need to supply query parameter fom and tom"
+                "feilmelding": "you need to supply query parameter fom and tom"
             }
         """.trimIndent()
 
@@ -95,7 +95,7 @@ class InntektComponentTest {
 
         val expected = """
             {
-                "error": "fom must be specified as yyyy-mm"
+                "feilmelding": "fom must be specified as yyyy-mm"
             }
         """.trimIndent()
 
@@ -122,7 +122,7 @@ class InntektComponentTest {
 
         val expected = """
             {
-                "error": "tom must be specified as yyyy-mm"
+                "feilmelding": "tom must be specified as yyyy-mm"
             }
         """.trimIndent()
 

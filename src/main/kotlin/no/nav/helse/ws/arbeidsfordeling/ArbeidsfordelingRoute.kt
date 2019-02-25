@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.helse.HttpFeil
 import no.nav.helse.OppslagResult
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
@@ -19,7 +20,7 @@ fun Route.arbeidsfordeling(arbeidsfordelingService: ArbeidsfordelingService) {
     get("api/arbeidsfordeling/behandlende-enhet/{$HOVED_AKTOER_PATH_PARAM}") {
         val tema = call.getTema()
         if (tema == null) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Requesten må inneholde query parameter '$TEMA_QUERY_PARAM'"))
+            call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "Requesten må inneholde query parameter '$TEMA_QUERY_PARAM'"))
         } else {
             val hovedAktoerId = call.getHovedAktoerId()
             val medAktoerIder = call.getMedAktoerIder()

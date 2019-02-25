@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.helse.HttpFeil
 import no.nav.helse.OppslagResult
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
@@ -18,7 +19,7 @@ fun Route.person(personService: PersonService) {
                 is OppslagResult.Ok -> call.respond(lookupResult.data)
                 is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
-        } ?: call.respond(HttpStatusCode.BadRequest, "An aktørid must be specified")
+        } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "An aktørid must be specified"))
     }
 
     get("api/person/{aktør}/geografisk-tilknytning") {
@@ -26,13 +27,13 @@ fun Route.person(personService: PersonService) {
             val lookupResult = personService.geografiskTilknytning(AktørId(aktoerId))
             when (lookupResult) {
                 is OppslagResult.Ok -> when {
-                    lookupResult.data.erKode6() -> call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Ikke tilgang til å se geografisk tilknytning til denne aktøren."))
+                    lookupResult.data.erKode6() -> call.respondFeil(HttpFeil(HttpStatusCode.Forbidden, "Ikke tilgang til å se geografisk tilknytning til denne aktøren."))
                     lookupResult.data.harGeografisOmraade() -> call.respond(lookupResult.data.geografiskOmraade!!)
-                    else -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "Aktøren har ingen geografisk tilknytning."))
+                    else -> call.respondFeil(HttpFeil(HttpStatusCode.NotFound, "Aktøren har ingen geografisk tilknytning."))
                 }
                 is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
-        } ?: call.respond(HttpStatusCode.BadRequest, "En Aktør ID må oppgis.")
+        } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "En Aktør ID må oppgis."))
     }
 }
 

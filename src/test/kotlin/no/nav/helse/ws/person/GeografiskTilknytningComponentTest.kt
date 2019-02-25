@@ -272,7 +272,7 @@ class GeografiskTilknytningComponentTest {
 
 private val expected_geografisk_tilknytning_kode_6_response = """
 {
-    "error": "Ikke tilgang til å se geografisk tilknytning til denne aktøren."
+    "feilmelding": "Ikke tilgang til å se geografisk tilknytning til denne aktøren."
 }
 """.trimIndent()
 
@@ -285,6 +285,6 @@ private fun expected_geografisk_tilknytning_response(type: String, kode: String)
 
 private val expected_geografisk_tilknytning_empty_response = """
 {
-    "error": "Aktøren har ingen geografisk tilknytning."
+    "feilmelding": "Aktøren har ingen geografisk tilknytning."
 }
 """.trimIndent()

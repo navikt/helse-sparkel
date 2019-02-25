@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.helse.HttpFeil
 import no.nav.helse.OppslagResult
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
@@ -15,18 +16,18 @@ fun Route.inntekt(inntektService: InntektService) {
 
     get("api/inntekt/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "you need to supply query parameter fom and tom"))
+            call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom"))
         } else {
             val fom = try {
                 YearMonth.parse(call.request.queryParameters["fom"]!!)
             } catch (err: DateTimeParseException) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "fom must be specified as yyyy-mm"))
+                call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "fom must be specified as yyyy-mm"))
                 return@get
             }
             val tom = try {
                 YearMonth.parse(call.request.queryParameters["tom"]!!)
             } catch (err: DateTimeParseException) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "tom must be specified as yyyy-mm"))
+                call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "tom must be specified as yyyy-mm"))
                 return@get
             }
 

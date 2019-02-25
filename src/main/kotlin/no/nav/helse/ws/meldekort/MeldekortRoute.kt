@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.helse.HttpFeil
 import no.nav.helse.OppslagResult
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
@@ -25,7 +26,7 @@ fun Route.meldekort(meldekortService: MeldekortService) {
                 is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
             }
         } else {
-            call.respond(HttpStatusCode.BadRequest, "Missing at least one parameter of `aktorId`, `fom` and `tom`")
+            call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "Missing at least one parameter of `aktorId`, `fom` and `tom`"))
         }
     }
 }

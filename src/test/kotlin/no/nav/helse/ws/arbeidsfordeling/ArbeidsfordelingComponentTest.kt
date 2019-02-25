@@ -31,7 +31,7 @@ class ArbeidsfordelingComponentTest {
         val aktør = "11987654321"
         val expectedJson = """
             {
-                "error": "Requesten må inneholde query parameter 'tema'"
+                "feilmelding": "Requesten må inneholde query parameter 'tema'"
             }
         """.trimIndent()
 

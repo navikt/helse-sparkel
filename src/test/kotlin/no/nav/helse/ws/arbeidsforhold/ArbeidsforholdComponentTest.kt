@@ -37,7 +37,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "you need to supply query parameter fom and tom"
+                "feilmelding": "you need to supply query parameter fom and tom"
             }
         """.trimIndent()
 
@@ -64,7 +64,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "you need to supply query parameter fom and tom"
+                "feilmelding": "you need to supply query parameter fom and tom"
             }
         """.trimIndent()
 
@@ -91,7 +91,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "fom must be specified as yyyy-mm-dd"
+                "feilmelding": "fom must be specified as yyyy-mm-dd"
             }
         """.trimIndent()
 
@@ -118,7 +118,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "tom must be specified as yyyy-mm-dd"
+                "feilmelding": "tom must be specified as yyyy-mm-dd"
             }
         """.trimIndent()
 
@@ -287,7 +287,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "you need to supply query parameter fom and tom"
+                "feilmelding": "you need to supply query parameter fom and tom"
             }
         """.trimIndent()
 
@@ -314,7 +314,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "you need to supply query parameter fom and tom"
+                "feilmelding": "you need to supply query parameter fom and tom"
             }
         """.trimIndent()
 
@@ -341,7 +341,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "fom must be specified as yyyy-mm-dd"
+                "feilmelding": "fom must be specified as yyyy-mm-dd"
             }
         """.trimIndent()
 
@@ -368,7 +368,7 @@ class ArbeidsforholdComponentTest {
 
         val expected = """
             {
-                "error": "tom must be specified as yyyy-mm-dd"
+                "feilmelding": "tom must be specified as yyyy-mm-dd"
             }
         """.trimIndent()
 

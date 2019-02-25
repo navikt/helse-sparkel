@@ -5,6 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.helse.HttpFeil
 import no.nav.helse.OppslagResult
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
@@ -14,7 +15,7 @@ fun Route.sykepengeListe(sykepengerService: SykepengelisteService) {
 
     get("api/sykepengevedtak/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
-            call.respond(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom")
+            call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom"))
         } else {
             val fom = LocalDate.parse(call.request.queryParameters["fom"]!!)
             val tom = LocalDate.parse(call.request.queryParameters["tom"]!!)
