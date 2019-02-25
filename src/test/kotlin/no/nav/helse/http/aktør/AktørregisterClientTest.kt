@@ -5,8 +5,14 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.sts.*
-import org.junit.jupiter.api.*
+import no.nav.helse.OppslagResult
+import no.nav.helse.sts.StsRestClient
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class AktørregisterClientTest {
 
@@ -47,7 +53,10 @@ class AktørregisterClientTest {
                 .withHeader("Nav-Personidenter", WireMock.equalTo("12345678911"))
                 .willReturn(WireMock.ok(ok_norskIdent_response)))
 
-        val gjeldendeIdenter = aktørregisterClient.gjeldendeIdenter("12345678911")
+        val lookupResult = aktørregisterClient.gjeldendeIdenter("12345678911")
+
+        assertTrue(lookupResult is OppslagResult.Ok)
+        val gjeldendeIdenter = (lookupResult as OppslagResult.Ok).data
 
         Assertions.assertEquals(2, gjeldendeIdenter.size)
         Assertions.assertEquals("1573082186699", gjeldendeIdenter.first { it.type == IdentType.AktoerId }.ident)
@@ -60,7 +69,10 @@ class AktørregisterClientTest {
                 .withHeader("Nav-Personidenter", WireMock.equalTo("1573082186699"))
                 .willReturn(WireMock.ok(ok_aktoerId_response)))
 
-        val gjeldendeIdenter = aktørregisterClient.gjeldendeIdenter("1573082186699")
+        val lookupResult = aktørregisterClient.gjeldendeIdenter("1573082186699")
+
+        assertTrue(lookupResult is OppslagResult.Ok)
+        val gjeldendeIdenter = (lookupResult as OppslagResult.Ok).data
 
         Assertions.assertEquals(2, gjeldendeIdenter.size)
         Assertions.assertEquals("1573082186699", gjeldendeIdenter.first { it.type == IdentType.AktoerId }.ident)
@@ -73,7 +85,10 @@ class AktørregisterClientTest {
                 .withHeader("Nav-Personidenter", WireMock.equalTo("12345678911"))
                 .willReturn(WireMock.ok(ok_norskIdent_response)))
 
-        val gjeldendeIdent = aktørregisterClient.gjeldendeAktørId("12345678911")
+        val lookupResult = aktørregisterClient.gjeldendeAktørId("12345678911")
+
+        assertTrue(lookupResult is OppslagResult.Ok)
+        val gjeldendeIdent = (lookupResult as OppslagResult.Ok).data
 
         Assertions.assertEquals("1573082186699", gjeldendeIdent)
     }
@@ -84,9 +99,23 @@ class AktørregisterClientTest {
                 .withHeader("Nav-Personidenter", WireMock.equalTo("1573082186699"))
                 .willReturn(WireMock.ok(ok_aktoerId_response)))
 
-        val gjeldendeIdent = aktørregisterClient.gjeldendeNorskIdent("1573082186699")
+        val lookupResult = aktørregisterClient.gjeldendeNorskIdent("1573082186699")
+
+        assertTrue(lookupResult is OppslagResult.Ok)
+        val gjeldendeIdent = (lookupResult as OppslagResult.Ok).data
 
         Assertions.assertEquals("12345678911", gjeldendeIdent)
+    }
+
+    @Test
+    fun `should return feil when ident does not exist`() {
+        WireMock.stubFor(aktørregisterRequestMapping
+                .withHeader("Nav-Personidenter", WireMock.equalTo("11987654321"))
+                .willReturn(WireMock.ok(id_not_found_response)))
+
+        val lookupResult = aktørregisterClient.gjeldendeNorskIdent("11987654321")
+
+        assertTrue(lookupResult is OppslagResult.Feil)
     }
 }
 
@@ -134,3 +163,12 @@ private val ok_aktoerId_response = """
     "feilmelding": null
   }
 }""".trimIndent()
+
+private val id_not_found_response = """
+{
+    "11987654321": {
+        "identer": null,
+        "feilmelding": "Den angitte personidenten finnes ikke"
+    }
+}
+""".trimIndent()

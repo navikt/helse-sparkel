@@ -1,7 +1,9 @@
 package no.nav.helse.http.aktør
 
 import com.github.kittinunf.fuel.httpGet
-import no.nav.helse.sts.*
+import no.nav.helse.OppslagResult
+import no.nav.helse.flatMap
+import no.nav.helse.sts.StsRestClient
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
@@ -9,7 +11,7 @@ private val log = LoggerFactory.getLogger("AktørregisterClient")
 
 class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 
-    fun gjeldendeIdenter(ident: String): List<Ident> {
+    fun gjeldendeIdenter(ident: String): OppslagResult<String, List<Ident>> {
         log.info("lookup gjeldende identer with ident=$ident")
 
         val bearer = stsRestClient.token()
@@ -27,26 +29,33 @@ class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient
         val response = JSONObject(result.get())
 
         val identResponse = response.getJSONObject(ident)
-        val identer = identResponse.getJSONArray("identer")
 
-        return identer.map {
-            it as JSONObject
-        }.map {
-            Ident(it.getString("ident"), it.getEnum(IdentType::class.java, "identgruppe"))
+        return if (identResponse.isNull("identer")) {
+            OppslagResult.Feil(identResponse.getString("feilmelding"))
+        } else {
+            val identer = identResponse.getJSONArray("identer")
+
+            OppslagResult.Ok(identer.map {
+                it as JSONObject
+            }.map {
+                Ident(it.getString("ident"), it.getEnum(IdentType::class.java, "identgruppe"))
+            })
         }
     }
 
-    private fun gjeldendeIdent(ident: String, type: IdentType): String {
-        return gjeldendeIdenter(ident).first {
-            it.type == type
-        }.ident
+    private fun gjeldendeIdent(ident: String, type: IdentType): OppslagResult<String, String> {
+        return gjeldendeIdenter(ident).flatMap {
+            OppslagResult.Ok(it.first {
+                it.type == type
+            }.ident)
+        }
     }
 
-    fun gjeldendeAktørId(ident: String): String {
+    fun gjeldendeAktørId(ident: String): OppslagResult<String, String> {
         return gjeldendeIdent(ident, IdentType.AktoerId)
     }
 
-    fun gjeldendeNorskIdent(ident: String): String {
+    fun gjeldendeNorskIdent(ident: String): OppslagResult<String, String> {
         return gjeldendeIdent(ident, IdentType.NorskIdent)
     }
 }
