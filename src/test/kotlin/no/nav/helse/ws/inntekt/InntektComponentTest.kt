@@ -36,6 +36,114 @@ import java.time.YearMonth
 class InntektComponentTest {
 
     @Test
+    fun `feil returneres når fom ikke er satt`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom ikke er satt`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=2019-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når fom er ugyldig`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "fom must be specified as yyyy-mm"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=foo&tom=2019-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom er ugyldig`() {
+        val aktørId = AktørId("1831212532188")
+
+        val expected = """
+            {
+                "error": "tom must be specified as yyyy-mm"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}?fom=2019-01&tom=foo") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
     fun `skal svare med liste av inntekter`() {
         val inntektV3 = mockk<InntektV3>()
 
