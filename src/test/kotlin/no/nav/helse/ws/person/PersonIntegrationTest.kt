@@ -100,35 +100,6 @@ class PersonIntegrationTest {
             }
         }
     }
-
-    @Test
-    fun `skal svare med gyldig personhistorikk`() {
-        val aktørId = "1234567891011"
-
-        personStub(
-                server = server,
-                scenario = "person_hent_personhistorikk",
-                request = hentPersonhistorikkStub(aktørId),
-                response = WireMock.ok(hentPersonhistorikk_response)
-        ) { personClient ->
-            val fom = LocalDate.now().minusYears(3)
-            val tom = LocalDate.now()
-
-            val expected = Personhistorikk(AktørId(aktørId),
-                    listOf(TidsperiodeMedVerdi("NOR", LocalDate.parse("1920-09-01"), null)),
-                    listOf(TidsperiodeMedVerdi("BOSA", LocalDate.parse("1920-09-01"), null)),
-                    listOf(TidsperiodeMedVerdi("SANNERGATA 2, 0557", LocalDate.parse("1920-09-01"), null)))
-
-            val actual = personClient.personHistorikk(AktørId(aktørId), fom, tom)
-
-            when (actual) {
-                is OppslagResult.Ok -> {
-                    assertEquals(expected, actual.data)
-                }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
-            }
-        }
-    }
 }
 
 fun personStub(server: WireMockServer, scenario: String, response: ResponseDefinitionBuilder, request: MappingBuilder, test: (PersonClient) -> Unit) {

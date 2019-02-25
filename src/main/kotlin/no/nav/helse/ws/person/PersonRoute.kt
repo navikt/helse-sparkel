@@ -20,16 +20,6 @@ fun Route.person(personService: PersonService) {
         } ?: call.respond(HttpStatusCode.BadRequest, "An aktørid must be specified")
     }
 
-    get("api/person/{aktør}/history") {
-        call.parameters["aktør"]?.let { aktørid ->
-            val lookupResult = personService.personHistorikk(AktørId(aktørid))
-            when (lookupResult) {
-                is OppslagResult.Ok -> call.respond(lookupResult.data)
-                is OppslagResult.Feil -> call.respond(lookupResult.httpCode, lookupResult.feil)
-            }
-        } ?: call.respond(HttpStatusCode.BadRequest, "An aktørid must be specified")
-    }
-
     get("api/person/{aktør}/geografisk-tilknytning") {
         call.parameters["aktør"]?.let { aktoerId ->
             val lookupResult = personService.geografiskTilknytning(AktørId(aktoerId))

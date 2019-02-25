@@ -3,17 +3,13 @@ package no.nav.helse.ws.person
 import io.ktor.http.HttpStatusCode
 import no.nav.helse.Feil
 import no.nav.helse.OppslagResult
-import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Periode
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningRequest
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonhistorikkRequest
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 
 class PersonClient(private val personV3: PersonV3) {
 
@@ -32,27 +28,6 @@ class PersonClient(private val personV3: PersonV3) {
             OppslagResult.Ok(PersonMapper.toPerson(tpsResponse))
         } catch (ex: Exception) {
             log.error("Error while doing person lookup", ex)
-            OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
-        }
-    }
-
-    fun personHistorikk(id: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feil, Personhistorikk> {
-        val request = HentPersonhistorikkRequest().apply {
-            aktoer = AktoerId().apply {
-                aktoerId = id.aktor
-            }
-
-            periode = Periode().apply {
-                this.fom = fom.toXmlGregorianCalendar()
-                this.tom = tom.toXmlGregorianCalendar()
-            }
-        }
-
-        return try {
-            val tpsResponse = personV3.hentPersonhistorikk(request)
-            OppslagResult.Ok(PersonhistorikkMapper.toPersonhistorikk(tpsResponse))
-        } catch (ex: Exception) {
-            log.error("Error while doing personhistorikk lookup", ex)
             OppslagResult.Feil(HttpStatusCode.InternalServerError, Feil.Exception(ex.message ?: "unknown error", ex))
         }
     }
