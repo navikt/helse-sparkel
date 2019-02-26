@@ -10,15 +10,16 @@ class SakOgBehandlingClient(private val sakOgBehandling: SakOgBehandlingV1) {
     private val log = LoggerFactory.getLogger("SakOgBehandlingClient")
 
     fun finnSakOgBehandling(aktorId: String): OppslagResult<Exception, List<Sak>> {
-        val request = FinnSakOgBehandlingskjedeListeRequest()
-                .apply { this.aktoerREF = aktorId }
-                .apply { this.isKunAapneBehandlingskjeder = true }
+        val request = FinnSakOgBehandlingskjedeListeRequest().apply {
+            aktoerREF = aktorId
+            isKunAapneBehandlingskjeder = true
+        }
 
         return try {
             val saker = sakOgBehandling.finnSakOgBehandlingskjedeListe(request).sak.map(::mapSak)
             OppslagResult.Ok(saker)
         } catch (ex: Exception) {
-            log.error("Error while doing sak og behndling lookup", ex)
+            log.error("Error while doing sak og behandling lookup", ex)
             OppslagResult.Feil(ex)
         }
     }
