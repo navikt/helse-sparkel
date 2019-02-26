@@ -83,7 +83,7 @@ object InntektMapper {
     }
 
     private fun fjernOpptjeningsperioderUtenforPeriode(fom: YearMonth, tom: YearMonth) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
-        inntekt.opptjeningsperiode.startDato.toLocalDate() >= fom.atDay(1)
+        inntekt.opptjeningsperiode != null && inntekt.opptjeningsperiode.startDato.toLocalDate() >= fom.atDay(1)
                 && inntekt.opptjeningsperiode.sluttDato.toLocalDate() <= tom.atEndOfMonth()
     }
 

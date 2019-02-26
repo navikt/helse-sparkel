@@ -228,6 +228,64 @@ class InntektMapperTest {
     }
 
     @Test
+    fun `skal ta bort inntekter som ikke har opptjeningsperiode`() {
+        val aktørId = AktørId("11987654321")
+        val tom = YearMonth.now()
+        val fom = tom.minusMonths(1)
+
+        val expected = listOf(
+                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()), BigDecimal.valueOf(1500))
+        )
+
+        val mapper = InntektMapper.mapToInntekt(aktørId, fom, tom)
+
+        val inntekter = HentInntektListeBolkResponse().apply {
+            with(arbeidsInntektIdentListe) {
+                add(ArbeidsInntektIdent().apply {
+                    with(arbeidsInntektMaaned) {
+                        add(ArbeidsInntektMaaned().apply {
+                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
+                                with(inntektListe) {
+                                    add(Inntekt().apply {
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "5678910"
+                                        }
+                                        beloep = BigDecimal.valueOf(1500)
+                                    })
+                                    add(Inntekt().apply {
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        opptjeningsperiode = Periode().apply {
+                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
+                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
+                                        }
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "5678910"
+                                        }
+                                        beloep = BigDecimal.valueOf(1500)
+                                    })
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        }
+
+        val actual = inntekter.let(mapper)
+
+        assertEquals(expected.size, actual.size)
+        expected.forEachIndexed { key, inntekt ->
+            assertEquals(inntekt, actual[key])
+        }
+    }
+
+    @Test
     fun `skal ta bort inntekter med ugyldig opptjeningsperiode`() {
         val aktørId = AktørId("11987654321")
         val tom = YearMonth.now()
