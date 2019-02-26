@@ -26,6 +26,7 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntektsstatuse
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsbeskrivelse
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsinntekt
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -193,6 +194,10 @@ class InntektComponentTest {
                                         }
                                         beskrivelse = Loennsbeskrivelse().apply {
                                             value = "fastloenn"
+                                        }
+                                        opptjeningsperiode = Periode().apply {
+                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
+                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                     })
                                 }
@@ -414,6 +419,10 @@ class InntektComponentTest {
                                         beskrivelse = Loennsbeskrivelse().apply {
                                             value = "fastloenn"
                                         }
+                                        opptjeningsperiode = Periode().apply {
+                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
+                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
+                                        }
                                     })
                                 }
                             }
@@ -478,67 +487,16 @@ class InntektComponentTest {
 
 private val expectedJson = """
 {
-  "sikkerhetsavvikListe": [],
-  "arbeidsInntektIdentListe": [
-    {
-      "ident": {
-        "aktoerId": "11987654321"
-      },
-      "arbeidsInntektMaaned": [
-        {
-          "arbeidsInntektInformasjon": {
-            "inntektListe": [
-              {
-                "utloeserArbeidsgiveravgift": true,
-                "inntektsmottaker": {
-                  "aktoerId": "11987654321"
-                },
-                "opplysningspliktig": {
-                  "orgnummer": "11223344"
-                },
-                "informasjonsstatus": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Informasjonsstatuser",
-                  "value": "InngaarAlltid"
-                },
-                "virksomhet": {
-                  "orgnummer": "11223344"
-                },
-                "beloep": 2500,
-                "levereringstidspunkt": "2019-01-01T00:00:00.000Z",
-                "inntektsstatus": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Inntektsstatuser",
-                  "value": "LoependeInnrapportert"
-                },
-                "inngaarIGrunnlagForTrekk": true,
-                "inntektsperiodetype": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Inntektsperiodetyper",
-                  "value": "Maaned"
-                },
-                "fordel": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Fordel",
-                  "value": "kontantytelse"
-                },
-                "beskrivelse": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/Loennsbeskrivelse",
-                  "value": "fastloenn"
-                },
-                "inntektskilde": {
-                  "kodeverksRef": "http://nav.no/kodeverk/Kodeverk/InntektsInformasjonsopphav",
-                  "value": "A-ordningen"
-                },
-                "utbetaltIPeriode": "2019-01-01T00:00:00.000Z"
-              }
-            ],
-            "arbeidsforholdListe": [],
-            "forskuddstrekkListe": [],
-            "fradragListe": []
-          },
-          "aarMaaned": "2019-01-01T00:00:00.000Z",
-          "avvikListe": []
+    "inntekter": [{
+        "arbeidsgiver": {
+            "orgnr": "11223344"
+        },
+        "beløp": 2500,
+        "opptjeningsperiode": {
+            "tom": "2019-01-31",
+            "fom": "2019-01-01"
         }
-      ]
-    }
-  ]
+    }]
 }
 """.trimIndent()
 
