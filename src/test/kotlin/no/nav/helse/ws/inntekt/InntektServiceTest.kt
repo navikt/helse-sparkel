@@ -11,6 +11,8 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektI
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -48,27 +50,11 @@ class InntektServiceTest {
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
-        val expected = HentInntektListeBolkResponse().apply {
-            with (arbeidsInntektIdentListe) {
-                add(ArbeidsInntektIdent().apply {
-                    ident = AktoerId().apply {
-                        aktoerId = aktør.aktor
-                    }
-                    with (arbeidsInntektMaaned) {
-                        add(ArbeidsInntektMaaned().apply {
-                            aarMaaned = fom.toXmlGregorianCalendar()
-                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
-                                with (inntektListe) {
-                                    add(Inntekt().apply {
-                                        beloep = BigDecimal.valueOf(2500)
-                                    })
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-        }
+        val expected = listOf(
+                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("12345"),
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
+                        BigDecimal.valueOf(2500))
+        )
 
         val inntektClient = mockk<InntektClient>()
         every {
@@ -86,6 +72,16 @@ class InntektServiceTest {
                                 with (inntektListe) {
                                     add(Inntekt().apply {
                                         beloep = BigDecimal.valueOf(2500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktør.aktor
+                                        }
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "12345"
+                                        }
+                                        opptjeningsperiode = Periode().apply {
+                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
+                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
+                                        }
                                     })
                                 }
                             }
@@ -101,27 +97,9 @@ class InntektServiceTest {
 
         when (actual) {
             is OppslagResult.Ok -> {
-                assertEquals(expected.arbeidsInntektIdentListe.size, actual.data.arbeidsInntektIdentListe.size)
-                expected.arbeidsInntektIdentListe.forEachIndexed { index, arbeidsInntektIdent ->
-                    val actualArbeidsInntektIdent = actual.data.arbeidsInntektIdentListe[index]
-
-                    assertTrue(actualArbeidsInntektIdent.ident is AktoerId)
-                    assertEquals((arbeidsInntektIdent.ident as AktoerId).aktoerId, (actualArbeidsInntektIdent.ident as AktoerId).aktoerId)
-
-                    assertEquals(arbeidsInntektIdent.arbeidsInntektMaaned.size, actualArbeidsInntektIdent.arbeidsInntektMaaned.size)
-
-                    arbeidsInntektIdent.arbeidsInntektMaaned.forEachIndexed { index, arbeidsInntektMaaned ->
-                        val actualArbeidsInntektMaaned = actualArbeidsInntektIdent.arbeidsInntektMaaned[index]
-
-                        assertEquals(arbeidsInntektMaaned.aarMaaned, actualArbeidsInntektMaaned.aarMaaned)
-                        assertEquals(arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size, actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size)
-
-                        arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.forEachIndexed { index, inntekt ->
-                            val actualInntekt = actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe[index]
-
-                            assertEquals(inntekt.beloep, actualInntekt.beloep)
-                        }
-                    }
+                assertEquals(expected.size, actual.data.size)
+                expected.forEachIndexed { index, inntekt ->
+                    assertEquals(inntekt, actual.data[index])
                 }
             }
             is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
@@ -156,27 +134,11 @@ class InntektServiceTest {
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
-        val expected = HentInntektListeBolkResponse().apply {
-            with (arbeidsInntektIdentListe) {
-                add(ArbeidsInntektIdent().apply {
-                    ident = AktoerId().apply {
-                        aktoerId = aktør.aktor
-                    }
-                    with (arbeidsInntektMaaned) {
-                        add(ArbeidsInntektMaaned().apply {
-                            aarMaaned = fom.toXmlGregorianCalendar()
-                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
-                                with (inntektListe) {
-                                    add(Inntekt().apply {
-                                        beloep = BigDecimal.valueOf(2500)
-                                    })
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-        }
+        val expected = listOf(
+                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("12345"),
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
+                        BigDecimal.valueOf(2500))
+        )
 
         val inntektClient = mockk<InntektClient>()
         every {
@@ -194,6 +156,16 @@ class InntektServiceTest {
                                 with (inntektListe) {
                                     add(Inntekt().apply {
                                         beloep = BigDecimal.valueOf(2500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktør.aktor
+                                        }
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "12345"
+                                        }
+                                        opptjeningsperiode = Periode().apply {
+                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
+                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
+                                        }
                                     })
                                 }
                             }
@@ -209,27 +181,9 @@ class InntektServiceTest {
 
         when (actual) {
             is OppslagResult.Ok -> {
-                assertEquals(expected.arbeidsInntektIdentListe.size, actual.data.arbeidsInntektIdentListe.size)
-                expected.arbeidsInntektIdentListe.forEachIndexed { index, arbeidsInntektIdent ->
-                    val actualArbeidsInntektIdent = actual.data.arbeidsInntektIdentListe[index]
-
-                    assertTrue(actualArbeidsInntektIdent.ident is AktoerId)
-                    assertEquals((arbeidsInntektIdent.ident as AktoerId).aktoerId, (actualArbeidsInntektIdent.ident as AktoerId).aktoerId)
-
-                    assertEquals(arbeidsInntektIdent.arbeidsInntektMaaned.size, actualArbeidsInntektIdent.arbeidsInntektMaaned.size)
-
-                    arbeidsInntektIdent.arbeidsInntektMaaned.forEachIndexed { index, arbeidsInntektMaaned ->
-                        val actualArbeidsInntektMaaned = actualArbeidsInntektIdent.arbeidsInntektMaaned[index]
-
-                        assertEquals(arbeidsInntektMaaned.aarMaaned, actualArbeidsInntektMaaned.aarMaaned)
-                        assertEquals(arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size, actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size)
-
-                        arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.forEachIndexed { index, inntekt ->
-                            val actualInntekt = actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe[index]
-
-                            assertEquals(inntekt.beloep, actualInntekt.beloep)
-                        }
-                    }
+                assertEquals(expected.size, actual.data.size)
+                expected.forEachIndexed { index, inntekt ->
+                    assertEquals(inntekt, actual.data[index])
                 }
             }
             is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }

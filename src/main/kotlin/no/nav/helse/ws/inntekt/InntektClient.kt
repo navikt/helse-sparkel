@@ -26,7 +26,7 @@ class InntektClient(private val inntektV3: InntektV3) {
                 aktoerId = aktørId.aktor
             })
             formaal = Formaal().apply {
-                value = "Sykepenger"
+                value = "Foreldrepenger"
             }
             ainntektsfilter = Ainntektsfilter().apply {
                 value = filter

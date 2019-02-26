@@ -57,7 +57,7 @@ class InntektIntegrationTest {
         val tom = YearMonth.parse("2019-01")
 
         val filter = "8-28"
-        val formål = "Sykepenger"
+        val formål = "Foreldrepenger"
 
         inntektStub(
                 server = server,
@@ -86,7 +86,7 @@ class InntektIntegrationTest {
         val tom = YearMonth.parse("2019-01")
 
         val filter = "8-28"
-        val formål = "Sykepenger"
+        val formål = "Foreldrepenger"
 
         inntektStub(
                 server = server,
@@ -113,7 +113,7 @@ class InntektIntegrationTest {
         val tom = YearMonth.parse("2019-01")
 
         val filter = "8-30"
-        val formål = "Sykepenger"
+        val formål = "Foreldrepenger"
 
         inntektStub(
                 server = server,
@@ -142,7 +142,7 @@ class InntektIntegrationTest {
         val tom = YearMonth.parse("2019-01")
 
         val filter = "8-30"
-        val formål = "Sykepenger"
+        val formål = "Foreldrepenger"
 
         inntektStub(
                 server = server,

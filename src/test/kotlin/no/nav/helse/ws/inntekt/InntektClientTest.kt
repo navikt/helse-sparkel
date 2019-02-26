@@ -46,6 +46,9 @@ class InntektClientTest {
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
+        val formål = "Foreldrepenger"
+        val filter = "8-28"
+
         val expected = HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
@@ -73,8 +76,8 @@ class InntektClientTest {
             inntektV3.hentInntektListeBolk(match {
                 it.identListe.size == 1 && it.identListe[0] is AktoerId
                         && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
-                        && it.formaal.value == "Sykepenger"
-                        && it.ainntektsfilter.value == "8-28"
+                        && it.formaal.value == formål
+                        && it.ainntektsfilter.value == filter
                         && it.uttrekksperiode.maanedFom == fom.toXmlGregorianCalendar()
                         && it .uttrekksperiode.maanedTom == tom.toXmlGregorianCalendar()
                 })
@@ -157,6 +160,9 @@ class InntektClientTest {
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
+        val formål = "Foreldrepenger"
+        val filter = "8-30"
+
         val expected = HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
@@ -184,8 +190,8 @@ class InntektClientTest {
             inntektV3.hentInntektListeBolk(match {
                 it.identListe.size == 1 && it.identListe[0] is AktoerId
                         && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
-                        && it.formaal.value == "Sykepenger"
-                        && it.ainntektsfilter.value == "8-30"
+                        && it.formaal.value == formål
+                        && it.ainntektsfilter.value == filter
                         && it.uttrekksperiode.maanedFom == fom.toXmlGregorianCalendar()
                         && it .uttrekksperiode.maanedTom == tom.toXmlGregorianCalendar()
             })

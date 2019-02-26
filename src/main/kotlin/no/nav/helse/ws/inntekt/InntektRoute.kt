@@ -12,7 +12,6 @@ import no.nav.helse.HttpFeil
 import no.nav.helse.OppslagResult
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
-import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
@@ -31,7 +30,7 @@ fun Route.inntekt(inntektService: InntektService) {
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (AktørId, YearMonth, YearMonth) -> OppslagResult<Feilårsak, HentInntektListeBolkResponse>): Unit {
+private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (AktørId, YearMonth, YearMonth) -> OppslagResult<Feilårsak, List<Inntekt>>) {
     if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
         call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom"))
     } else {
@@ -50,8 +49,10 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
 
         val lookupResult = f(AktørId(call.parameters["aktorId"]!!), fom, tom)
         when (lookupResult) {
-            is OppslagResult.Ok -> call.respond(lookupResult.data)
+            is OppslagResult.Ok -> call.respond(InntektResponse(lookupResult.data))
             is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
         }
     }
 }
+
+data class InntektResponse(val inntekter: List<Inntekt>)
