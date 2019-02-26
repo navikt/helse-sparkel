@@ -116,14 +116,14 @@ class InntektClientTest {
 
                     assertEquals(arbeidsInntektIdent.arbeidsInntektMaaned.size, actualArbeidsInntektIdent.arbeidsInntektMaaned.size)
 
-                    arbeidsInntektIdent.arbeidsInntektMaaned.forEachIndexed { index, arbeidsInntektMaaned ->
-                        val actualArbeidsInntektMaaned = actualArbeidsInntektIdent.arbeidsInntektMaaned[index]
+                    arbeidsInntektIdent.arbeidsInntektMaaned.forEachIndexed { maanedIdx, arbeidsInntektMaaned ->
+                        val actualArbeidsInntektMaaned = actualArbeidsInntektIdent.arbeidsInntektMaaned[maanedIdx]
 
                         assertEquals(arbeidsInntektMaaned.aarMaaned, actualArbeidsInntektMaaned.aarMaaned)
                         assertEquals(arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size, actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size)
 
-                        arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.forEachIndexed { index, inntekt ->
-                            val actualInntekt = actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe[index]
+                        arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.forEachIndexed { inntektlisteIdx, inntekt ->
+                            val actualInntekt = actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe[inntektlisteIdx]
 
                             assertEquals(inntekt.beloep, actualInntekt.beloep)
                         }
@@ -230,14 +230,14 @@ class InntektClientTest {
 
                     assertEquals(arbeidsInntektIdent.arbeidsInntektMaaned.size, actualArbeidsInntektIdent.arbeidsInntektMaaned.size)
 
-                    arbeidsInntektIdent.arbeidsInntektMaaned.forEachIndexed { index, arbeidsInntektMaaned ->
-                        val actualArbeidsInntektMaaned = actualArbeidsInntektIdent.arbeidsInntektMaaned[index]
+                    arbeidsInntektIdent.arbeidsInntektMaaned.forEachIndexed { maanedIdx, arbeidsInntektMaaned ->
+                        val actualArbeidsInntektMaaned = actualArbeidsInntektIdent.arbeidsInntektMaaned[maanedIdx]
 
                         assertEquals(arbeidsInntektMaaned.aarMaaned, actualArbeidsInntektMaaned.aarMaaned)
                         assertEquals(arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size, actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.size)
 
-                        arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.forEachIndexed { index, inntekt ->
-                            val actualInntekt = actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe[index]
+                        arbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe.forEachIndexed { inntektlisteIdx, inntekt ->
+                            val actualInntekt = actualArbeidsInntektMaaned.arbeidsInntektInformasjon.inntektListe[inntektlisteIdx]
 
                             assertEquals(inntekt.beloep, actualInntekt.beloep)
                         }
