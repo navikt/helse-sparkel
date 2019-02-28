@@ -36,10 +36,24 @@ fun <A, B, C> Either<A, B>.map(ifRight: (B) -> C) =
         Either.Right(ifRight(it))
     }
 
+fun <A, B, C> Either<A, B>.mapLeft(ifLeft: (A) -> C) =
+    fold({
+        Either.Left(ifLeft(it))
+    }) {
+        Either.Right(it)
+    }
+
 fun <A, B, C> Either<A, B>.flatMap(ifRight: (B) -> Either<A, C>) =
     when (this) {
         is Either.Right -> ifRight(this.right)
         is Either.Left -> this
+    }
+
+fun <A, B, C, D> Either<A, B>.bimap(ifLeft: (A) -> C, ifRight: (B) -> D) =
+    fold({
+        Either.Left(ifLeft(it))
+    }) {
+        Either.Right(ifRight(it))
     }
 
 fun <A, B, C> Either<A, B>.fold(ifLeft: (A) -> C, ifRight: (B) -> C) =

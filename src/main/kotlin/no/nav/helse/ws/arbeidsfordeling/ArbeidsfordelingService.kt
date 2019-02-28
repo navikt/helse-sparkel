@@ -2,6 +2,7 @@ package no.nav.helse.ws.arbeidsfordeling
 
 import no.nav.helse.Either
 import no.nav.helse.Feilårsak
+import no.nav.helse.mapLeft
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonService
@@ -40,15 +41,11 @@ class ArbeidsfordelingService(
                 forMedAktoerer = geografiskTilknytningMedAktoerer.toList()
         )
 
-        val result = arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema)
-        return when (result) {
-            is Either.Right -> result
-            is Either.Left -> {
-                Either.Left(when (result.left) {
-                    is IngenEnhetFunnetException -> Feilårsak.IkkeFunnet
-                    is FinnBehandlendeEnhetListeUgyldigInput -> Feilårsak.FeilFraTjeneste
-                    else -> Feilårsak.UkjentFeil
-                })
+        return arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema).mapLeft {
+            when (it) {
+                is IngenEnhetFunnetException -> Feilårsak.IkkeFunnet
+                is FinnBehandlendeEnhetListeUgyldigInput -> Feilårsak.FeilFraTjeneste
+                else -> Feilårsak.UkjentFeil
             }
         }
     }

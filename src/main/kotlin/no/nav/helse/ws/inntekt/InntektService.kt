@@ -1,9 +1,9 @@
 package no.nav.helse.ws.inntekt
 
-import no.nav.helse.Feilårsak
 import no.nav.helse.Either
+import no.nav.helse.Feilårsak
+import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
-import no.nav.helse.map
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
@@ -24,19 +24,14 @@ class InntektService(private val inntektClient: InntektClient) {
         inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
     }
 
-    private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>): Either<Feilårsak, List<Inntekt>> {
-        val lookupResult = f()
-        return when (lookupResult) {
-            is Either.Right -> lookupResult.map(InntektMapper.mapToInntekt(aktørId, fom, tom))
-            is Either.Left -> {
-                Either.Left(when (lookupResult.left) {
-                    is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
-                    is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
-                    else -> Feilårsak.UkjentFeil
-                })
+    private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =
+            f().bimap({
+            when (it) {
+                is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
+                is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
+                else -> Feilårsak.UkjentFeil
             }
-        }
-    }
+        }, InntektMapper.mapToInntekt(aktørId, fom, tom))
 }
 
 class UgyldigOpptjeningsperiodeException(message: String) : Exception(message)

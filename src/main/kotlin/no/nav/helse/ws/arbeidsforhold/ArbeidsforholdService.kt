@@ -1,7 +1,8 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.Feilårsak
 import no.nav.helse.Either
+import no.nav.helse.Feilårsak
+import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
 import no.nav.helse.orElse
@@ -16,35 +17,27 @@ import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
-    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Feilårsak, List<Arbeidsforhold>> {
-        val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-
-        return when (lookupResult) {
-            is Either.Left -> {
-                Either.Left(when (lookupResult.left) {
+    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).bimap({
+                when (it) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
-                })
-            }
-            is Either.Right -> {
-                lookupResult.map { list ->
-                    list.map { arbeidsforhold ->
-                        Arbeidsforhold(arbeidsforhold.arbeidsgiver.let { aktør ->
-                            when (aktør) {
-                                is Organisasjon -> {
-                                    val navn = aktør.navn ?: organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer(aktør.orgnummer)).orElse { "FEIL VED HENTING AV NAVN" }
-                                    Arbeidsgiver.Organisasjon(aktør.orgnummer, navn)
-                                }
-
-                                else -> Arbeidsgiver.Organisasjon("0000000000", "UKJENT ARBEIDSGIVERTYPE")
-                            }
-                        }, arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(), arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate())
-                    }
                 }
-            }
-        }
-    }
+            }, {
+                it.map { arbeidsforhold ->
+                    Arbeidsforhold(arbeidsforhold.arbeidsgiver.let { aktør ->
+                        when (aktør) {
+                            is Organisasjon -> {
+                                val navn = aktør.navn ?: organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer(aktør.orgnummer)).orElse { "FEIL VED HENTING AV NAVN" }
+                                Arbeidsgiver.Organisasjon(aktør.orgnummer, navn)
+                            }
+
+                            else -> Arbeidsgiver.Organisasjon("0000000000", "UKJENT ARBEIDSGIVERTYPE")
+                        }
+                    }, arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(), arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate())
+                }
+            })
 
     fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Feilårsak, List<Arbeidsgiver>> {
         val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)

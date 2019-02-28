@@ -2,14 +2,18 @@ package no.nav.helse.ws.arbeidsforhold
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feilårsak
 import no.nav.helse.Either
+import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonResponse
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.OrganisasjonsAttributt
 import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.AnsettelsesPeriode
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Gyldighetsperiode
@@ -225,6 +229,54 @@ class ArbeidsforholdServiceTest {
     }
 
     @Test
+    fun `skal mappe sikkerhetsbegrensning til feilårsak`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
+        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
+                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe ugyldig input til feilårsak`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
+        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
+                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe exceptions til feilårsak`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
+        } returns Either.Left(Exception("Fault"))
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
+                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
     fun `skal returnere feil når arbeidsforholdoppslag gir feil`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         val organisasjonService = mockk<OrganisasjonService>()
@@ -434,6 +486,55 @@ class ArbeidsforholdServiceTest {
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe sikkerhetsbegrensning til feilårsak for arbeidsgiveroppslag`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
+        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
+
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
+                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe ugyldig input til feilårsak for arbeidsgiveroppslag`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
+        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
+                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe exceptions til feilårsak for arbeidsgiveroppslag`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
+        } returns Either.Left(Exception("Fault"))
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
+                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
 }
