@@ -128,6 +128,7 @@ fun Application.sparkel(
         filter {
             it.request.path() != "/isready"
                     && it.request.path() != "/isalive"
+                    && it.request.path() != "/metrics"
         }
     }
 
