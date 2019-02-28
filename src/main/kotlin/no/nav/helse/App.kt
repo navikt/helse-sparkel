@@ -14,6 +14,7 @@ import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.callIdMdc
 import io.ktor.http.ContentType
+import io.ktor.request.path
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -43,7 +44,7 @@ import no.nav.helse.ws.sykepenger.SykepengelisteService
 import no.nav.helse.ws.sykepenger.sykepengeListe
 import org.slf4j.event.Level
 import java.net.URL
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
@@ -124,6 +125,10 @@ fun Application.sparkel(
     install(CallLogging) {
         level = Level.INFO
         callIdMdc("call_id")
+        filter {
+            it.request.path() != "/isready"
+                    && it.request.path() != "/isalive"
+        }
     }
 
     install(ContentNegotiation) {
