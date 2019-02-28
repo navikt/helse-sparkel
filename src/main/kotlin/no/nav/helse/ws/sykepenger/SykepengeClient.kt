@@ -1,6 +1,6 @@
 package no.nav.helse.ws.sykepenger
 
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.Fødselsnummer
@@ -18,14 +18,14 @@ class SykepengerClient(private val sykepenger: SykepengerV2) {
 
     private val log = LoggerFactory.getLogger("SykepengeClient")
 
-    fun finnSykepengeVedtak(fnr: Fødselsnummer, fraOgMed: LocalDate, tilOgMed: LocalDate): OppslagResult<Exception, Collection<SykepengerVedtak>> {
+    fun finnSykepengeVedtak(fnr: Fødselsnummer, fraOgMed: LocalDate, tilOgMed: LocalDate): Either<Exception, Collection<SykepengerVedtak>> {
         val request = createSykepengerListeRequest(fnr.value, fraOgMed, tilOgMed)
         return try {
             val remoteResult = sykepenger.hentSykepengerListe(request)
-            OppslagResult.Ok(remoteResult.toSykepengerVedtak(fnr.value))
+            Either.Right(remoteResult.toSykepengerVedtak(fnr.value))
         } catch (ex: Exception) {
             log.error("Error while doing sak og behndling lookup", ex)
-            OppslagResult.Feil(ex)
+            Either.Left(ex)
         }
     }
 

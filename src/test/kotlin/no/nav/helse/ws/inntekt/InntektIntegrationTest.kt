@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.WsClients
@@ -68,13 +68,13 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is OppslagResult.Feil -> {
-                    when (actual.feil) {
-                        is SOAPFaultException -> assertEquals("SOAP fault", actual.feil.message)
+                is Either.Left -> {
+                    when (actual.left) {
+                        is SOAPFaultException -> assertEquals("SOAP fault", actual.left.message)
                         else -> fail { "Expected SOAPFaultException to be returned" }
                     }
                 }
-                is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
             }
         }
     }
@@ -97,11 +97,11 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is OppslagResult.Ok -> {
-                    assertEquals(1, actual.data.arbeidsInntektIdentListe.size)
-                    assertEquals(2, actual.data.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
+                is Either.Right -> {
+                    assertEquals(1, actual.right.arbeidsInntektIdentListe.size)
+                    assertEquals(2, actual.right.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
                 }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
     }
@@ -124,13 +124,13 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is OppslagResult.Feil -> {
-                    when (actual.feil) {
-                        is SOAPFaultException -> assertEquals("SOAP fault", actual.feil.message)
+                is Either.Left -> {
+                    when (actual.left) {
+                        is SOAPFaultException -> assertEquals("SOAP fault", actual.left.message)
                         else -> fail { "Expected SOAPFaultException to be returned" }
                     }
                 }
-                is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
             }
         }
     }
@@ -153,11 +153,11 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is OppslagResult.Ok -> {
-                    assertEquals(1, actual.data.arbeidsInntektIdentListe.size)
-                    assertEquals(2, actual.data.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
+                is Either.Right -> {
+                    assertEquals(1, actual.right.arbeidsInntektIdentListe.size)
+                    assertEquals(2, actual.right.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
                 }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
     }

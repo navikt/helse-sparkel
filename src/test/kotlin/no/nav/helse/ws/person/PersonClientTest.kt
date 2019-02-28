@@ -3,7 +3,7 @@ package no.nav.helse.ws.person
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
@@ -43,8 +43,8 @@ class PersonClientTest {
         }
 
         when (result) {
-            is OppslagResult.Feil -> assertEquals("SOAP fault", result.feil.message)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertEquals("SOAP fault", result.left.message)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -113,8 +113,8 @@ class PersonClientTest {
         )
 
         when (result) {
-            is OppslagResult.Ok -> assertEquals(expected, result.data)
-            else -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Right -> assertEquals(expected, result.right)
+            else -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -134,8 +134,8 @@ class PersonClientTest {
         }
 
         when (result) {
-            is OppslagResult.Feil -> assertEquals("SOAP fault", result.feil.message)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertEquals("SOAP fault", result.left.message)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -174,8 +174,8 @@ class PersonClientTest {
         val expected = GeografiskTilknytning(null, GeografiskOmraade("BYDEL", "030103"))
 
         when (result) {
-            is OppslagResult.Ok -> assertEquals(expected, result.data)
-            else -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Right -> assertEquals(expected, result.right)
+            else -> fail { "Expected Either.Right to be returned" }
         }
     }
 }

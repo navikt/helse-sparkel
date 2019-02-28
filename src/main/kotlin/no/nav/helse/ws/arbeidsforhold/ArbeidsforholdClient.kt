@@ -1,6 +1,6 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
@@ -27,7 +27,7 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                 it.toList()
             }
 
-    private fun finnArbeidsforholdForFnr(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Exception, FinnArbeidsforholdPrArbeidstakerResponse> {
+    private fun finnArbeidsforholdForFnr(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Exception, FinnArbeidsforholdPrArbeidstakerResponse> {
         val request = FinnArbeidsforholdPrArbeidstakerRequest()
                 .apply {
                     ident = NorskIdent().apply { ident = aktørId.aktor }
@@ -41,10 +41,10 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                     }
                 }
         return try {
-            OppslagResult.Ok(arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request))
+            Either.Right(arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(request))
         } catch (ex: Exception) {
             log.error("Error while doing arbeidsforhold lookup", ex)
-            OppslagResult.Feil(ex)
+            Either.Left(ex)
         }
     }
 }

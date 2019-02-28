@@ -1,7 +1,7 @@
 package no.nav.helse.ws.organisasjon
 
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.map
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentNoekkelinfoOrganisasjonOrganisasjonIkkeFunnet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentNoekkelinfoOrganisasjonUgyldigInput
@@ -11,12 +11,12 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
     fun hentOrganisasjonnavn(orgnr: OrganisasjonsNummer) = hentOrganisasjon(orgnr, listOf(OrganisasjonsAttributt("navn"))).map {
         it.navn ?: ""
     }
-    fun hentOrganisasjon(orgnr: OrganisasjonsNummer, attributter : List<OrganisasjonsAttributt>): OppslagResult<Feilårsak, OrganisasjonResponse> {
+    fun hentOrganisasjon(orgnr: OrganisasjonsNummer, attributter : List<OrganisasjonsAttributt>): Either<Feilårsak, OrganisasjonResponse> {
         val lookupResult = organisasjonsClient.hentOrganisasjon(orgnr, attributter)
         return when (lookupResult) {
-            is OppslagResult.Ok -> lookupResult
-            is OppslagResult.Feil -> {
-                OppslagResult.Feil(when (lookupResult.feil) {
+            is Either.Right -> lookupResult
+            is Either.Left -> {
+                Either.Left(when (lookupResult.left) {
                     is HentNoekkelinfoOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
                     is HentNoekkelinfoOrganisasjonUgyldigInput -> Feilårsak.FeilFraTjeneste
                     is UkjentAttributtException -> Feilårsak.IkkeImplementert

@@ -3,7 +3,7 @@ package no.nav.helse.ws.arbeidsforhold
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonResponse
@@ -63,19 +63,19 @@ class ArbeidsforholdServiceTest {
                 }
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -104,23 +104,23 @@ class ArbeidsforholdServiceTest {
                 }
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
             organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
-        } returns OppslagResult.Ok("MATBUTIKKEN AS")
+        } returns Either.Right("MATBUTIKKEN AS")
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -149,23 +149,23 @@ class ArbeidsforholdServiceTest {
                 }
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
             organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
-        } returns OppslagResult.Feil(Feilårsak.FeilFraTjeneste)
+        } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -208,19 +208,19 @@ class ArbeidsforholdServiceTest {
                 }
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -235,13 +235,13 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns OppslagResult.Feil(Exception("SOAP fault"))
+        } returns Either.Left(Exception("SOAP fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
-            is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -272,19 +272,19 @@ class ArbeidsforholdServiceTest {
                 navn = "MATBUTIKKEN AS"
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -315,25 +315,25 @@ class ArbeidsforholdServiceTest {
                 navn = null
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
             organisasjonService.hentOrganisasjon(OrganisasjonsNummer("66778899"), listOf(OrganisasjonsAttributt("navn")))
         } returns OrganisasjonResponse("MATBUTIKKEN AS").let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -348,13 +348,13 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns OppslagResult.Feil(Exception("SOAP fault"))
+        } returns Either.Left(Exception("SOAP fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
-            is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -380,18 +380,18 @@ class ArbeidsforholdServiceTest {
                 navn = null
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
             organisasjonService.hentOrganisasjon(any(), any())
-        } returns OppslagResult.Feil(Feilårsak.FeilFraTjeneste)
+        } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.FeilFraTjeneste)
-            is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertTrue(actual.left is Feilårsak.FeilFraTjeneste)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -421,19 +421,19 @@ class ArbeidsforholdServiceTest {
                 navn = "S. VINDEL & SØNN"
             }
         }).let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.data[index])
+                    assertEquals(value, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 }

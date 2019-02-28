@@ -1,7 +1,7 @@
 package no.nav.helse.ws.arbeidsfordeling
 
+import no.nav.helse.Either
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonService
@@ -15,22 +15,22 @@ class ArbeidsfordelingService(
             hovedAktoer: AktørId,
             medAktoerer: List<AktørId> = listOf(),
             tema: Tema
-    ) : OppslagResult<Feilårsak, Enhet> {
+    ) : Either<Feilårsak, Enhet> {
         // Geografisk tilknytning for Hovedaktør
         val geografiskTilknytningHovedAktoerOppslagResponse = personService.geografiskTilknytning(hovedAktoer)
-        if (geografiskTilknytningHovedAktoerOppslagResponse is OppslagResult.Feil) {
+        if (geografiskTilknytningHovedAktoerOppslagResponse is Either.Left) {
             return geografiskTilknytningHovedAktoerOppslagResponse
         }
-        val geografiskTilknytningHovedAktoer = (geografiskTilknytningHovedAktoerOppslagResponse as OppslagResult.Ok).data
+        val geografiskTilknytningHovedAktoer = (geografiskTilknytningHovedAktoerOppslagResponse as Either.Right).right
 
         // Geografisk tilknytning for eventuelle Medaktører
         val geografiskTilknytningMedAktoerer = mutableListOf<GeografiskTilknytning>()
         medAktoerer.forEach { medAktoer ->
             val geografiskTilknytningMedAktoerOppslagResponse = personService.geografiskTilknytning(medAktoer)
-            if (geografiskTilknytningMedAktoerOppslagResponse is OppslagResult.Feil) {
+            if (geografiskTilknytningMedAktoerOppslagResponse is Either.Left) {
                 return geografiskTilknytningMedAktoerOppslagResponse
             }
-            val geografiskTilknytningMedAktoer = (geografiskTilknytningMedAktoerOppslagResponse as OppslagResult.Ok).data
+            val geografiskTilknytningMedAktoer = (geografiskTilknytningMedAktoerOppslagResponse as Either.Right).right
             geografiskTilknytningMedAktoerer.add(geografiskTilknytningMedAktoer)
         }
 
@@ -42,9 +42,9 @@ class ArbeidsfordelingService(
 
         val result = arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema)
         return when (result) {
-            is OppslagResult.Ok -> result
-            is OppslagResult.Feil -> {
-                OppslagResult.Feil(when (result.feil) {
+            is Either.Right -> result
+            is Either.Left -> {
+                Either.Left(when (result.left) {
                     is IngenEnhetFunnetException -> Feilårsak.IkkeFunnet
                     is FinnBehandlendeEnhetListeUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil

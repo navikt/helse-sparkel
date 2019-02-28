@@ -4,7 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.Diskresjonskode
 import no.nav.helse.ws.person.GeografiskOmraade
@@ -19,7 +19,7 @@ class ArbeidsfordelingServiceTest {
     fun `skal returnere feil når personoppslag for hovedaktør gir feil`() {
         val aktørId = AktørId("1831212532200")
         val tema = Tema("SYK")
-        val expected = OppslagResult.Feil(Feilårsak.UkjentFeil)
+        val expected = Either.Left(Feilårsak.UkjentFeil)
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
         val personService = mockk<PersonService>()
@@ -39,10 +39,10 @@ class ArbeidsfordelingServiceTest {
         }
 
         when (actual) {
-            is OppslagResult.Feil -> {
+            is Either.Left -> {
                 Assertions.assertEquals(expected, actual)
             }
-            is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -51,7 +51,7 @@ class ArbeidsfordelingServiceTest {
         val aktørId = AktørId("1831212532200")
         val medaktørId = AktørId("1831212532201")
         val tema = Tema("SYK")
-        val expected = OppslagResult.Feil(Feilårsak.UkjentFeil)
+        val expected = Either.Left(Feilårsak.UkjentFeil)
 
         val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
         val personService = mockk<PersonService>()
@@ -60,7 +60,7 @@ class ArbeidsfordelingServiceTest {
             personService.geografiskTilknytning(match {
                 it == aktørId
             })
-        } returns OppslagResult.Ok(GeografiskTilknytning(null, null))
+        } returns Either.Right(GeografiskTilknytning(null, null))
 
         every {
             personService.geografiskTilknytning(match {
@@ -77,10 +77,10 @@ class ArbeidsfordelingServiceTest {
         }
 
         when (actual) {
-            is OppslagResult.Feil -> {
+            is Either.Left -> {
                 Assertions.assertEquals(expected, actual)
             }
-            is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -100,7 +100,7 @@ class ArbeidsfordelingServiceTest {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -110,7 +110,7 @@ class ArbeidsfordelingServiceTest {
                 it == tema
             })
         } returns expected.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
@@ -118,10 +118,10 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -143,7 +143,7 @@ class ArbeidsfordelingServiceTest {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -153,7 +153,7 @@ class ArbeidsfordelingServiceTest {
                 it == tema
             })
         } returns expected.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
@@ -161,10 +161,10 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -186,7 +186,7 @@ class ArbeidsfordelingServiceTest {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -196,7 +196,7 @@ class ArbeidsfordelingServiceTest {
                 it == tema
             })
         } returns expected.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
@@ -204,10 +204,10 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -232,7 +232,7 @@ class ArbeidsfordelingServiceTest {
                 it == hovedAktørId
             })
         } returns geografiskTilknytningHovedaktør.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -240,7 +240,7 @@ class ArbeidsfordelingServiceTest {
                 it == medaktørIdIkkeKode6
             })
         } returns geografiskTilknytningMedaktørIkkeKode6.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -248,7 +248,7 @@ class ArbeidsfordelingServiceTest {
                 it == medaktørIdKode6
             })
         } returns geografiskTilknytningMedaktørKode6.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -258,7 +258,7 @@ class ArbeidsfordelingServiceTest {
                 it == tema
             })
         } returns expected.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
@@ -268,10 +268,10 @@ class ArbeidsfordelingServiceTest {
         ), tema)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -294,7 +294,7 @@ class ArbeidsfordelingServiceTest {
                 it == hovedAktørId
             })
         } returns geografiskTilknytningHovedaktør.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -302,7 +302,7 @@ class ArbeidsfordelingServiceTest {
                 it == medaktørIdIkkeKode6
             })
         } returns geografiskTilknytningMedaktørIkkeKode6.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -312,7 +312,7 @@ class ArbeidsfordelingServiceTest {
                 it == tema
             })
         } returns expected.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
@@ -322,10 +322,10 @@ class ArbeidsfordelingServiceTest {
         ), tema)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -345,7 +345,7 @@ class ArbeidsfordelingServiceTest {
                 it == aktørId
             })
         } returns geografiskTilknytning.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         every {
@@ -355,7 +355,7 @@ class ArbeidsfordelingServiceTest {
                 it == tema
             })
         } returns expected.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
@@ -363,10 +363,10 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 }

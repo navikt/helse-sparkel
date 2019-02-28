@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -55,8 +55,8 @@ class AktørregisterClientTest {
 
         val lookupResult = aktørregisterClient.gjeldendeIdenter("12345678911")
 
-        assertTrue(lookupResult is OppslagResult.Ok)
-        val gjeldendeIdenter = (lookupResult as OppslagResult.Ok).data
+        assertTrue(lookupResult is Either.Right)
+        val gjeldendeIdenter = (lookupResult as Either.Right).right
 
         Assertions.assertEquals(2, gjeldendeIdenter.size)
         Assertions.assertEquals("1573082186699", gjeldendeIdenter.first { it.type == IdentType.AktoerId }.ident)
@@ -71,8 +71,8 @@ class AktørregisterClientTest {
 
         val lookupResult = aktørregisterClient.gjeldendeIdenter("1573082186699")
 
-        assertTrue(lookupResult is OppslagResult.Ok)
-        val gjeldendeIdenter = (lookupResult as OppslagResult.Ok).data
+        assertTrue(lookupResult is Either.Right)
+        val gjeldendeIdenter = (lookupResult as Either.Right).right
 
         Assertions.assertEquals(2, gjeldendeIdenter.size)
         Assertions.assertEquals("1573082186699", gjeldendeIdenter.first { it.type == IdentType.AktoerId }.ident)
@@ -87,8 +87,8 @@ class AktørregisterClientTest {
 
         val lookupResult = aktørregisterClient.gjeldendeAktørId("12345678911")
 
-        assertTrue(lookupResult is OppslagResult.Ok)
-        val gjeldendeIdent = (lookupResult as OppslagResult.Ok).data
+        assertTrue(lookupResult is Either.Right)
+        val gjeldendeIdent = (lookupResult as Either.Right).right
 
         Assertions.assertEquals("1573082186699", gjeldendeIdent)
     }
@@ -101,8 +101,8 @@ class AktørregisterClientTest {
 
         val lookupResult = aktørregisterClient.gjeldendeNorskIdent("1573082186699")
 
-        assertTrue(lookupResult is OppslagResult.Ok)
-        val gjeldendeIdent = (lookupResult as OppslagResult.Ok).data
+        assertTrue(lookupResult is Either.Right)
+        val gjeldendeIdent = (lookupResult as Either.Right).right
 
         Assertions.assertEquals("12345678911", gjeldendeIdent)
     }
@@ -115,7 +115,7 @@ class AktørregisterClientTest {
 
         val lookupResult = aktørregisterClient.gjeldendeNorskIdent("11987654321")
 
-        assertTrue(lookupResult is OppslagResult.Feil)
+        assertTrue(lookupResult is Either.Left)
     }
 }
 

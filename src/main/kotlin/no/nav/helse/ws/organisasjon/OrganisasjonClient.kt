@@ -1,6 +1,6 @@
 package no.nav.helse.ws.organisasjon
 
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonRequest
 
@@ -11,19 +11,19 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
     fun hentOrganisasjon(
             orgnr: OrganisasjonsNummer,
             attributter : List<OrganisasjonsAttributt> = listOf()
-    ) : OppslagResult<Exception, OrganisasjonResponse> {
+    ) : Either<Exception, OrganisasjonResponse> {
         return if (SUPPORTERTE_ATTRIBUTTER.containsAll(attributter)){
             // Bruk HentNoekkelinfoOrganisasjonRequest så fremt attriutter som krever HentOrganisasjonRequest ikke er etterspurt
             // Nå er kun navn implementert, så bruker bare HentNoekkelinfoOrganisasjonRequest
             val request = HentNoekkelinfoOrganisasjonRequest().apply { orgnummer = orgnr.value }
             try {
                 val response = organisasjonV5.hentNoekkelinfoOrganisasjon(request)
-                OppslagResult.Ok(OrganisasjonsMapper.fraNoekkelInfo(response))
+                Either.Right(OrganisasjonsMapper.fraNoekkelInfo(response))
             } catch (err : Exception) {
-                OppslagResult.Feil(err)
+                Either.Left(err)
             }
         } else {
-            OppslagResult.Feil(UkjentAttributtException())
+            Either.Left(UkjentAttributtException())
         }
     }
 }

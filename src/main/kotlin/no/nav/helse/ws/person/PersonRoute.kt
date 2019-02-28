@@ -6,7 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 
@@ -16,8 +16,8 @@ fun Route.person(personService: PersonService) {
         call.parameters["aktør"]?.let { aktørid ->
             val lookupResult = personService.personInfo(AktørId(aktørid))
             when (lookupResult) {
-                is OppslagResult.Ok -> call.respond(lookupResult.data)
-                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
+                is Either.Right -> call.respond(lookupResult.right)
+                is Either.Left -> call.respondFeil(lookupResult.left)
             }
         } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "An aktørid must be specified"))
     }
@@ -26,12 +26,12 @@ fun Route.person(personService: PersonService) {
         call.parameters["aktør"]?.let { aktoerId ->
             val lookupResult = personService.geografiskTilknytning(AktørId(aktoerId))
             when (lookupResult) {
-                is OppslagResult.Ok -> when {
-                    lookupResult.data.erKode6() -> call.respondFeil(HttpFeil(HttpStatusCode.Forbidden, "Ikke tilgang til å se geografisk tilknytning til denne aktøren."))
-                    lookupResult.data.harGeografisOmraade() -> call.respond(lookupResult.data.geografiskOmraade!!)
+                is Either.Right -> when {
+                    lookupResult.right.erKode6() -> call.respondFeil(HttpFeil(HttpStatusCode.Forbidden, "Ikke tilgang til å se geografisk tilknytning til denne aktøren."))
+                    lookupResult.right.harGeografisOmraade() -> call.respond(lookupResult.right.geografiskOmraade!!)
                     else -> call.respondFeil(HttpFeil(HttpStatusCode.NotFound, "Aktøren har ingen geografisk tilknytning."))
                 }
-                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
+                is Either.Left -> call.respondFeil(lookupResult.left)
             }
         } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "En Aktør ID må oppgis."))
     }

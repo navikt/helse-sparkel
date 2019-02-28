@@ -5,7 +5,7 @@ import io.ktor.application.call
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.respondFeil
 
 private const val ATTRIBUTT_QUERY_PARAM = "attributt"
@@ -20,8 +20,8 @@ fun Route.organisasjon(organisasjonService: OrganisasjonService) {
         val lookupResult = organisasjonService.hentOrganisasjon(organisasjonsNummer, attributter)
 
         when (lookupResult) {
-            is OppslagResult.Ok -> call.respond(lookupResult.data)
-            is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
+            is Either.Right -> call.respond(lookupResult.right)
+            is Either.Left -> call.respondFeil(lookupResult.left)
         }
     }
 }

@@ -1,6 +1,6 @@
 package no.nav.helse.ws.inntekt
 
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
@@ -20,7 +20,7 @@ class InntektClient(private val inntektV3: InntektV3) {
     fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Beregningsgrunnlagfilter)
     fun hentSammenligningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Sammenligningsgrunnlagfilter)
 
-    private fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth, filter: String): OppslagResult<Exception, HentInntektListeBolkResponse> {
+    private fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth, filter: String): Either<Exception, HentInntektListeBolkResponse> {
         val request = HentInntektListeBolkRequest().apply {
             identListe.add(AktoerId().apply {
                 aktoerId = aktørId.aktor
@@ -38,10 +38,10 @@ class InntektClient(private val inntektV3: InntektV3) {
         }
 
         return try {
-            OppslagResult.Ok(inntektV3.hentInntektListeBolk(request))
+            Either.Right(inntektV3.hentInntektListeBolk(request))
         } catch (ex: Exception) {
             log.error("Error during inntekt lookup", ex)
-            OppslagResult.Feil(ex)
+            Either.Left(ex)
         }
     }
 

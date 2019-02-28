@@ -1,6 +1,6 @@
 package no.nav.helse.ws.meldekort
 
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
@@ -19,7 +19,7 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
 
     private val log = LoggerFactory.getLogger("MeldekortClient")
 
-    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): OppslagResult<Exception, List<MeldekortUtbetalingsgrunnlagSak>> {
+    fun hentMeldekortgrunnlag(aktørId: String, fom: LocalDate, tom: LocalDate): Either<Exception, List<MeldekortUtbetalingsgrunnlagSak>> {
         return try {
             val request = FinnMeldekortUtbetalingsgrunnlagListeRequest()
                     .apply {
@@ -40,10 +40,10 @@ class MeldekortClient(val port: MeldekortUtbetalingsgrunnlagV1) {
                         })
                     }
             val response: FinnMeldekortUtbetalingsgrunnlagListeResponse = port.finnMeldekortUtbetalingsgrunnlagListe(request)
-            OppslagResult.Ok(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
+            Either.Right(response.meldekortUtbetalingsgrunnlagListe.flatMap(this::toSak))
         } catch (ex: Exception) {
             log.error("Error while doing meldekort lookup", ex)
-            OppslagResult.Feil(ex)
+            Either.Left(ex)
         }
     }
 

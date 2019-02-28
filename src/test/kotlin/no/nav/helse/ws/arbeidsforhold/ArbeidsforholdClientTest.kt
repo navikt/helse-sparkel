@@ -2,7 +2,7 @@ package no.nav.helse.ws.arbeidsforhold
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
@@ -33,8 +33,8 @@ class ArbeidsforholdClientTest {
         val actual = arbeidsforholdClient.finnArbeidsforhold(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when (actual) {
-            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -81,8 +81,8 @@ class ArbeidsforholdClientTest {
         val result = arbeidsforholdClient.finnArbeidsforhold(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
-            is OppslagResult.Ok -> {
-                val arbeidsforhold = result.data
+            is Either.Right -> {
+                val arbeidsforhold = result.right
 
                 Assertions.assertEquals(2, arbeidsforhold.size)
 
@@ -92,7 +92,7 @@ class ArbeidsforholdClientTest {
                 Assertions.assertEquals(5678, arbeidsforhold[1].arbeidsforholdIDnav)
                 Assertions.assertEquals(1, arbeidsforhold[1].arbeidsavtale.size)
             }
-            is OppslagResult.Feil -> Assertions.fail("was not expecting a Failure: ${result.feil}")
+            is Either.Left -> Assertions.fail("was not expecting a Failure: ${result.left}")
         }
     }
 }

@@ -8,7 +8,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.person.GeografiskTilknytning
@@ -73,10 +73,10 @@ class ArbeidsfordelingIntegrationTest {
             val actual = arbeidsfordelingClient.getBehandlendeEnhet(GeografiskTilknytning(null, null), Tema(tema))
 
             when (actual) {
-                is OppslagResult.Ok -> {
-                    Assertions.assertEquals(expected, actual.data)
+                is Either.Right -> {
+                    Assertions.assertEquals(expected, actual.right)
                 }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
     }
@@ -98,13 +98,13 @@ class ArbeidsfordelingIntegrationTest {
             val actual = arbeidsfordelingClient.getBehandlendeEnhet(GeografiskTilknytning(null, null), Tema(tema))
 
             when (actual) {
-                is OppslagResult.Feil -> {
-                    when (actual.feil) {
-                        is FinnBehandlendeEnhetListeUgyldigInput -> assertEquals("'$tema' er en ugyldig kode for kodeverket: 'Tema'", actual.feil.message)
+                is Either.Left -> {
+                    when (actual.left) {
+                        is FinnBehandlendeEnhetListeUgyldigInput -> assertEquals("'$tema' er en ugyldig kode for kodeverket: 'Tema'", actual.left.message)
                         else -> fail { "Expected FinnBehandlendeEnhetListeUgyldigInput to be returned" }
                     }
                 }
-                is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
             }
         }
     }

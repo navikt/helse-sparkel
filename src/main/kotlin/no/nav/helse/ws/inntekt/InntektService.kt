@@ -1,7 +1,7 @@
 package no.nav.helse.ws.inntekt
 
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
@@ -24,12 +24,12 @@ class InntektService(private val inntektClient: InntektClient) {
         inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
     }
 
-    private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> OppslagResult<Exception, HentInntektListeBolkResponse>): OppslagResult<Feilårsak, List<Inntekt>> {
+    private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>): Either<Feilårsak, List<Inntekt>> {
         val lookupResult = f()
         return when (lookupResult) {
-            is OppslagResult.Ok -> lookupResult.map(InntektMapper.mapToInntekt(aktørId, fom, tom))
-            is OppslagResult.Feil -> {
-                OppslagResult.Feil(when (lookupResult.feil) {
+            is Either.Right -> lookupResult.map(InntektMapper.mapToInntekt(aktørId, fom, tom))
+            is Either.Left -> {
+                Either.Left(when (lookupResult.left) {
                     is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
                     is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil

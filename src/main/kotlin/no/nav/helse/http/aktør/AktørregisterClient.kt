@@ -1,7 +1,7 @@
 package no.nav.helse.http.aktør
 
 import com.github.kittinunf.fuel.httpGet
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.flatMap
 import no.nav.helse.sts.StsRestClient
 import org.json.JSONObject
@@ -11,7 +11,7 @@ private val log = LoggerFactory.getLogger("AktørregisterClient")
 
 class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 
-    fun gjeldendeIdenter(ident: String): OppslagResult<String, List<Ident>> {
+    fun gjeldendeIdenter(ident: String): Either<String, List<Ident>> {
         log.info("lookup gjeldende identer with ident=$ident")
 
         val bearer = stsRestClient.token()
@@ -31,11 +31,11 @@ class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient
         val identResponse = response.getJSONObject(ident)
 
         return if (identResponse.isNull("identer")) {
-            OppslagResult.Feil(identResponse.getString("feilmelding"))
+            Either.Left(identResponse.getString("feilmelding"))
         } else {
             val identer = identResponse.getJSONArray("identer")
 
-            OppslagResult.Ok(identer.map {
+            Either.Right(identer.map {
                 it as JSONObject
             }.map {
                 Ident(it.getString("ident"), it.getEnum(IdentType::class.java, "identgruppe"))
@@ -43,19 +43,19 @@ class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient
         }
     }
 
-    private fun gjeldendeIdent(ident: String, type: IdentType): OppslagResult<String, String> {
+    private fun gjeldendeIdent(ident: String, type: IdentType): Either<String, String> {
         return gjeldendeIdenter(ident).flatMap {
-            OppslagResult.Ok(it.first {
+            Either.Right(it.first {
                 it.type == type
             }.ident)
         }
     }
 
-    fun gjeldendeAktørId(ident: String): OppslagResult<String, String> {
+    fun gjeldendeAktørId(ident: String): Either<String, String> {
         return gjeldendeIdent(ident, IdentType.AktoerId)
     }
 
-    fun gjeldendeNorskIdent(ident: String): OppslagResult<String, String> {
+    fun gjeldendeNorskIdent(ident: String): Either<String, String> {
         return gjeldendeIdent(ident, IdentType.NorskIdent)
     }
 }

@@ -2,7 +2,7 @@ package no.nav.helse.ws.inntekt
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
@@ -35,8 +35,8 @@ class InntektClientTest {
         val actual = InntektClient(inntektV3).hentBeregningsgrunnlag(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -106,10 +106,10 @@ class InntektClientTest {
         val actual = InntektClient(inntektV3).hentBeregningsgrunnlag(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.arbeidsInntektIdentListe.size, actual.data.arbeidsInntektIdentListe.size)
+            is Either.Right -> {
+                assertEquals(expected.arbeidsInntektIdentListe.size, actual.right.arbeidsInntektIdentListe.size)
                 expected.arbeidsInntektIdentListe.forEachIndexed { index, arbeidsInntektIdent ->
-                    val actualArbeidsInntektIdent = actual.data.arbeidsInntektIdentListe[index]
+                    val actualArbeidsInntektIdent = actual.right.arbeidsInntektIdentListe[index]
 
                     assertTrue(actualArbeidsInntektIdent.ident is AktoerId)
                     assertEquals((arbeidsInntektIdent.ident as AktoerId).aktoerId, (actualArbeidsInntektIdent.ident as AktoerId).aktoerId)
@@ -130,7 +130,7 @@ class InntektClientTest {
                     }
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
 
     }
@@ -149,8 +149,8 @@ class InntektClientTest {
         val actual = InntektClient(inntektV3).hentSammenligningsgrunnlag(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -220,10 +220,10 @@ class InntektClientTest {
         val actual = InntektClient(inntektV3).hentSammenligningsgrunnlag(aktørId, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.arbeidsInntektIdentListe.size, actual.data.arbeidsInntektIdentListe.size)
+            is Either.Right -> {
+                assertEquals(expected.arbeidsInntektIdentListe.size, actual.right.arbeidsInntektIdentListe.size)
                 expected.arbeidsInntektIdentListe.forEachIndexed { index, arbeidsInntektIdent ->
-                    val actualArbeidsInntektIdent = actual.data.arbeidsInntektIdentListe[index]
+                    val actualArbeidsInntektIdent = actual.right.arbeidsInntektIdentListe[index]
 
                     assertTrue(actualArbeidsInntektIdent.ident is AktoerId)
                     assertEquals((arbeidsInntektIdent.ident as AktoerId).aktoerId, (actualArbeidsInntektIdent.ident as AktoerId).aktoerId)
@@ -244,7 +244,7 @@ class InntektClientTest {
                     }
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
 
     }

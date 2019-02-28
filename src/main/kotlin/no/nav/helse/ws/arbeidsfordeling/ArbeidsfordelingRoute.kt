@@ -7,7 +7,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 
@@ -32,8 +32,8 @@ fun Route.arbeidsfordeling(arbeidsfordelingService: ArbeidsfordelingService) {
             )
 
             when (oppslagResult) {
-                is OppslagResult.Ok -> call.respond(oppslagResult.data)
-                is OppslagResult.Feil -> call.respondFeil(oppslagResult.feil)
+                is Either.Right -> call.respond(oppslagResult.right)
+                is Either.Left -> call.respondFeil(oppslagResult.left)
             }
         }
     }

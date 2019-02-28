@@ -3,15 +3,15 @@ package no.nav.helse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class OppslagResultTest {
+class EitherTest {
 
-    private val okVal = OppslagResult.Ok("OK")
-    private val feilVal = OppslagResult.Feil("Feil")
+    private val okVal = Either.Right("OK")
+    private val feilVal = Either.Left("Left")
 
     @Test
     fun `høyreverdi kan mappes til ny verdi`() {
         val newVal = 1234
-        assertEquals(OppslagResult.Ok(newVal), okVal.map { newVal })
+        assertEquals(Either.Right(newVal), okVal.map { newVal })
     }
 
     @Test
@@ -44,7 +44,7 @@ class OppslagResultTest {
 
     @Test
     fun `orElse skal gi høyreverdi når den er tilstede`() {
-        assertEquals(okVal.data, okVal.orElse { "This should not return" })
+        assertEquals(okVal.right, okVal.orElse { "This should not return" })
     }
 
     @Test

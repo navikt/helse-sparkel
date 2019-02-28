@@ -6,7 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import java.time.LocalDate
@@ -35,8 +35,8 @@ fun Route.arbeidsforhold(
             val lookupResult = arbeidsforholdService.finnArbeidsforhold(AktørId(call.parameters["aktorId"]!!), fom, tom)
 
             when (lookupResult) {
-                is OppslagResult.Ok -> call.respond(ArbeidsforholdResponse(lookupResult.data))
-                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
+                is Either.Right -> call.respond(ArbeidsforholdResponse(lookupResult.right))
+                is Either.Left -> call.respondFeil(lookupResult.left)
             }
         }
     }
@@ -61,8 +61,8 @@ fun Route.arbeidsforhold(
             val lookupResult = arbeidsforholdService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom)
 
             when (lookupResult) {
-                is OppslagResult.Ok -> call.respond(ArbeidsgivereResponse(lookupResult.data))
-                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
+                is Either.Right -> call.respond(ArbeidsgivereResponse(lookupResult.right))
+                is Either.Left -> call.respondFeil(lookupResult.left)
             }
         }
     }

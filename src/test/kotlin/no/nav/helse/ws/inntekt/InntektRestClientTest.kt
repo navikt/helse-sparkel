@@ -75,6 +75,6 @@ private val ok_inntekt_response = """
     "timestamp": "2018-11-16T09:34:15.627+0100",
     "status": "403",
     "error": "Forbidden",
-    "message": "Feil under autorisering av bruker",
+    "message": "Left under autorisering av bruker",
     "path": "/hentinntektliste"
 }""".trimIndent()

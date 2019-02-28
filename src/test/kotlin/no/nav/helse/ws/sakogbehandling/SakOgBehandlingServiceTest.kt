@@ -14,10 +14,10 @@ class SakOgBehandlingServiceTest {
         val service = SakOgBehandlingService(client)
         every {
             client.finnSakOgBehandling("1234")
-        } returns OppslagResult.Feil(Exception("well that didn't work now, did it?"))
+        } returns Either.Left(Exception("well that didn't work now, did it?"))
 
         val result = service.finnSakOgBehandling(AktørId("1234"))
-        assertTrue(result is OppslagResult.Feil)
+        assertTrue(result is Either.Left)
     }
 
     @Test
@@ -26,10 +26,10 @@ class SakOgBehandlingServiceTest {
         val service = SakOgBehandlingService(client)
         every {
             client.finnSakOgBehandling("1234")
-        } returns OppslagResult.Ok(emptyList())
+        } returns Either.Right(emptyList())
 
         val result = service.finnSakOgBehandling(AktørId("1234"))
-        assertTrue(result is OppslagResult.Ok)
+        assertTrue(result is Either.Right)
     }
 
 }

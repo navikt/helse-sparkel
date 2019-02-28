@@ -1,6 +1,6 @@
 package no.nav.helse.ws.arbeidsfordeling
 
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.ArbeidsfordelingKriterier
@@ -17,7 +17,7 @@ class ArbeidsfordelingClient(
     fun getBehandlendeEnhet(
             gjeldendeGeografiskTilknytning: GeografiskTilknytning,
             gjeldendeTema : Tema
-    ) : OppslagResult<Exception, Enhet> {
+    ) : Either<Exception, Enhet> {
         val request = FinnBehandlendeEnhetListeRequest().apply {
             arbeidsfordelingKriterier = ArbeidsfordelingKriterier().apply {
                 tema = no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Tema().apply {
@@ -39,11 +39,11 @@ class ArbeidsfordelingClient(
 
         return try {
             BehandlendeEnhetMapper.tilEnhet(arbeidsfordelingV1.finnBehandlendeEnhetListe(request))?.let {
-                OppslagResult.Ok(it)
-            } ?: OppslagResult.Feil(IngenEnhetFunnetException())
+                Either.Right(it)
+            } ?: Either.Left(IngenEnhetFunnetException())
         } catch (cause: Exception) {
-            log.error("Feil ved oppslag på behandlende enhet", cause)
-            OppslagResult.Feil(cause)
+            log.error("Left ved oppslag på behandlende enhet", cause)
+            Either.Left(cause)
         }
 
     }

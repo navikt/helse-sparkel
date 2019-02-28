@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.AktørId
@@ -79,14 +79,14 @@ class ArbeidsforholdIntegrationTest {
             val actual = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
             when (actual) {
-                is OppslagResult.Ok -> {
-                    assertEquals(expected.size, actual.data.size)
+                is Either.Right -> {
+                    assertEquals(expected.size, actual.right.size)
                     expected.forEachIndexed { index, expectedArbeidsforhold ->
-                        assertEquals(expectedArbeidsforhold.arbeidsforholdID, actual.data[index].arbeidsforholdID)
-                        assertEquals(expectedArbeidsforhold.arbeidsforholdIDnav, actual.data[index].arbeidsforholdIDnav)
+                        assertEquals(expectedArbeidsforhold.arbeidsforholdID, actual.right[index].arbeidsforholdID)
+                        assertEquals(expectedArbeidsforhold.arbeidsforholdIDnav, actual.right[index].arbeidsforholdIDnav)
                     }
                 }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
     }
@@ -107,13 +107,13 @@ class ArbeidsforholdIntegrationTest {
             val actual = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
             when (actual) {
-                is OppslagResult.Feil -> {
-                    when (actual.feil) {
-                        is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> assertEquals("Person med ident: 08088806280 ble ikke funnet i kall mot AktørId", actual.feil.message)
+                is Either.Left -> {
+                    when (actual.left) {
+                        is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> assertEquals("Person med ident: 08088806280 ble ikke funnet i kall mot AktørId", actual.left.message)
                         else -> fail { "Expected FinnArbeidsforholdPrArbeidstakerUgyldigInput to be returned" }
                     }
                 }
-                is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
             }
         }
     }

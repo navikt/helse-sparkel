@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.like
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.WsClients
@@ -64,10 +64,10 @@ class PersonIntegrationTest {
             val actual = personClient.personInfo(AktørId(aktørId))
 
             when (actual) {
-                is OppslagResult.Ok -> {
-                    assertEquals(expected, actual.data)
+                is Either.Right -> {
+                    assertEquals(expected, actual.right)
                 }
-                is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
     }
@@ -85,13 +85,13 @@ class PersonIntegrationTest {
             val actual = personClient.personInfo(AktørId(aktørId))
 
             when (actual) {
-                is OppslagResult.Feil -> {
-                    when (actual.feil) {
-                        is HentPersonPersonIkkeFunnet -> assertEquals("Ingen forekomster funnet", actual.feil.message)
+                is Either.Left -> {
+                    when (actual.left) {
+                        is HentPersonPersonIkkeFunnet -> assertEquals("Ingen forekomster funnet", actual.left.message)
                         else -> fail { "Expected HentPersonPersonIkkeFunnet to be returned" }
                     }
                 }
-                is OppslagResult.Ok -> fail { "Expected OppslagResult.Feil to be returned" }
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
             }
         }
     }

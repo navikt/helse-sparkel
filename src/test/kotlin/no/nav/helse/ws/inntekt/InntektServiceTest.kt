@@ -3,7 +3,7 @@ package no.nav.helse.ws.inntekt
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
@@ -33,13 +33,13 @@ class InntektServiceTest {
         val inntektClient = mockk<InntektClient>()
         every {
             inntektClient.hentBeregningsgrunnlag(aktør, fom, tom)
-        } returns OppslagResult.Feil(Exception("SOAP fault"))
+        } returns Either.Left(Exception("SOAP fault"))
 
         val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -90,19 +90,19 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, inntekt ->
-                    assertEquals(inntekt, actual.data[index])
+                    assertEquals(inntekt, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
 
     }
@@ -117,13 +117,13 @@ class InntektServiceTest {
         val inntektClient = mockk<InntektClient>()
         every {
             inntektClient.hentSammenligningsgrunnlag(aktør, fom, tom)
-        } returns OppslagResult.Feil(Exception("SOAP fault"))
+        } returns Either.Left(Exception("SOAP fault"))
 
         val actual = InntektService(inntektClient).hentSammenligningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is OppslagResult.Feil -> assertTrue(actual.feil is Feilårsak.UkjentFeil)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -174,19 +174,19 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            OppslagResult.Ok(it)
+            Either.Right(it)
         }
 
         val actual = InntektService(inntektClient).hentSammenligningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is OppslagResult.Ok -> {
-                assertEquals(expected.size, actual.data.size)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
                 expected.forEachIndexed { index, inntekt ->
-                    assertEquals(inntekt, actual.data[index])
+                    assertEquals(inntekt, actual.right[index])
                 }
             }
-            is OppslagResult.Feil -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
 
     }

@@ -1,7 +1,7 @@
 package no.nav.helse.ws.arbeidsforhold
 
 import no.nav.helse.Feilårsak
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
 import no.nav.helse.orElse
@@ -16,18 +16,18 @@ import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
-    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feilårsak, List<Arbeidsforhold>> {
+    fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Feilårsak, List<Arbeidsforhold>> {
         val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
         return when (lookupResult) {
-            is OppslagResult.Feil -> {
-                OppslagResult.Feil(when (lookupResult.feil) {
+            is Either.Left -> {
+                Either.Left(when (lookupResult.left) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 })
             }
-            is OppslagResult.Ok -> {
+            is Either.Right -> {
                 lookupResult.map { list ->
                     list.map { arbeidsforhold ->
                         Arbeidsforhold(arbeidsforhold.arbeidsgiver.let { aktør ->
@@ -46,19 +46,19 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
         }
     }
 
-    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): OppslagResult<Feilårsak, List<Arbeidsgiver>> {
+    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Feilårsak, List<Arbeidsgiver>> {
         val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
         return when (lookupResult) {
-            is OppslagResult.Feil -> {
-                OppslagResult.Feil(when (lookupResult.feil) {
+            is Either.Left -> {
+                Either.Left(when (lookupResult.left) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 })
             }
-            is OppslagResult.Ok -> {
-                lookupResult.data.asSequence().map {
+            is Either.Right -> {
+                lookupResult.right.asSequence().map {
                     it.arbeidsgiver
                 }.filter {
                     it is Organisasjon
@@ -77,13 +77,13 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                             Arbeidsgiver.Organisasjon(organisasjon.organisasjonsnummer, organisasjonResponse.navn ?: "")
                         }
                     } else {
-                        OppslagResult.Ok(organisasjon)
+                        Either.Right(organisasjon)
                     }
                 }.toList().let {
-                    OppslagResult.Ok(it.map { oppslagResultat ->
+                    Either.Right(it.map { oppslagResultat ->
                         when (oppslagResultat) {
-                            is OppslagResult.Ok -> oppslagResultat.data
-                            is OppslagResult.Feil -> {
+                            is Either.Right -> oppslagResultat.right
+                            is Either.Left -> {
                                 return@let oppslagResultat.copy()
                             }
                         }

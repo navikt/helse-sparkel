@@ -6,7 +6,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import java.time.LocalDate
@@ -22,8 +22,8 @@ fun Route.meldekort(meldekortService: MeldekortService) {
 
             val lookupResult = meldekortService.hentMeldekortgrunnlag(AktørId(aktorId), fom, tom)
             when (lookupResult) {
-                is OppslagResult.Ok -> call.respond(lookupResult.data)
-                is OppslagResult.Feil -> call.respondFeil(lookupResult.feil)
+                is Either.Right -> call.respond(lookupResult.right)
+                is Either.Left -> call.respondFeil(lookupResult.left)
             }
         } else {
             call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "Missing at least one parameter of `aktorId`, `fom` and `tom`"))

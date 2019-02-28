@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import io.prometheus.client.CollectorRegistry
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.ws.person.Kjønn
 import no.nav.helse.ws.person.Person
 import no.nav.helse.ws.person.PersonClient
@@ -86,10 +86,10 @@ class SoapIntegrationTest {
                 bostedsland = "NOR"
         )
         when (actual) {
-            is OppslagResult.Ok -> {
-                Assertions.assertEquals(expected, actual.data)
+            is Either.Right -> {
+                Assertions.assertEquals(expected, actual.right)
             }
-            is OppslagResult.Feil -> fail { "This lookup was expected to succeed, but it didn't" }
+            is Either.Left -> fail { "This lookup was expected to succeed, but it didn't" }
         }
     }
 }

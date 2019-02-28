@@ -3,7 +3,7 @@ package no.nav.helse.ws.arbeidsfordeling
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.OppslagResult
+import no.nav.helse.Either
 import no.nav.helse.ws.person.Diskresjonskode
 import no.nav.helse.ws.person.GeografiskOmraade
 import no.nav.helse.ws.person.GeografiskTilknytning
@@ -55,8 +55,8 @@ class ArbeidsfordelingClientTest {
         val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
 
         when (actual) {
-            is OppslagResult.Ok -> assertEquals(expected, actual.data)
-            else -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Right -> assertEquals(expected, actual.right)
+            else -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -96,8 +96,8 @@ class ArbeidsfordelingClientTest {
         val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
 
         when (actual) {
-            is OppslagResult.Ok -> assertEquals(expected, actual.data)
-            else -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Right -> assertEquals(expected, actual.right)
+            else -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -137,8 +137,8 @@ class ArbeidsfordelingClientTest {
         val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
 
         when (actual) {
-            is OppslagResult.Ok -> assertEquals(expected, actual.data)
-            else -> fail { "Expected OppslagResult.Ok to be returned" }
+            is Either.Right -> assertEquals(expected, actual.right)
+            else -> fail { "Expected Either.Right to be returned" }
         }
     }
 
@@ -161,10 +161,10 @@ class ArbeidsfordelingClientTest {
         }
 
         when (actual) {
-            is OppslagResult.Feil -> {
-                assertTrue(actual.feil is IngenEnhetFunnetException)
+            is Either.Left -> {
+                assertTrue(actual.left is IngenEnhetFunnetException)
             }
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 
@@ -187,8 +187,8 @@ class ArbeidsfordelingClientTest {
         }
 
         when (actual) {
-            is OppslagResult.Feil -> assertEquals("SOAP fault", actual.feil.message)
-            else -> fail { "Expected OppslagResult.Feil to be returned" }
+            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
+            else -> fail { "Expected Either.Left to be returned" }
         }
     }
 }
