@@ -1,10 +1,11 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.fold
 import no.nav.helse.map
+import no.nav.helse.mapLeft
 import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -39,19 +40,15 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 }
             })
 
-    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Feilårsak, List<Arbeidsgiver>> {
-        val lookupResult = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-
-        return when (lookupResult) {
-            is Either.Left -> {
-                Either.Left(when (lookupResult.left) {
+    fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).mapLeft{
+                when (it) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
-                })
-            }
-            is Either.Right -> {
-                lookupResult.right.asSequence().map {
+                }
+            }.map {
+                it.map {
                     it.arbeidsgiver
                 }.filter {
                     it is Organisasjon
@@ -59,36 +56,17 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     it as Organisasjon
                 }.distinctBy {
                     it.orgnummer
-                }.map {
-                    Arbeidsgiver.Organisasjon(it.orgnummer, it.navn ?: "")
                 }.map { organisasjon ->
-                    if (organisasjon.navn.isBlank()) {
-                        organisasjonService.hentOrganisasjon(
-                                orgnr = OrganisasjonsNummer(organisasjon.organisasjonsnummer),
-                                attributter = listOf(OrganisasjonsAttributt("navn"))
-                        ).map { organisasjonResponse ->
-                            Arbeidsgiver.Organisasjon(organisasjon.organisasjonsnummer, organisasjonResponse.navn ?: "")
-                        }
-                    } else {
-                        Either.Right(organisasjon)
-                    }
-                }.toList().let {
-                    Either.Right(it.map { oppslagResultat ->
-                        when (oppslagResultat) {
-                            is Either.Right -> oppslagResultat.right
-                            is Either.Left -> {
-                                return@let oppslagResultat.copy()
-                            }
-                        }
-                    })
+                    Arbeidsgiver.Organisasjon(organisasjon.orgnummer, organisasjon.navn ?: organisasjonService.hentOrganisasjon(
+                            orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
+                            attributter = listOf(OrganisasjonsAttributt("navn"))
+                    ).fold({ null }, { it.navn }))
                 }
             }
-        }
-    }
 }
 
 sealed class Arbeidsgiver {
-    data class Organisasjon(val organisasjonsnummer: String, val navn: String): Arbeidsgiver()
+    data class Organisasjon(val organisasjonsnummer: String, val navn: String?): Arbeidsgiver()
 }
 
 data class Arbeidsforhold(val arbeidsgiver: Arbeidsgiver, val startdato: LocalDate, val sluttdato: LocalDate? = null)

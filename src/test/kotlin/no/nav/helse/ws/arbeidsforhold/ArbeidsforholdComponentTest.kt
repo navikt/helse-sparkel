@@ -282,6 +282,64 @@ class ArbeidsforholdComponentTest {
     }
 
     @Test
+    fun `en liste over arbeidsgivere skal returneres selv om organisasjonsoppslag gir feil`() {
+        val arbeidsforholdV3 = mockk<ArbeidsforholdV3>()
+        val organisasjonV5 = mockk<OrganisasjonV5>()
+
+        val aktørId = AktørId("1831212532188")
+
+        every {
+            arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(match {
+                it.ident.ident == aktørId.aktor
+            })
+        } returns FinnArbeidsforholdPrArbeidstakerResponse().apply {
+            with (arbeidsforhold) {
+                add(Arbeidsforhold().apply {
+                    arbeidsgiver = Organisasjon().apply {
+                        orgnummer = "913548221"
+                    }
+                })
+                add(Arbeidsforhold().apply {
+                    arbeidsgiver = Organisasjon().apply {
+                        orgnummer = "984054564"
+                    }
+                })
+            }
+        }
+
+        every {
+            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+                it.orgnummer == "913548221"
+            })
+        } throws(Exception("SOAP fault"))
+
+        every {
+            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+                it.orgnummer == "984054564"
+            })
+        } throws(Exception("SOAP fault"))
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                arbeidsforholdService = ArbeidsforholdService(
+                        arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
+                        organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
+                ))}) {
+            handleRequest(HttpMethod.Get, "/api/arbeidsgivere/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(200, response.status()?.value)
+                assertJsonEquals(JSONObject(expectedJson_arbeidsgivere_uten_navn), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
     fun `feil returneres når fom ikke er satt for arbeidsgivere`() {
         val aktørId = AktørId("1831212532188")
 
@@ -398,6 +456,16 @@ private val expectedJson_arbeidsgivere = """
     },{
         "organisasjonsnummer": "984054564",
         "navn": "NAV, AVD WALDEMAR THRANES GATE"
+    }]
+}
+""".trimIndent()
+
+private val expectedJson_arbeidsgivere_uten_navn = """
+{
+    "arbeidsgivere": [{
+        "organisasjonsnummer": "913548221"
+    },{
+        "organisasjonsnummer": "984054564"
     }]
 }
 """.trimIndent()

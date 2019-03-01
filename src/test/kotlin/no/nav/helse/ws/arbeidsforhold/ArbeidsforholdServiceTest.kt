@@ -411,7 +411,7 @@ class ArbeidsforholdServiceTest {
     }
 
     @Test
-    fun `skal returnere feil når oppslag av organisasjonnavn feiler`() {
+    fun `skal returnere tomt organisasjonnavn når oppslag av organisasjonnavn feiler`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         val organisasjonService = mockk<OrganisasjonService>()
 
@@ -420,8 +420,7 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                Arbeidsgiver.Organisasjon("22334455", "S. VINDEL & SØNN"),
-                Arbeidsgiver.Organisasjon("66778899", "MATBUTIKKEN AS")
+                Arbeidsgiver.Organisasjon("22334455", null)
         )
 
         every {
@@ -442,8 +441,11 @@ class ArbeidsforholdServiceTest {
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is Either.Left -> assertTrue(actual.left is Feilårsak.FeilFraTjeneste)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected[0], actual.right[0])
+            }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
 
