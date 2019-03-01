@@ -2,11 +2,10 @@ package no.nav.helse.ws.meldekort
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.Either
+import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import java.time.LocalDate
@@ -20,11 +19,8 @@ fun Route.meldekort(meldekortService: MeldekortService) {
             val fom = call.request.queryParameters["fom"]!!.asLocalDate()
             val tom = call.request.queryParameters["tom"]!!.asLocalDate()
 
-            val lookupResult = meldekortService.hentMeldekortgrunnlag(AktørId(aktorId), fom, tom)
-            when (lookupResult) {
-                is Either.Right -> call.respond(lookupResult.right)
-                is Either.Left -> call.respondFeil(lookupResult.left)
-            }
+            meldekortService.hentMeldekortgrunnlag(AktørId(aktorId), fom, tom)
+                    .respond(call)
         } else {
             call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "Missing at least one parameter of `aktorId`, `fom` and `tom`"))
         }

@@ -2,11 +2,11 @@ package no.nav.helse.ws.arbeidsforhold
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.Either
+import no.nav.helse.map
+import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import java.time.LocalDate
@@ -32,12 +32,9 @@ fun Route.arbeidsforhold(
                 return@get
             }
 
-            val lookupResult = arbeidsforholdService.finnArbeidsforhold(AktørId(call.parameters["aktorId"]!!), fom, tom)
-
-            when (lookupResult) {
-                is Either.Right -> call.respond(ArbeidsforholdResponse(lookupResult.right))
-                is Either.Left -> call.respondFeil(lookupResult.left)
-            }
+            arbeidsforholdService.finnArbeidsforhold(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+                ArbeidsforholdResponse(it)
+            }.respond(call)
         }
     }
 
@@ -58,12 +55,9 @@ fun Route.arbeidsforhold(
                 return@get
             }
 
-            val lookupResult = arbeidsforholdService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom)
-
-            when (lookupResult) {
-                is Either.Right -> call.respond(ArbeidsgivereResponse(lookupResult.right))
-                is Either.Left -> call.respondFeil(lookupResult.left)
-            }
+            arbeidsforholdService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+                ArbeidsgivereResponse(it)
+            }.respond(call)
         }
     }
 }

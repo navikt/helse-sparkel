@@ -3,13 +3,14 @@ package no.nav.helse.ws.inntekt
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.pipeline.PipelineContext
+import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.HttpFeil
-import no.nav.helse.Either
+import no.nav.helse.map
+import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import java.time.YearMonth
@@ -47,11 +48,9 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
             return
         }
 
-        val lookupResult = f(AktørId(call.parameters["aktorId"]!!), fom, tom)
-        when (lookupResult) {
-            is Either.Right -> call.respond(InntektResponse(lookupResult.right))
-            is Either.Left -> call.respondFeil(lookupResult.left)
-        }
+        f(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+            InntektResponse(it)
+        }.respond(call)
     }
 }
 

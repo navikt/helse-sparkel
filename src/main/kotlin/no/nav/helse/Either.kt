@@ -8,7 +8,11 @@ data class FeilResponse(val feilmelding: String)
 data class HttpFeil(val status: HttpStatusCode, val feilmelding: String)
 
 suspend fun ApplicationCall.respondFeil(feil: HttpFeil) = respond(feil.status, FeilResponse(feil.feilmelding))
-suspend fun ApplicationCall.respondFeil(feil: Feilårsak) = respondFeil(feil.toHttpFeil())
+
+suspend fun <B: Any> Either<Feilårsak, B>.respond(call: ApplicationCall) = when (this) {
+    is Either.Right -> call.respond(right)
+    is Either.Left -> call.respondFeil(left.toHttpFeil())
+}
 
 sealed class Feilårsak {
     object IkkeFunnet: Feilårsak()

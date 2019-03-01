@@ -3,11 +3,10 @@ package no.nav.helse.ws.arbeidsfordeling
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
-import no.nav.helse.Either
+import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 
@@ -25,16 +24,11 @@ fun Route.arbeidsfordeling(arbeidsfordelingService: ArbeidsfordelingService) {
             val hovedAktoerId = call.getHovedAktoerId()
             val medAktoerIder = call.getMedAktoerIder()
 
-            val oppslagResult = arbeidsfordelingService.getBehandlendeEnhet(
+            arbeidsfordelingService.getBehandlendeEnhet(
                     hovedAktoer = hovedAktoerId,
                     tema = tema,
                     medAktoerer = medAktoerIder
-            )
-
-            when (oppslagResult) {
-                is Either.Right -> call.respond(oppslagResult.right)
-                is Either.Left -> call.respondFeil(oppslagResult.left)
-            }
+            ).respond(call)
         }
     }
 }

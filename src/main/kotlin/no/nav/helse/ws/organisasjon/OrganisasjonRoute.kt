@@ -2,11 +2,9 @@ package no.nav.helse.ws.organisasjon
 
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
-import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.Either
-import no.nav.helse.respondFeil
+import no.nav.helse.respond
 
 private const val ATTRIBUTT_QUERY_PARAM = "attributt"
 private const val ORG_NR_PATH_PARAM = "orgnr"
@@ -17,12 +15,8 @@ fun Route.organisasjon(organisasjonService: OrganisasjonService) {
         val organisasjonsNummer = call.getOrganisasjonsNummer()
         val attributter = call.getAttributes()
 
-        val lookupResult = organisasjonService.hentOrganisasjon(organisasjonsNummer, attributter)
-
-        when (lookupResult) {
-            is Either.Right -> call.respond(lookupResult.right)
-            is Either.Left -> call.respondFeil(lookupResult.left)
-        }
+        organisasjonService.hentOrganisasjon(organisasjonsNummer, attributter)
+                .respond(call)
     }
 }
 
