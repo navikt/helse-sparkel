@@ -42,7 +42,7 @@ class ArbeidsfordelingClient(
                 Either.Right(it)
             } ?: Either.Left(IngenEnhetFunnetException())
         } catch (cause: Exception) {
-            log.error("Left ved oppslag på behandlende enhet", cause)
+            log.error("Feil ved oppslag på behandlende enhet", cause)
             Either.Left(cause)
         }
 

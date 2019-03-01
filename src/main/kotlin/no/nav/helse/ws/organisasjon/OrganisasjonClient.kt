@@ -3,10 +3,13 @@ package no.nav.helse.ws.organisasjon
 import no.nav.helse.Either
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonRequest
+import org.slf4j.LoggerFactory
 
 private val SUPPORTERTE_ATTRIBUTTER = listOf(OrganisasjonsAttributt("navn"))
 
 class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
+
+    private val log = LoggerFactory.getLogger("OrganisasjonClient")
 
     fun hentOrganisasjon(
             orgnr: OrganisasjonsNummer,
@@ -20,6 +23,7 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
                 val response = organisasjonV5.hentNoekkelinfoOrganisasjon(request)
                 Either.Right(OrganisasjonsMapper.fraNoekkelInfo(response))
             } catch (err : Exception) {
+                log.error("Error during organisasjon lookup", err)
                 Either.Left(err)
             }
         } else {
