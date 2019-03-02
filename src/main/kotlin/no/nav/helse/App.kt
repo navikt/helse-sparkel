@@ -67,7 +67,7 @@ fun main() {
         val stsClientRest = StsRestClient(
                 env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
 
-        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
+        val wsClients = WsClients(stsClientWs, stsClientRest)
 
         val inntektService = InntektService(wsClients.inntekt(env.inntektEndpointUrl))
 

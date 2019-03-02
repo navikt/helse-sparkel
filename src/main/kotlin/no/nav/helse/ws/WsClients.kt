@@ -1,19 +1,20 @@
 package no.nav.helse.ws
 
-import no.nav.helse.http.aktør.*
-import no.nav.helse.sts.*
-import no.nav.helse.ws.arbeidsfordeling.*
-import no.nav.helse.ws.arbeidsforhold.*
-import no.nav.helse.ws.inntekt.*
-import no.nav.helse.ws.meldekort.*
-import no.nav.helse.ws.organisasjon.*
-import no.nav.helse.ws.person.*
-import no.nav.helse.ws.sakogbehandling.*
-import no.nav.helse.ws.sts.*
-import no.nav.helse.ws.sykepenger.*
-import org.apache.cxf.ws.security.trust.*
+import no.nav.helse.http.aktør.AktørregisterClient
+import no.nav.helse.sts.StsRestClient
+import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingClient
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.ws.inntekt.InntektClient
+import no.nav.helse.ws.meldekort.MeldekortClient
+import no.nav.helse.ws.organisasjon.OrganisasjonClient
+import no.nav.helse.ws.person.PersonClient
+import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
+import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.ws.sts.configureFor
+import no.nav.helse.ws.sykepenger.SykepengerClient
+import org.apache.cxf.ws.security.trust.STSClient
 
-class WsClients(private val stsClientWs: STSClient, private val stsClientRest: StsRestClient, private val allowInsecureRequests: Boolean) {
+class WsClients(private val stsClientWs: STSClient, private val stsClientRest: StsRestClient, private val allowInsecureRequests: Boolean = false) {
 
     fun aktør(endpointUrl: String) = AktørregisterClient(endpointUrl, stsClientRest)
 
