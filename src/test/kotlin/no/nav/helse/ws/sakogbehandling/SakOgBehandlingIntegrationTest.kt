@@ -1,18 +1,13 @@
 package no.nav.helse.ws.sakogbehandling
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.MappingBuilder
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.withTestApplication
-import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Environment
-import no.nav.helse.JwtStub
-import no.nav.helse.assertJsonEquals
-import no.nav.helse.mockedSparkel
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import com.github.tomakehurst.wiremock.stubbing.Scenario
+import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.samlAssertionResponse
@@ -20,13 +15,13 @@ import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
-import org.json.JSONArray
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 class SakOgBehandlingIntegrationTest {
 
@@ -48,68 +43,95 @@ class SakOgBehandlingIntegrationTest {
 
     @BeforeEach
     fun configure() {
-        WireMock.configureFor(server.port())
-    }
-
-    @AfterEach
-    fun `clear prometheus registry`() {
-        CollectorRegistry.defaultRegistry.clear()
+        val client = WireMock.create().port(server.port()).build()
+        WireMock.configureFor(client)
+        client.resetMappings()
     }
 
     @Test
-    fun `that response is json`() {
-        val jwtStub = JwtStub("test issuer")
-        val token = jwtStub.createTokenFor("srvspinne")
+    fun `skal gi liste over saker`() {
+        val aktørId = "11987654321"
 
-        WireMock.stubFor(stsStub("stsUsername", "stsPassword")
-                .willReturn(samlAssertionResponse("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")))
+        sakOgBehandlingStub(
+                server = server,
+                scenario = "sak_og_behandling",
+                request = finnSakOgBehandlingskjedeListeStub(aktørId),
+                response = WireMock.okXml(finnSakOgBehandlingskjedeListe_response)
+        ) { sakOgBehandlingClient ->
+            val expected = listOf(
+                    Sak("010847146", "AAP", LocalDate.parse("2018-07-24"), LocalDate.parse("2018-09-19"), "avbrutt"),
+                    Sak("010847171", "SYM", LocalDate.parse("2018-08-08"), LocalDate.parse("2018-11-19"), "avsluttet")
+            )
+            val actual = sakOgBehandlingClient.finnSakOgBehandling(aktørId)
 
-        WireMock.stubFor(finnSakOgBehandlingskjedeListeStub("1234567890123")
-                .withSamlAssertion("testusername", "theIssuer", "CN=B27 Issuing CA Intern, DC=preprod, DC=local",
-                        "digestValue", "signatureValue", "certificateValue")
-                .withCallId("Sett inn call id her")
-                .willReturn(WireMock.okXml(finnSakOgBehandlingskjedeListe_response)))
-
-        val env = Environment(mapOf(
-                "SECURITY_TOKEN_SERVICE_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_REST_URL" to server.baseUrl().plus("/sts"),
-                "SECURITY_TOKEN_SERVICE_USERNAME" to "stsUsername",
-                "SECURITY_TOKEN_SERVICE_PASSWORD" to "stsPassword",
-                "SAK_OG_BEHANDLING_ENDPOINTURL" to server.baseUrl().plus("/sakogbehandling"),
-                "AKTORREGISTER_URL" to server.baseUrl().plus("/aktor"),
-                "ORGANISASJON_ENDPOINTURL" to server.baseUrl().plus("/organisasjon"),
-                "PERSON_ENDPOINTURL" to server.baseUrl().plus("/person"),
-                "ARBEIDSFORDELING_ENDPOINTURL" to server.baseUrl().plus("/arbeidsfordeling"),
-                "INNTEKT_ENDPOINTURL" to server.baseUrl().plus("/inntekt"),
-                "AAREG_ENDPOINTURL" to server.baseUrl().plus("/aareg"),
-                "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
-                "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
-                "JWT_ISSUER" to "test issuer",
-                "JWKS_URL" to "http://example.tld",
-                "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
-        ))
-
-        val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
-                env.securityTokenUsername to env.securityTokenPassword)
-        val stsClientRest = StsRestClient(
-                env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
-
-        val wsClients = WsClients(stsClientWs, stsClientRest, env.allowInsecureSoapRequests)
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = env.jwtIssuer,
-                jwkProvider = jwtStub.stubbedJwkProvider(),
-                sakOgBehandlingService = SakOgBehandlingService(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
-        )}) {
-            handleRequest(HttpMethod.Get, "api/sakogbehandling/1234567890123") {
-                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(200, response.status()?.value)
-                assertJsonEquals(JSONArray(expectedJson), JSONArray(response.content))
+            when (actual) {
+                is Either.Right -> {
+                    assertEquals(expected.size, actual.right.size)
+                    expected.forEachIndexed { key, value ->
+                        assertEquals(value, actual.right[key])
+                    }
+                }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
+    }
+
+    @Test
+    fun `skal svare med feil når tjenesten feiler`() {
+        val aktørId = "11987654321"
+
+        sakOgBehandlingStub(
+                server = server,
+                scenario = "sak_og_behandling",
+                request = finnSakOgBehandlingskjedeListeStub(aktørId),
+                response = WireMock.serverError().withBody(faultXml("SOAP fault"))
+        ) { sakOgBehandlingClient ->
+            val actual = sakOgBehandlingClient.finnSakOgBehandling(aktørId)
+
+            when (actual) {
+                is Either.Left -> assertEquals("SOAP fault", actual.left.message)
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
+            }
+        }
+    }
+}
+
+fun sakOgBehandlingStub(server: WireMockServer, scenario: String, response: ResponseDefinitionBuilder, request: MappingBuilder, test: (SakOgBehandlingClient) -> Unit) {
+    val stsUsername = "stsUsername"
+    val stsPassword = "stsPassword"
+
+    val tokenSubject = "srvtestapp"
+    val tokenIssuer = "Certificate Authority Inc"
+    val tokenIssuerName = "CN=Certificate Authority Inc, DC=example, DC=com"
+    val tokenDigest = "a random string"
+    val tokenSignature = "yet another random string"
+    val tokenCertificate = "one last random string"
+
+    WireMock.stubFor(stsStub(stsUsername, stsPassword)
+            .willReturn(samlAssertionResponse(tokenSubject, tokenIssuer, tokenIssuerName,
+                    tokenDigest, tokenSignature, tokenCertificate))
+            .inScenario(scenario)
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willSetStateTo("security_token_service_called"))
+
+    WireMock.stubFor(request
+            .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
+                    tokenDigest, tokenSignature, tokenCertificate)
+            .withCallId("Sett inn call id her")
+            .willReturn(response)
+            .inScenario(scenario)
+            .whenScenarioStateIs("security_token_service_called")
+            .willSetStateTo("sak_og_behandling_stub_called"))
+
+    val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
+    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
+
+    val wsClients = WsClients(stsClientWs, stsClientRest, true)
+
+    test(wsClients.sakOgBehandling(server.baseUrl().plus("/sakogbehandling")))
+
+    WireMock.listAllStubMappings().mappings.forEach {
+        WireMock.verify(RequestPatternBuilder.like(it.request))
     }
 }
 
@@ -176,21 +198,13 @@ private val finnSakOgBehandlingskjedeListe_response = """
 </soap:Envelope>
 """.trimIndent()
 
-private val expectedJson = """
-[
-  {
-    "tema": "AAP",
-    "sisteBehandlingSlutt": "2018-09-19",
-    "opprettet": "2018-07-24",
-    "sisteStatus": "avbrutt",
-    "id": "010847146"
-  },
-  {
-    "tema": "SYM",
-    "sisteBehandlingSlutt": "2018-11-19",
-    "opprettet": "2018-08-08",
-    "sisteStatus": "avsluttet",
-    "id": "010847171"
-  }
-]
+private fun faultXml(fault: String) = """
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <soap:Fault>
+            <faultcode xmlns:ns1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">soap:Server</faultcode>
+            <faultstring>$fault</faultstring>
+        </soap:Fault>
+    </soap:Body>
+</soap:Envelope>
 """.trimIndent()
