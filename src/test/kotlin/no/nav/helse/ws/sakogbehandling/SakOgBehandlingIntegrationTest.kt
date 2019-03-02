@@ -1,18 +1,32 @@
 package no.nav.helse.ws.sakogbehandling
 
-import com.github.tomakehurst.wiremock.*
-import com.github.tomakehurst.wiremock.client.*
-import com.github.tomakehurst.wiremock.core.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-import io.prometheus.client.*
-import no.nav.helse.*
-import no.nav.helse.sts.*
-import no.nav.helse.ws.*
-import no.nav.helse.ws.sts.*
-import org.json.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
+import io.prometheus.client.CollectorRegistry
+import no.nav.helse.Environment
+import no.nav.helse.JwtStub
+import no.nav.helse.assertJsonEquals
+import no.nav.helse.mockedSparkel
+import no.nav.helse.sts.StsRestClient
+import no.nav.helse.ws.WsClients
+import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.sts.stsClient
+import no.nav.helse.ws.stsStub
+import no.nav.helse.ws.withCallId
+import no.nav.helse.ws.withSamlAssertion
+import org.json.JSONArray
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class SakOgBehandlingIntegrationTest {
 
@@ -72,6 +86,7 @@ class SakOgBehandlingIntegrationTest {
                 "HENT_SYKEPENGER_ENDPOINTURL" to server.baseUrl().plus("/sykepenger"),
                 "MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL" to server.baseUrl().plus("/meldekort"),
                 "JWT_ISSUER" to "test issuer",
+                "JWKS_URL" to "http://example.tld",
                 "ALLOW_INSECURE_SOAP_REQUESTS" to "true"
         ))
 
