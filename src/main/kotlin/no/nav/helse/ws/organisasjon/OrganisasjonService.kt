@@ -18,7 +18,7 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
                     is HentNoekkelinfoOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
                     is HentNoekkelinfoOrganisasjonUgyldigInput -> Feilårsak.FeilFraTjeneste
                     is UkjentAttributtException -> Feilårsak.IkkeImplementert
-                    else -> Feilårsak.FeilFraTjeneste
+                    else -> Feilårsak.UkjentFeil
                 }
             }
 }

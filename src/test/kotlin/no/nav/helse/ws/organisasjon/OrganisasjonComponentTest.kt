@@ -3,180 +3,96 @@ package no.nav.helse.ws.organisasjon
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
+import io.mockk.every
+import io.mockk.mockk
+import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
-import no.nav.helse.bootstrapComponentTest
 import no.nav.helse.mockedSparkel
-import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.sts.stsClient
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonResponse
 import org.json.JSONObject
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.slf4j.LoggerFactory
-import kotlin.test.assertEquals
 
 class OrganisasjonComponentTest {
+    @Test
+    fun `skal returnere organisasjonsnavn`() {
+        val organisasjonV5 = mockk<OrganisasjonV5>()
 
-    private val log = LoggerFactory.getLogger("OrganisasjonComponentTest")
+        val orgNr = "97112233"
 
-    companion object {
-        private val bootstrap = bootstrapComponentTest()
-        private val token = bootstrap.jwkStub.createTokenFor("srvspinne")
-
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            bootstrap.start()
+        every {
+            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+                it.orgnummer == orgNr
+            })
+        } returns HentNoekkelinfoOrganisasjonResponse().apply {
+            navn = UstrukturertNavn().apply {
+                with (navnelinje) {
+                    add("NAV")
+                    add("AVD SANNERGATA 2")
+                }
+            }
         }
 
-        @AfterAll
-        @JvmStatic
-        fun stop() {
-            bootstrap.stop()
-        }
-    }
-
-    @BeforeEach
-    @AfterEach
-    fun reset() {
-        bootstrap.reset()
-    }
-
-    @Test
-    fun `Henting av organisasjon med en navnelinje`() {
-        val orgNr = "971524960"
-
-        val responses = OrganisasjonMocks.okResponses(
-                orgNr = orgNr,
-                navnLinje1 = "STORTINGET",
-                forventetReturNavn = "STORTINGET"
-        )
-        OrganisasjonMocks.mock(
-                orgNr = orgNr,
-                xml = responses.registerXmlResponse
-        )
-
-        requestSparkelAndAssertResponse(
-                orgNr = orgNr,
-                expectedResponse = responses.sparkelJsonResponse
-        )
-    }
-
-    @Test
-    fun `Henting av organisasjon med tre navnelinjer`() {
-        val orgNr = "971524961"
-
-        val responses = OrganisasjonMocks.okResponses(
-                orgNr = orgNr,
-                navnLinje1 = "Baker Hansen",
-                navnLinje2 = "Avdeling Sagene",
-                navnLinje5 = "Gode kaker",
-                forventetReturNavn = "Baker Hansen, Avdeling Sagene, Gode kaker"
-        )
-        OrganisasjonMocks.mock(
-                orgNr = orgNr,
-                xml = responses.registerXmlResponse
-        )
-
-        requestSparkelAndAssertResponse(
-                orgNr = orgNr,
-                expectedResponse = responses.sparkelJsonResponse
-        )
-    }
-
-    @Test
-    fun `Henting av organisasjon uten navnelinjer`() {
-        val orgNr = "971524962"
-
-        val responses = OrganisasjonMocks.okResponses(
-                orgNr = orgNr,
-                forventetReturNavn = null
-        )
-        OrganisasjonMocks.mock(
-                orgNr = orgNr,
-                xml = responses.registerXmlResponse
-        )
-
-        requestSparkelAndAssertResponse(
-                orgNr = orgNr,
-                expectedResponse = responses.sparkelJsonResponse
-        )
-    }
-
-    @Test
-    fun `Henting av kun organisasjons-navn`() {
-        val orgNr = "971524963"
-
-        val responses = OrganisasjonMocks.okResponses(
-                orgNr = orgNr,
-                navnLinje1 = "STORTINGET",
-                forventetReturNavn = "STORTINGET"
-        )
-        OrganisasjonMocks.mock(
-                orgNr = orgNr,
-                xml = responses.registerXmlResponse
-        )
-
-        requestSparkelAndAssertResponse(
-                orgNr = orgNr,
-                expectedResponse = responses.sparkelJsonResponse,
-                attributter = listOf("navn")
-        )
-    }
-
-    @Test
-    fun `Henting av ikke supportert attributt`() {
-        val orgNr = "971524964"
-
-        val expectedSparkelJsonResponse = OrganisasjonMocks.sparkelNotImplementedResponse()
-
-        requestSparkelAndAssertResponse(
-                orgNr = orgNr,
-                expectedResponse = expectedSparkelJsonResponse,
-                expectedHttpCode = 501,
-                attributter = listOf("navn","addresse","telefonnummer")
-        )
-    }
-
-    private fun requestSparkelAndAssertResponse(
-            orgNr: String,
-            attributter: List<String> = listOf(),
-            expectedResponse : String,
-            expectedHttpCode : Int = 200
-    ) {
-        var queryString= "?"
-        attributter.forEach {
-            queryString = queryString.plus("attributt=$it&")
-        }
-        queryString = queryString.removeSuffix("?").removeSuffix("&")
-
-        val url = "/api/organisasjon/$orgNr$queryString"
-        log.info("URL=$url")
-
-        val stsClientWs = stsClient(bootstrap.env.securityTokenServiceEndpointUrl,
-                bootstrap.env.securityTokenUsername to bootstrap.env.securityTokenPassword)
-        val stsClientRest = StsRestClient(
-                bootstrap.env.stsRestUrl, bootstrap.env.securityTokenUsername, bootstrap.env.securityTokenPassword)
-
-        val wsClients = WsClients(stsClientWs, stsClientRest, bootstrap.env.allowInsecureSoapRequests)
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
-                jwtIssuer = bootstrap.env.jwtIssuer,
-                jwkProvider = bootstrap.jwkStub.stubbedJwkProvider(),
-                organisasjonService = OrganisasjonService(wsClients.organisasjon(bootstrap.env.organisasjonEndpointUrl))
-        )}) {
-            handleRequest(HttpMethod.Get, url) {
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5)))}) {
+            handleRequest(HttpMethod.Get, "/api/organisasjon/${orgNr}") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(expectedHttpCode, response.status()?.value)
-                assertJsonEquals(JSONObject(expectedResponse), JSONObject(response.content))
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med feil ved feil`() {
+        val organisasjonV5 = mockk<OrganisasjonV5>()
+
+        val orgNr = "97112233"
+
+        every {
+            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+                it.orgnummer == orgNr
+            })
+        } throws (Exception("SOAP fault"))
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5)))}) {
+            handleRequest(HttpMethod.Get, "/api/organisasjon/${orgNr}") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.InternalServerError, response.status())
+                assertJsonEquals(JSONObject(expectedJson_fault), JSONObject(response.content))
             }
         }
     }
 }
+
+private val expectedJson = """
+{
+    "navn": "NAV, AVD SANNERGATA 2"
+}
+""".trimIndent()
+
+private val expectedJson_fault = """
+{
+    "feilmelding":"Unknown error"
+}
+""".trimIndent()
