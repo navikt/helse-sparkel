@@ -67,3 +67,15 @@ fun <A, B, C> Either<A, B>.fold(ifLeft: (A) -> C, ifRight: (B) -> C) =
     }
 
 fun <B> Either<*, B>.orElse(ifLeft: () -> B) = fold({ ifLeft() }, { it })
+
+// mimicks scala's sequenceU
+fun <A, B> List<Either<A, B>>.sequenceU() =
+        fold(Either.Right(emptyList<B>()) as Either<A, List<B>>) { acc, either ->
+            either.fold({ left ->
+                Either.Left(left)
+            }, { right ->
+                acc.map { list ->
+                    list + right
+                }
+            })
+        }
