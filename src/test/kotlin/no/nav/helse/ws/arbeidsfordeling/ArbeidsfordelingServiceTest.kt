@@ -3,14 +3,19 @@ package no.nav.helse.ws.arbeidsfordeling
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Feilårsak
 import no.nav.helse.Either
+import no.nav.helse.Feilårsak
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.Diskresjonskode
 import no.nav.helse.ws.person.GeografiskOmraade
 import no.nav.helse.ws.person.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonService
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.feil.UgyldigInput
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetsstatus
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
@@ -85,6 +90,81 @@ class ArbeidsfordelingServiceTest {
     }
 
     @Test
+    fun `skal mappe FinnBehandlendeEnhetListeUgyldigInput til FeilFraTjeneste`() {
+        val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
+        val personService = mockk<PersonService>()
+
+        every {
+            personService.geografiskTilknytning(any())
+        } returns GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030103")).let {
+            Either.Right(it)
+        }
+
+        every {
+            arbeidsfordelingClient.getBehandlendeEnhet(any(), any())
+        } returns Either.Left(FinnBehandlendeEnhetListeUgyldigInput("SOAP fault", UgyldigInput()))
+
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
+
+        val actual = arbeidsfordelingService.getBehandlendeEnhet(AktørId("123456789"), emptyList(), Tema("SYK"))
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe Exception til UkjentFeil`() {
+        val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
+        val personService = mockk<PersonService>()
+
+        every {
+            personService.geografiskTilknytning(any())
+        } returns GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030103")).let {
+            Either.Right(it)
+        }
+
+        every {
+            arbeidsfordelingClient.getBehandlendeEnhet(any(), any())
+        } returns Either.Left(Exception("SOAP fault"))
+
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
+
+        val actual = arbeidsfordelingService.getBehandlendeEnhet(AktørId("123456789"), emptyList(), Tema("SYK"))
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe ingen resultat til IkkeFunnet`() {
+        val arbeidsfordelingClient = mockk<ArbeidsfordelingClient>()
+        val personService = mockk<PersonService>()
+
+        every {
+            personService.geografiskTilknytning(any())
+        } returns GeografiskTilknytning(null, GeografiskOmraade("Bydel", "030103")).let {
+            Either.Right(it)
+        }
+
+        every {
+            arbeidsfordelingClient.getBehandlendeEnhet(any(), any())
+        } returns Either.Right(emptyList())
+
+        val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
+
+        val actual = arbeidsfordelingService.getBehandlendeEnhet(AktørId("123456789"), emptyList(), Tema("SYK"))
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
     fun `Finn enhet for hovedaktør uten kode 6 uten noen medaktører`() {
         val aktørId = AktørId("1831212532200")
         val tema = Tema("SYK")
@@ -109,9 +189,11 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns expected.let {
-            Either.Right(it)
-        }
+        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+            enhetId = expected.id
+            enhetNavn = expected.navn
+            status = Enhetsstatus.AKTIV
+        }))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
@@ -152,9 +234,11 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns expected.let {
-            Either.Right(it)
-        }
+        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+            enhetId = expected.id
+            enhetNavn = expected.navn
+            status = Enhetsstatus.AKTIV
+        }))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
@@ -195,9 +279,11 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns expected.let {
-            Either.Right(it)
-        }
+        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+            enhetId = expected.id
+            enhetNavn = expected.navn
+            status = Enhetsstatus.AKTIV
+        }))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
@@ -257,9 +343,11 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns expected.let {
-            Either.Right(it)
-        }
+        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+            enhetId = expected.id
+            enhetNavn = expected.navn
+            status = Enhetsstatus.AKTIV
+        }))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
@@ -311,9 +399,11 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns expected.let {
-            Either.Right(it)
-        }
+        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+            enhetId = expected.id
+            enhetNavn = expected.navn
+            status = Enhetsstatus.AKTIV
+        }))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
@@ -354,9 +444,11 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns expected.let {
-            Either.Right(it)
-        }
+        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+            enhetId = expected.id
+            enhetNavn = expected.navn
+            status = Enhetsstatus.AKTIV
+        }))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 

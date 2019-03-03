@@ -82,4 +82,16 @@ class EitherTest {
             is Either.Right -> fail { "Expected Either.Left" }
         }
     }
+
+    @Test
+    fun `skal gi ny venstreverdi om høyreverdi er null`() {
+        val str: String? = null
+        val either: Either<String, String?> = Either.Right(str)
+        val actual = either.leftIfNull { "Left" }
+
+        when (actual) {
+            is Either.Left -> assertEquals("Left", actual.left)
+            is Either.Right -> fail { "Expected Either.Left" }
+        }
+    }
 }

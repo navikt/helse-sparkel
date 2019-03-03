@@ -19,6 +19,7 @@ import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import no.nav.helse.ws.withSoapAction
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -69,12 +70,19 @@ class ArbeidsfordelingIntegrationTest {
                 response = WireMock.okXml(finnBehandlendeEnhetListe_response(enhetId, enhetNavn)),
                 request = request
         ) { arbeidsfordelingClient ->
-            val expected = Enhet(enhetId, enhetNavn)
+            val expected = listOf(Organisasjonsenhet().apply {
+                this.enhetId = enhetId
+                this.enhetNavn = enhetNavn
+            })
             val actual = arbeidsfordelingClient.getBehandlendeEnhet(GeografiskTilknytning(null, null), Tema(tema))
 
             when (actual) {
                 is Either.Right -> {
-                    Assertions.assertEquals(expected, actual.right)
+                    Assertions.assertEquals(expected.size, actual.right.size)
+                    expected.forEachIndexed { key, value ->
+                        assertEquals(value.enhetId, actual.right[key].enhetId)
+                        assertEquals(value.enhetNavn, actual.right[key].enhetNavn)
+                    }
                 }
                 is Either.Left -> fail { "Expected Either.Right to be returned" }
             }

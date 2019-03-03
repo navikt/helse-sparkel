@@ -6,6 +6,7 @@ import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.ArbeidsfordelingKriterier
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Diskresjonskoder
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Geografi
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.meldinger.FinnBehandlendeEnhetListeRequest
 import org.slf4j.LoggerFactory
 
@@ -17,7 +18,7 @@ class ArbeidsfordelingClient(
     fun getBehandlendeEnhet(
             gjeldendeGeografiskTilknytning: GeografiskTilknytning,
             gjeldendeTema : Tema
-    ) : Either<Exception, Enhet> {
+    ) : Either<Exception, List<Organisasjonsenhet>> {
         val request = FinnBehandlendeEnhetListeRequest().apply {
             arbeidsfordelingKriterier = ArbeidsfordelingKriterier().apply {
                 tema = no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Tema().apply {
@@ -38,9 +39,8 @@ class ArbeidsfordelingClient(
         }
 
         return try {
-            BehandlendeEnhetMapper.tilEnhet(arbeidsfordelingV1.finnBehandlendeEnhetListe(request))?.let {
-                Either.Right(it)
-            } ?: Either.Left(IngenEnhetFunnetException())
+            Either.Right(arbeidsfordelingV1.finnBehandlendeEnhetListe(request).behandlendeEnhetListe
+                    .toList())
         } catch (cause: Exception) {
             log.error("Feil ved oppslag på behandlende enhet", cause)
             Either.Left(cause)

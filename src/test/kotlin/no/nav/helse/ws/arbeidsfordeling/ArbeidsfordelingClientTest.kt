@@ -13,7 +13,6 @@ import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetstyper
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.meldinger.FinnBehandlendeEnhetListeResponse
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 
@@ -52,10 +51,19 @@ class ArbeidsfordelingClientTest {
             arbeidsfordelingV1.finnBehandlendeEnhetListe(any())
         }
 
-        val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
+        val expected = listOf(Organisasjonsenhet().apply {
+            enhetId = "4432"
+            enhetNavn = "NAV Arbeid og ytelser Follo"
+        })
 
         when (actual) {
-            is Either.Right -> assertEquals(expected, actual.right)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
+                expected.forEachIndexed { index, value ->
+                    assertEquals(value.enhetId, actual.right[index].enhetId)
+                    assertEquals(value.enhetNavn, actual.right[index].enhetNavn)
+                }
+            }
             else -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -93,10 +101,19 @@ class ArbeidsfordelingClientTest {
             arbeidsfordelingV1.finnBehandlendeEnhetListe(any())
         }
 
-        val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
+        val expected = listOf(Organisasjonsenhet().apply {
+            enhetId = "4432"
+            enhetNavn = "NAV Arbeid og ytelser Follo"
+        })
 
         when (actual) {
-            is Either.Right -> assertEquals(expected, actual.right)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
+                expected.forEachIndexed { index, value ->
+                    assertEquals(value.enhetId, actual.right[index].enhetId)
+                    assertEquals(value.enhetNavn, actual.right[index].enhetNavn)
+                }
+            }
             else -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -134,16 +151,25 @@ class ArbeidsfordelingClientTest {
             arbeidsfordelingV1.finnBehandlendeEnhetListe(any())
         }
 
-        val expected = Enhet("4432", "NAV Arbeid og ytelser Follo")
+        val expected = listOf(Organisasjonsenhet().apply {
+            enhetId = "4432"
+            enhetNavn = "NAV Arbeid og ytelser Follo"
+        })
 
         when (actual) {
-            is Either.Right -> assertEquals(expected, actual.right)
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
+                expected.forEachIndexed { index, value ->
+                    assertEquals(value.enhetId, actual.right[index].enhetId)
+                    assertEquals(value.enhetNavn, actual.right[index].enhetNavn)
+                }
+            }
             else -> fail { "Expected Either.Right to be returned" }
         }
     }
 
     @Test
-    fun `skal gi feil når ingen enhet finnes`() {
+    fun `skal gi tom liste når ingen enhet finnes`() {
         val arbeidsfordelingV1 = mockk<ArbeidsfordelingV1>()
 
         every {
@@ -161,10 +187,8 @@ class ArbeidsfordelingClientTest {
         }
 
         when (actual) {
-            is Either.Left -> {
-                assertTrue(actual.left is IngenEnhetFunnetException)
-            }
-            else -> fail { "Expected Either.Left to be returned" }
+            is Either.Right -> assertEquals(emptyList<Organisasjonsenhet>(), actual.right)
+            else -> fail { "Expected Either.Right to be returned" }
         }
     }
 

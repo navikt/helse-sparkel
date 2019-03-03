@@ -1,8 +1,9 @@
 package no.nav.helse.ws.arbeidsfordeling
 
 import no.nav.helse.Feilårsak
+import no.nav.helse.bimap
 import no.nav.helse.flatMap
-import no.nav.helse.mapLeft
+import no.nav.helse.leftIfNull
 import no.nav.helse.sequenceU
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.person.PersonService
@@ -25,12 +26,15 @@ class ArbeidsfordelingService(
                         it.diskresjonskode?.kode == 6
                     } ?: geografiskTilknytningHovedAktoer
 
-                    arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema).mapLeft {
+                    arbeidsfordelingClient.getBehandlendeEnhet(gjeldendeGeografiskeTilknytning, tema).bimap({
                         when (it) {
-                            is IngenEnhetFunnetException -> Feilårsak.IkkeFunnet
                             is FinnBehandlendeEnhetListeUgyldigInput -> Feilårsak.FeilFraTjeneste
                             else -> Feilårsak.UkjentFeil
                         }
+                    }, {
+                        BehandlendeEnhetMapper.tilEnhet(it)
+                    }).leftIfNull {
+                        Feilårsak.IkkeFunnet
                     }
                 }
             }

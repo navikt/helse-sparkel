@@ -1,16 +1,15 @@
 package no.nav.helse.ws.arbeidsfordeling
 
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetsstatus
-import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.meldinger.FinnBehandlendeEnhetListeResponse
+import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 
 object BehandlendeEnhetMapper {
-    fun tilEnhet(response: FinnBehandlendeEnhetListeResponse) : Enhet? {
-        if (response.behandlendeEnhetListe == null || response.behandlendeEnhetListe.isEmpty()) {
-            return null
-        }
-        val enhet = response.behandlendeEnhetListe.firstOrNull { it.status == Enhetsstatus.AKTIV }
-        return if (enhet == null) null else Enhet(id = enhet.enhetId, navn = enhet.enhetNavn)
-    }
+    fun tilEnhet(behandlendeEnhetListe: List<Organisasjonsenhet>) =
+            behandlendeEnhetListe.firstOrNull {
+                it.status == Enhetsstatus.AKTIV
+            }?.let {enhet ->
+                Enhet(enhet.enhetId, enhet.enhetNavn)
+            }
 }
 
 data class Enhet(val id: String, val navn: String)
