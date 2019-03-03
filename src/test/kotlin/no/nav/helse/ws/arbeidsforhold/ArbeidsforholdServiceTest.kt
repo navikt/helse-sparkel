@@ -112,8 +112,8 @@ class ArbeidsforholdServiceTest {
         }
 
         every {
-            organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
-        } returns Either.Right("MATBUTIKKEN AS")
+            organisasjonService.hentOrganisasjon(OrganisasjonsNummer("22334455"), listOf(OrganisasjonsAttributt("navn")))
+        } returns Either.Right(OrganisasjonResponse("MATBUTIKKEN AS"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
@@ -157,7 +157,7 @@ class ArbeidsforholdServiceTest {
         }
 
         every {
-            organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer("22334455"))
+            organisasjonService.hentOrganisasjon(OrganisasjonsNummer("22334455"), listOf(OrganisasjonsAttributt("navn")))
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)

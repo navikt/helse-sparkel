@@ -3,9 +3,7 @@ package no.nav.helse.ws.arbeidsforhold
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
-import no.nav.helse.fold
 import no.nav.helse.map
-import no.nav.helse.mapLeft
 import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -25,44 +23,49 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
-            }, {
-                it.map { arbeidsforhold ->
-                    Arbeidsforhold(arbeidsforhold.arbeidsgiver.let { aktør ->
+            }, { liste ->
+                liste.map { arbeidsforhold ->
+                    arbeidsforhold.arbeidsgiver.let { aktør ->
                         when (aktør) {
-                            is Organisasjon -> {
-                                val navn = aktør.navn ?: organisasjonService.hentOrganisasjonnavn(OrganisasjonsNummer(aktør.orgnummer)).orElse { "FEIL VED HENTING AV NAVN" }
-                                Arbeidsgiver.Organisasjon(aktør.orgnummer, navn)
-                            }
-
+                            is Organisasjon -> Arbeidsgiver.Organisasjon(aktør.orgnummer, hentOrganisasjonsnavn(aktør) ?: "FEIL VED HENTING AV NAVN")
                             else -> Arbeidsgiver.Organisasjon("0000000000", "UKJENT ARBEIDSGIVERTYPE")
                         }
-                    }, arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(), arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate())
+                    }.let { arbeidsgiver ->
+                        Arbeidsforhold(arbeidsgiver,
+                                arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
+                                arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate()
+                        )
+                    }
                 }
             })
 
     fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).mapLeft{
-                when (it) {
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).bimap({ exception ->
+                when (exception) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
-            }.map {
-                it.map {
-                    it.arbeidsgiver
-                }.filter {
-                    it is Organisasjon
-                }.map {
-                    it as Organisasjon
-                }.distinctBy {
-                    it.orgnummer
+            }, { liste ->
+                liste.map { arbeidsforhold ->
+                    arbeidsforhold.arbeidsgiver
+                }.filter { aktør ->
+                    aktør is Organisasjon
+                }.map { aktør ->
+                    aktør as Organisasjon
+                }.distinctBy { organisasjon ->
+                    organisasjon.orgnummer
                 }.map { organisasjon ->
-                    Arbeidsgiver.Organisasjon(organisasjon.orgnummer, organisasjon.navn ?: organisasjonService.hentOrganisasjon(
-                            orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
-                            attributter = listOf(OrganisasjonsAttributt("navn"))
-                    ).fold({ null }, { it.navn }))
+                    Arbeidsgiver.Organisasjon(organisasjon.orgnummer, hentOrganisasjonsnavn(organisasjon))
                 }
-            }
+            })
+
+    private fun hentOrganisasjonsnavn(organisasjon: Organisasjon) =
+            organisasjon.navn ?: organisasjonService.hentOrganisasjon(
+                    orgnr = OrganisasjonsNummer(organisasjon.orgnummer),
+                    attributter = listOf(OrganisasjonsAttributt("navn"))).map {
+                it.navn
+            }.orElse { null }
 }
 
 sealed class Arbeidsgiver {
