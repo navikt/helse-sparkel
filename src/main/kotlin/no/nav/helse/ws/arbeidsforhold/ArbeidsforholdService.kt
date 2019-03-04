@@ -69,7 +69,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
 }
 
 sealed class Arbeidsgiver {
-    data class Organisasjon(val organisasjonsnummer: String, val navn: String?): Arbeidsgiver()
+    data class Organisasjon(val orgnummer: String, val navn: String?): Arbeidsgiver()
 }
 
 data class Arbeidsforhold(val arbeidsgiver: Arbeidsgiver, val startdato: LocalDate, val sluttdato: LocalDate? = null)

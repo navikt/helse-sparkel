@@ -451,10 +451,10 @@ class ArbeidsforholdComponentTest {
 private val expectedJson_arbeidsgivere = """
 {
     "arbeidsgivere": [{
-        "organisasjonsnummer": "913548221",
+        "orgnummer": "913548221",
         "navn": "EQUINOR AS, AVD STATOIL SOKKELVIRKSOMHET"
     },{
-        "organisasjonsnummer": "984054564",
+        "orgnummer": "984054564",
         "navn": "NAV, AVD WALDEMAR THRANES GATE"
     }]
 }
@@ -463,9 +463,9 @@ private val expectedJson_arbeidsgivere = """
 private val expectedJson_arbeidsgivere_uten_navn = """
 {
     "arbeidsgivere": [{
-        "organisasjonsnummer": "913548221"
+        "orgnummer": "913548221"
     },{
-        "organisasjonsnummer": "984054564"
+        "orgnummer": "984054564"
     }]
 }
 """.trimIndent()
@@ -474,13 +474,13 @@ private val expectedJson_arbeidsforhold = """
 {
     "arbeidsforhold": [{
         "arbeidsgiver": {
-            "organisasjonsnummer": "11223344",
+            "orgnummer": "11223344",
             "navn": "MATBUTIKKEN AS"
         },
         "startdato": "2019-01-01"
     },{
         "arbeidsgiver": {
-            "organisasjonsnummer": "66778899",
+            "orgnummer": "66778899",
             "navn": "S. VINDEL & SØNN"
         },
         "startdato": "2015-01-01",
