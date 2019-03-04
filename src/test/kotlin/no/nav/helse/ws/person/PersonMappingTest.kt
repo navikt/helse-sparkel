@@ -1,9 +1,15 @@
 package no.nav.helse.ws.person
 
-import no.nav.helse.ws.*
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
+import no.nav.helse.ws.AktørId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bostedsadresse
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Gateadresse
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Landkoder
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
-import no.nav.tjeneste.virksomhet.person.v3.meldinger.*
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -42,8 +48,8 @@ class PersonMappingTest {
         assertEquals(expected, actual)
     }
 
-    private fun mannResponse(): HentPersonResponse {
-        val mannen = Person().apply {
+    private fun mannResponse(): Person {
+        return Person().apply {
             personnavn = Personnavn().apply {
                 fornavn = "Bjarne"
                 etternavn = "Betjent"
@@ -71,12 +77,10 @@ class PersonMappingTest {
                 }
             }
         }
-
-        return HentPersonResponse().apply { person = mannen }
     }
 
-    private fun kvinneResponse(): HentPersonResponse {
-        val kvinnen = Person().apply {
+    private fun kvinneResponse(): Person {
+        return Person().apply {
             personnavn = Personnavn().apply {
                 fornavn = "Leonora"
                 mellomnavn = "Dorothea"
@@ -105,8 +109,6 @@ class PersonMappingTest {
                 }
             }
         }
-
-        return HentPersonResponse().apply { person = kvinnen }
     }
 
 }

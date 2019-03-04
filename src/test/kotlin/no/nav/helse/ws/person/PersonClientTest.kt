@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.Either
+import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
@@ -21,6 +22,7 @@ import no.nav.tjeneste.virksomhet.person.v3.informasjon.Postnummer
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningResponse
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.time.LocalDate
@@ -103,17 +105,15 @@ class PersonClientTest {
             personV3.hentPerson(any())
         }
 
-        val expected = Person(
-                id = aktørId,
-                fornavn = "Bjarne",
-                etternavn = "Betjent",
-                fdato = LocalDate.of(2018, 11, 19),
-                kjønn = Kjønn.MANN,
-                bostedsland = "NOR"
-        )
-
         when (result) {
-            is Either.Right -> assertEquals(expected, result.right)
+            is Either.Right -> {
+                assertEquals(aktørId.aktor, (result.right.aktoer as AktoerId).aktoerId)
+                assertEquals("Bjarne", result.right.personnavn.fornavn)
+                assertEquals("Betjent", result.right.personnavn.etternavn)
+                assertEquals(LocalDate.of(2018, 11, 19), result.right.foedselsdato.foedselsdato.toLocalDate())
+                assertEquals("M", result.right.kjoenn.kjoenn.value)
+                assertEquals("NOR", result.right.bostedsadresse.strukturertAdresse.landkode.value)
+            }
             else -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -171,10 +171,15 @@ class PersonClientTest {
             personV3.hentGeografiskTilknytning(any())
         }
 
-        val expected = GeografiskTilknytning(null, GeografiskOmraade("BYDEL", "030103"))
-
         when (result) {
-            is Either.Right -> assertEquals(expected, result.right)
+            is Either.Right -> {
+                assertEquals(aktørId.aktor, (result.right.aktoer as AktoerId).aktoerId)
+                assertEquals("SMEKKER", result.right.navn.mellomnavn)
+                assertEquals("BLYANT", result.right.navn.etternavn)
+                assertEquals("BLYANT SMEKKER", result.right.navn.sammensattNavn)
+                assertTrue(result.right.geografiskTilknytning is Bydel)
+                assertEquals("030103", result.right.geografiskTilknytning.geografiskTilknytning)
+            }
             else -> fail { "Expected Either.Right to be returned" }
         }
     }

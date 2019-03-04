@@ -17,6 +17,7 @@ import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import no.nav.helse.ws.withSoapAction
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
@@ -97,7 +98,9 @@ class OrganisasjonIntegrationTest {
 
             when (actual) {
                 is Either.Right -> {
-                    assertEquals("NAV, AVD SANNERGATA 2", actual.right.navn)
+                    assertEquals(orgNr, actual.right.orgnummer)
+                    assertEquals("NAV", (actual.right.navn as UstrukturertNavn).navnelinje[0])
+                    assertEquals("AVD SANNERGATA 2", (actual.right.navn as UstrukturertNavn).navnelinje[1])
                 }
                 is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
@@ -124,7 +127,11 @@ class OrganisasjonIntegrationTest {
                     listOf(OrganisasjonsAttributt("navn")))
 
             when (actual) {
-                is Either.Right -> assertNull(actual.right.navn)
+                is Either.Right -> {
+                    assertEquals(orgNr, actual.right.orgnummer)
+                    assertEquals(5, (actual.right.navn as UstrukturertNavn).navnelinje.size)
+                    assertNull((actual.right.navn as UstrukturertNavn).navnelinje.firstOrNull { it.isNotBlank() })
+                }
                 is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }

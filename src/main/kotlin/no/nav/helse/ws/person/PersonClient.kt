@@ -5,7 +5,9 @@ import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningRequest
+import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningResponse
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
 import org.slf4j.LoggerFactory
 
@@ -22,15 +24,14 @@ class PersonClient(private val personV3: PersonV3) {
         }
 
         return try {
-            val tpsResponse = personV3.hentPerson(request)
-            Either.Right(PersonMapper.toPerson(tpsResponse))
+            Either.Right(personV3.hentPerson(request).person)
         } catch (ex: Exception) {
             log.error("Error while doing person lookup", ex)
             Either.Left(ex)
         }
     }
 
-    fun geografiskTilknytning(id : AktørId) : Either<Exception, GeografiskTilknytning> {
+    fun geografiskTilknytning(id : AktørId) : Either<Exception, HentGeografiskTilknytningResponse> {
         val request = HentGeografiskTilknytningRequest().apply {
             aktoer = AktoerId().apply {
                 aktoerId = id.aktor
@@ -38,8 +39,7 @@ class PersonClient(private val personV3: PersonV3) {
         }
 
         return try {
-            val tpsResponse = personV3.hentGeografiskTilknytning(request)
-            Either.Right(GeografiskTilknytningMapper.tilGeografiskTilknytning(tpsResponse))
+            Either.Right(personV3.hentGeografiskTilknytning(request))
         } catch (err: Exception) {
             log.error("Error while doing geografisk tilknytning lookup", err)
             Either.Left(err)

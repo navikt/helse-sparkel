@@ -8,6 +8,8 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.Either
+import no.nav.helse.common.toLocalDate
+import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.samlAssertionResponse
@@ -15,6 +17,9 @@ import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.finnsakogbehandlingskjedeliste.Behandlingskjede
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.sakogbehandling.Behandlingsstatuser
+import no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.sakogbehandling.Sakstemaer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
@@ -59,8 +64,42 @@ class SakOgBehandlingIntegrationTest {
                 response = WireMock.okXml(finnSakOgBehandlingskjedeListe_response)
         ) { sakOgBehandlingClient ->
             val expected = listOf(
-                    Sak("010847146", "AAP", LocalDate.parse("2018-07-24"), LocalDate.parse("2018-09-19"), "avbrutt"),
-                    Sak("010847171", "SYM", LocalDate.parse("2018-08-08"), LocalDate.parse("2018-11-19"), "avsluttet")
+                    no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.finnsakogbehandlingskjedeliste.Sak().apply {
+                        saksId = "010847146"
+                        sakstema = Sakstemaer().apply {
+                            value = "AAP"
+                        }
+                        opprettet = LocalDate.parse("2018-07-24").toXmlGregorianCalendar()
+                        with(behandlingskjede) {
+                            add (Behandlingskjede().apply {
+                                slutt = LocalDate.parse("2018-09-19").toXmlGregorianCalendar()
+                                sisteBehandlingsstatus = Behandlingsstatuser().apply {
+                                    value = "avbrutt"
+                                }
+                            })
+                        }
+                    },
+                    no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.finnsakogbehandlingskjedeliste.Sak().apply {
+                        saksId = "010847171"
+                        sakstema = Sakstemaer().apply {
+                            value = "SYM"
+                        }
+                        opprettet = LocalDate.parse("2018-08-08").toXmlGregorianCalendar()
+                        with(behandlingskjede) {
+                            add (Behandlingskjede().apply {
+                                slutt = LocalDate.parse("2018-11-19").toXmlGregorianCalendar()
+                                sisteBehandlingsstatus = Behandlingsstatuser().apply {
+                                    value = "avsluttet"
+                                }
+                            })
+                            add (Behandlingskjede().apply {
+                                slutt = LocalDate.parse("2018-11-19").toXmlGregorianCalendar()
+                                sisteBehandlingsstatus = Behandlingsstatuser().apply {
+                                    value = "avsluttet"
+                                }
+                            })
+                        }
+                    }
             )
             val actual = sakOgBehandlingClient.finnSakOgBehandling(aktørId)
 
@@ -68,7 +107,14 @@ class SakOgBehandlingIntegrationTest {
                 is Either.Right -> {
                     assertEquals(expected.size, actual.right.size)
                     expected.forEachIndexed { key, value ->
-                        assertEquals(value, actual.right[key])
+                        assertEquals(value.saksId, actual.right[key].saksId)
+                        assertEquals(value.sakstema.value, actual.right[key].sakstema.value)
+                        assertEquals(value.opprettet.toLocalDate(), actual.right[key].opprettet.toLocalDate())
+                        assertEquals(value.behandlingskjede.size, actual.right[key].behandlingskjede.size)
+                        value.behandlingskjede.forEachIndexed { index, behandlingskjede ->
+                            assertEquals(behandlingskjede.slutt.toLocalDate(), actual.right[key].behandlingskjede[index].slutt.toLocalDate())
+                            assertEquals(behandlingskjede.sisteBehandlingsstatus.value, actual.right[key].behandlingskjede[index].sisteBehandlingsstatus.value)
+                        }
                     }
                 }
                 is Either.Left -> fail { "Expected Either.Right to be returned" }

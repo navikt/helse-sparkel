@@ -8,6 +8,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.like
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.Either
+import no.nav.helse.common.toLocalDate
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.WsClients
@@ -17,8 +18,10 @@ import no.nav.helse.ws.stsStub
 import no.nav.helse.ws.withCallId
 import no.nav.helse.ws.withSamlAssertion
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -60,12 +63,18 @@ class PersonIntegrationTest {
                 request = hentPersonStub(aktørId),
                 response = WireMock.ok(hentPerson_response)
         ) { personClient ->
-            val expected = Person(AktørId(aktørId), "JENNY", "PIKENES", "LOLNES", LocalDate.of(1984, 7, 8), Kjønn.KVINNE, "NOR")
             val actual = personClient.personInfo(AktørId(aktørId))
 
             when (actual) {
                 is Either.Right -> {
-                    assertEquals(expected, actual.right)
+                    assertTrue(actual.right.aktoer is AktoerId)
+                    assertEquals(aktørId, (actual.right.aktoer as AktoerId).aktoerId)
+                    assertEquals("JENNY", actual.right.personnavn.fornavn)
+                    assertEquals("PIKENES", actual.right.personnavn.mellomnavn)
+                    assertEquals("LOLNES", actual.right.personnavn.etternavn)
+                    assertEquals(LocalDate.of(1984, 7, 8), actual.right.foedselsdato.foedselsdato.toLocalDate())
+                    assertEquals("K", actual.right.kjoenn.kjoenn.value)
+                    assertEquals("NOR", actual.right.bostedsadresse.strukturertAdresse.landkode.value)
                 }
                 is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
