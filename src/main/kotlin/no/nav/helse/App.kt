@@ -21,7 +21,6 @@ import io.ktor.server.netty.Netty
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.http.aktør.AktørregisterService
-import no.nav.helse.maksdato.maksdato
 import no.nav.helse.nais.nais
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
@@ -170,8 +169,6 @@ fun Application.sparkel(
             sykepengeListe(sykepengelisteService)
 
             meldekort(meldekortService)
-
-            maksdato("http://maksdato")
         }
 
         nais(collectorRegistry)
