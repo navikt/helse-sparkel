@@ -26,10 +26,8 @@ class InntektMapperTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()), BigDecimal.valueOf(1500))
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
-
-        val mapper = InntektMapper.mapToInntekt(aktørId, fom, tom)
 
         val inntekter = HentInntektListeBolkResponse().apply {
             with(arbeidsInntektIdentListe) {
@@ -69,7 +67,7 @@ class InntektMapperTest {
             }
         }
 
-        val actual = inntekter.let(mapper)
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
 
         assertEquals(expected.size, actual.size)
         expected.forEachIndexed { key, inntekt ->
@@ -85,10 +83,8 @@ class InntektMapperTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()), BigDecimal.valueOf(1500))
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
-
-        val mapper = InntektMapper.mapToInntekt(aktørId, fom, tom)
 
         val inntekter = HentInntektListeBolkResponse().apply {
             with(arbeidsInntektIdentListe) {
@@ -144,7 +140,7 @@ class InntektMapperTest {
             }
         }
 
-        val actual = inntekter.let(mapper)
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
 
         assertEquals(expected.size, actual.size)
         expected.forEachIndexed { key, inntekt ->
@@ -160,10 +156,8 @@ class InntektMapperTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()), BigDecimal.valueOf(1500))
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
-
-        val mapper = InntektMapper.mapToInntekt(aktørId, fom, tom)
 
         val inntekter = HentInntektListeBolkResponse().apply {
             with(arbeidsInntektIdentListe) {
@@ -219,7 +213,7 @@ class InntektMapperTest {
             }
         }
 
-        val actual = inntekter.let(mapper)
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
 
         assertEquals(expected.size, actual.size)
         expected.forEachIndexed { key, inntekt ->
@@ -235,10 +229,8 @@ class InntektMapperTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()), BigDecimal.valueOf(1500))
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(3000))
         )
-
-        val mapper = InntektMapper.mapToInntekt(aktørId, fom, tom)
 
         val inntekter = HentInntektListeBolkResponse().apply {
             with(arbeidsInntektIdentListe) {
@@ -254,7 +246,22 @@ class InntektMapperTest {
                                         opplysningspliktig = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
+                                        utbetaltIPeriode = fom.minusMonths(1).toXmlGregorianCalendar()
                                         beloep = BigDecimal.valueOf(1500)
+                                    })
+                                    add(Inntekt().apply {
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "5678910"
+                                        }
+                                        utbetaltIPeriode = fom.minusMonths(1).toXmlGregorianCalendar()
+                                        opptjeningsperiode = Periode().apply {
+                                            startDato = fom.minusMonths(1).atDay(1).toXmlGregorianCalendar()
+                                            sluttDato = fom.minusMonths(1).atEndOfMonth().toXmlGregorianCalendar()
+                                        }
+                                        beloep = BigDecimal.valueOf(2000)
                                     })
                                     add(Inntekt().apply {
                                         inntektsmottaker = AktoerId().apply {
@@ -267,7 +274,7 @@ class InntektMapperTest {
                                         opplysningspliktig = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
-                                        beloep = BigDecimal.valueOf(1500)
+                                        beloep = BigDecimal.valueOf(3000)
                                     })
                                 }
                             }
@@ -277,7 +284,61 @@ class InntektMapperTest {
             }
         }
 
-        val actual = inntekter.let(mapper)
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
+
+        assertEquals(expected.size, actual.size)
+        expected.forEachIndexed { key, inntekt ->
+            assertEquals(inntekt, actual[key])
+        }
+    }
+
+    @Test
+    fun `skal beholde inntekter som ikke har opptjeningsperiode, men hvor utbetaltIPeriode er innenfor`() {
+        val aktørId = AktørId("11987654321")
+        val tom = YearMonth.now()
+        val fom = tom.minusMonths(1)
+
+        val expected = listOf(
+                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), true), BigDecimal.valueOf(3000))
+        )
+
+        val inntekter = HentInntektListeBolkResponse().apply {
+            with(arbeidsInntektIdentListe) {
+                add(ArbeidsInntektIdent().apply {
+                    with(arbeidsInntektMaaned) {
+                        add(ArbeidsInntektMaaned().apply {
+                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
+                                with(inntektListe) {
+                                    add(Inntekt().apply {
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        utbetaltIPeriode = tom.plusMonths(1).toXmlGregorianCalendar()
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "5678910"
+                                        }
+                                        beloep = BigDecimal.valueOf(1500)
+                                    })
+                                    add(Inntekt().apply {
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        opplysningspliktig = Organisasjon().apply {
+                                            orgnummer = "5678910"
+                                        }
+                                        beloep = BigDecimal.valueOf(3000)
+                                    })
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        }
+
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
 
         assertEquals(expected.size, actual.size)
         expected.forEachIndexed { key, inntekt ->
@@ -293,10 +354,8 @@ class InntektMapperTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()), BigDecimal.valueOf(1500))
+                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
-
-        val mapper = InntektMapper.mapToInntekt(aktørId, fom, tom)
 
         val inntekter = HentInntektListeBolkResponse().apply {
             with(arbeidsInntektIdentListe) {
@@ -352,7 +411,7 @@ class InntektMapperTest {
             }
         }
 
-        val actual = inntekter.let(mapper)
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
 
         assertEquals(expected.size, actual.size)
         expected.forEachIndexed { key, inntekt ->

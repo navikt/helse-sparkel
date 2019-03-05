@@ -494,7 +494,8 @@ private val expectedJson = """
         "beløp": 2500,
         "opptjeningsperiode": {
             "tom": "2019-01-31",
-            "fom": "2019-01-01"
+            "fom": "2019-01-01",
+            "antattPeriode": false
         }
     }]
 }

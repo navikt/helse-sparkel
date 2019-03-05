@@ -8,6 +8,7 @@ import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import java.math.BigDecimal
@@ -26,17 +27,19 @@ class InntektService(private val inntektClient: InntektClient) {
 
     private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =
             f().bimap({
-            when (it) {
-                is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
-                is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
-                else -> Feilårsak.UkjentFeil
-            }
-        }, InntektMapper.mapToInntekt(aktørId, fom, tom))
+                when (it) {
+                    is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
+                    is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
+                    else -> Feilårsak.UkjentFeil
+                }
+            }, {
+                    InntektMapper.mapToInntekt(aktørId, fom, tom, it.arbeidsInntektIdentListe)
+            })
 }
 
 class UgyldigOpptjeningsperiodeException(message: String) : Exception(message)
 
-data class Opptjeningsperiode(val fom: LocalDate, val tom: LocalDate) {
+data class Opptjeningsperiode(val fom: LocalDate, val tom: LocalDate, val antattPeriode: Boolean = false) {
     init {
         if (fom.withDayOfMonth(1) != tom.withDayOfMonth(1)) {
             throw UgyldigOpptjeningsperiodeException("Opptjeningsperiode kan ikke strekke seg over flere måneder")
@@ -46,41 +49,68 @@ data class Opptjeningsperiode(val fom: LocalDate, val tom: LocalDate) {
         }
     }
 }
+
 sealed class Arbeidsgiver {
     data class Organisasjon(val orgnr: String): Arbeidsgiver()
 }
 data class Inntekt(val arbeidsgiver: Arbeidsgiver, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal)
 
 object InntektMapper {
-    fun mapToInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth): (HentInntektListeBolkResponse) -> List<Inntekt> {
-        return { hentInntektListeBolkResponse ->
-            hentInntektListeBolkResponse.arbeidsInntektIdentListe.flatMap {
+    fun mapToInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, arbeidsInntektIdentListe: List<ArbeidsInntektIdent>) =
+            arbeidsInntektIdentListe.flatMap {
                 it.arbeidsInntektMaaned
             }.flatMap {
                 it.arbeidsInntektInformasjon.inntektListe
             }.filter(fjernAndreAktører(aktørId))
-            .filter(fjernOpptjeningsperioderUtenforPeriode(fom, tom))
+            .filter(fjernInntektUtenforPeriode(fom, tom))
             .filter(fjernAndreArbeidsgivereEnnVirksomheter())
-            .map {
-                val arbeidsgiver = Arbeidsgiver.Organisasjon((it.opplysningspliktig as Organisasjon).orgnummer)
+            .map { inntekt ->
+                val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.opplysningspliktig as Organisasjon).orgnummer)
                 try {
-                    Inntekt(arbeidsgiver, Opptjeningsperiode(it.opptjeningsperiode.startDato.toLocalDate(),
-                            it.opptjeningsperiode.sluttDato.toLocalDate()), it.beloep)
+                    Inntekt(
+                            arbeidsgiver = arbeidsgiver,
+                            opptjeningsperiode = opptjeningsperiode(inntekt),
+                            beløp = inntekt.beloep)
                 } catch (err: UgyldigOpptjeningsperiodeException) {
                     null
                 }
             }.filterNotNull()
-        }
-    }
 
     private fun fjernAndreAktører(aktørId: AktørId) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         inntekt.inntektsmottaker is AktoerId && (inntekt.inntektsmottaker as AktoerId).aktoerId == aktørId.aktor
     }
 
-    private fun fjernOpptjeningsperioderUtenforPeriode(fom: YearMonth, tom: YearMonth) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
-        inntekt.opptjeningsperiode != null && inntekt.opptjeningsperiode.startDato.toLocalDate() >= fom.atDay(1)
-                && inntekt.opptjeningsperiode.sluttDato.toLocalDate() <= tom.atEndOfMonth()
+    private fun fjernInntektUtenforPeriode(fom: YearMonth, tom: YearMonth) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
+        erOpptjeningsperioderInnenforPeriode(fom, tom, inntekt) || erUtbetalingsperiodeInnenforPeriode(fom, tom, inntekt)
     }
+
+    private fun harOpptjeningsperiode(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) = inntekt.opptjeningsperiode != null
+
+    private fun opptjeningsperiode(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
+            if (harOpptjeningsperiode(inntekt)) {
+                Opptjeningsperiode(
+                        fom = inntekt.opptjeningsperiode.startDato.toLocalDate(),
+                        tom = inntekt.opptjeningsperiode.sluttDato.toLocalDate())
+            } else {
+                antaAtInntektGjelderDenMånedenDetRapporteresForNårOpptjeningsperiodenErTom(inntekt)
+            }
+
+    private fun antaAtInntektGjelderDenMånedenDetRapporteresForNårOpptjeningsperiodenErTom(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
+            Opptjeningsperiode(
+                    fom = inntekt.utbetaltIPeriode.toLocalDate().withDayOfMonth(1),
+                    tom = YearMonth.from(inntekt.utbetaltIPeriode.toLocalDate()).atEndOfMonth(),
+                    antattPeriode = true
+            )
+
+    private fun erOpptjeningsperioderInnenforPeriode(fom: YearMonth, tom: YearMonth, inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
+        harOpptjeningsperiode(inntekt)
+                && fom.atDay(1) <= inntekt.opptjeningsperiode.startDato.toLocalDate()
+                && tom.atEndOfMonth() >= inntekt.opptjeningsperiode.sluttDato.toLocalDate()
+
+    private fun erUtbetalingsperiodeInnenforPeriode(fom: YearMonth, tom: YearMonth, inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
+        !harOpptjeningsperiode(inntekt)
+                && fom.atDay(1) <= inntekt.utbetaltIPeriode.toLocalDate()
+                && tom.atEndOfMonth() >= inntekt.utbetaltIPeriode.toLocalDate()
 
     private fun fjernAndreArbeidsgivereEnnVirksomheter() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         inntekt.opplysningspliktig is Organisasjon
