@@ -11,6 +11,7 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
@@ -56,6 +57,8 @@ sealed class Arbeidsgiver {
 data class Inntekt(val arbeidsgiver: Arbeidsgiver, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal)
 
 object InntektMapper {
+    private val log = LoggerFactory.getLogger("InntektMapper")
+
     fun mapToInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, arbeidsInntektIdentListe: List<ArbeidsInntektIdent>) =
             arbeidsInntektIdentListe.flatMap {
                 it.arbeidsInntektMaaned
@@ -77,7 +80,17 @@ object InntektMapper {
             }.filterNotNull()
 
     private fun fjernAndreAktører(aktørId: AktørId) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
-        inntekt.inntektsmottaker is AktoerId && (inntekt.inntektsmottaker as AktoerId).aktoerId == aktørId.aktor
+        if (inntekt.inntektsmottaker is AktoerId) {
+            if ((inntekt.inntektsmottaker as AktoerId).aktoerId == aktørId.aktor) {
+                true
+            } else {
+                log.warn("Inntekt gjelder for annen aktør (${(inntekt.inntektsmottaker as AktoerId).aktoerId}) enn det vi forventet (${aktørId.aktor})")
+                false
+            }
+        } else {
+            log.warn("inntektsmottaker er ikke en AktørId")
+            false
+        }
     }
 
     private fun fjernInntektUtenforPeriode(fom: YearMonth, tom: YearMonth) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
@@ -103,16 +116,39 @@ object InntektMapper {
             )
 
     private fun erOpptjeningsperioderInnenforPeriode(fom: YearMonth, tom: YearMonth, inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
-        harOpptjeningsperiode(inntekt)
-                && fom.atDay(1) <= inntekt.opptjeningsperiode.startDato.toLocalDate()
-                && tom.atEndOfMonth() >= inntekt.opptjeningsperiode.sluttDato.toLocalDate()
+        if (harOpptjeningsperiode(inntekt)) {
+            if (fom.atDay(1) <= inntekt.opptjeningsperiode.startDato.toLocalDate()
+                    && tom.atEndOfMonth() >= inntekt.opptjeningsperiode.sluttDato.toLocalDate()) {
+                true
+            } else {
+                log.warn("opptjeningsperioden (${inntekt.opptjeningsperiode.startDato.toLocalDate()} - ${inntekt.opptjeningsperiode.sluttDato.toLocalDate()}) " +
+                        "er utenfor perioden")
+                false
+            }
+        } else {
+            log.info("opptjeningsperiode er ikke angitt")
+            false
+        }
 
     private fun erUtbetalingsperiodeInnenforPeriode(fom: YearMonth, tom: YearMonth, inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
-        !harOpptjeningsperiode(inntekt)
-                && fom.atDay(1) <= inntekt.utbetaltIPeriode.toLocalDate()
-                && tom.atEndOfMonth() >= inntekt.utbetaltIPeriode.toLocalDate()
+        if (!harOpptjeningsperiode(inntekt)) {
+            if (fom.atDay(1) <= inntekt.utbetaltIPeriode.toLocalDate()
+                    && tom.atEndOfMonth() >= inntekt.utbetaltIPeriode.toLocalDate()) {
+                true
+            } else {
+                log.warn("utbetaltIPeriode (${inntekt.utbetaltIPeriode.toLocalDate()}) er utenfor perioden")
+                false
+            }
+        } else {
+            false
+        }
 
     private fun fjernAndreArbeidsgivereEnnVirksomheter() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
-        inntekt.opplysningspliktig is Organisasjon
+        if (inntekt.opplysningspliktig is Organisasjon) {
+            true
+        } else {
+            log.warn("opplysningspliktig er forskjellig fra en Organisasjon")
+            false
+        }
     }
 }
