@@ -6,9 +6,27 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneOffset
 import java.util.*
+import javax.xml.datatype.DatatypeConstants
 import javax.xml.datatype.DatatypeFactory
 
 class DatetimeTests {
+
+    @Test
+    fun `calendar without day should be set to first day of month`() {
+        val expected = LocalDate.of(2019, 1, 1)
+        val given = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+            year = 2019
+            month = 1
+            day = DatatypeConstants.FIELD_UNDEFINED
+            hour = 0
+            minute = 0
+            second = 0
+            millisecond = 0
+            timezone = TimeZone.getTimeZone(ZoneOffset.UTC).rawOffset / 1000 / 60
+        }
+        val actual = given.toLocalDate()
+        assertEquals(expected, actual)
+    }
 
     @Test
     fun toCalendar() {
