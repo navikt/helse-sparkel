@@ -1,5 +1,6 @@
 package no.nav.helse.ws.inntekt
 
+import io.prometheus.client.Counter
 import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
@@ -10,6 +11,7 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldig
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -59,14 +61,61 @@ data class Inntekt(val arbeidsgiver: Arbeidsgiver, val opptjeningsperiode: Opptj
 object InntektMapper {
     private val log = LoggerFactory.getLogger("InntektMapper")
 
+    private val inntektCounter = Counter.build()
+            .name("inntekt_totals")
+            .help("antall inntekter mottatt")
+            .register()
+    private val andreAktørerCounter = Counter.build()
+            .name("inntekt_andre_aktorer_totals")
+            .help("antall inntekter mottatt med andre aktører enn den det ble gjort oppslag på")
+            .register()
+    private val inntekterUtenforPeriodeCounter = Counter.build()
+            .name("inntekt_utenfor_periode_totals")
+            .help("antall inntekter med periode (enten opptjeningsperiode eller utbetaltIPeriode) utenfor søkeperioden")
+            .register()
+    private val inntektArbeidsgivertypeCounter = Counter.build()
+            .name("inntekt_arbeidsgivertype_totals")
+            .labelNames("type")
+            .help("antall inntekter fordelt på ulike arbeidsgivertyper")
+            .register()
+    private val ugyldigOpptjeningsperiodeCounter = Counter.build()
+            .name("inntekt_ugyldig_opptjeningsperiode_totals")
+            .help("antall inntekter med ugyldig opptjeningsperiode")
+            .register()
+
     fun mapToInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, arbeidsInntektIdentListe: List<ArbeidsInntektIdent>) =
             arbeidsInntektIdentListe.flatMap {
                 it.arbeidsInntektMaaned
             }.flatMap {
                 it.arbeidsInntektInformasjon.inntektListe
-            }.filter(fjernAndreAktører(aktørId))
-            .filter(fjernInntektUtenforPeriode(fom, tom))
-            .filter(fjernAndreArbeidsgivereEnnVirksomheter())
+            }.onEach {
+                inntektCounter.inc()
+            }.filter {
+                if (erSammeAktør(aktørId)(it)) {
+                    true
+                } else {
+                    andreAktørerCounter.inc()
+                    false
+                }
+            }
+            .filter {
+                if (erInnenforPeriode(fom, tom)(it)) {
+                    true
+                } else {
+                    inntekterUtenforPeriodeCounter.inc()
+                    false
+                }
+            }
+            .filter {
+                inntektArbeidsgivertypeCounter.labels(when (it.opplysningspliktig) {
+                    is Organisasjon -> "organisasjon"
+                    is PersonIdent -> "personIdent"
+                    is AktoerId -> "aktoerId"
+                    else -> "ukjent"
+                }).inc()
+
+                erOpplysningspliktigEnOrganisasjon()(it)
+            }
             .map { inntekt ->
                 val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.opplysningspliktig as Organisasjon).orgnummer)
                 try {
@@ -75,11 +124,12 @@ object InntektMapper {
                             opptjeningsperiode = opptjeningsperiode(inntekt),
                             beløp = inntekt.beloep)
                 } catch (err: UgyldigOpptjeningsperiodeException) {
+                    ugyldigOpptjeningsperiodeCounter.inc()
                     null
                 }
             }.filterNotNull()
 
-    private fun fjernAndreAktører(aktørId: AktørId) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
+    private fun erSammeAktør(aktørId: AktørId) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         if (inntekt.inntektsmottaker is AktoerId) {
             if ((inntekt.inntektsmottaker as AktoerId).aktoerId == aktørId.aktor) {
                 true
@@ -93,7 +143,7 @@ object InntektMapper {
         }
     }
 
-    private fun fjernInntektUtenforPeriode(fom: YearMonth, tom: YearMonth) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
+    private fun erInnenforPeriode(fom: YearMonth, tom: YearMonth) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         erOpptjeningsperioderInnenforPeriode(fom, tom, inntekt) || erUtbetalingsperiodeInnenforPeriode(fom, tom, inntekt)
     }
 
@@ -143,7 +193,7 @@ object InntektMapper {
             false
         }
 
-    private fun fjernAndreArbeidsgivereEnnVirksomheter() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
+    private fun erOpplysningspliktigEnOrganisasjon() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         if (inntekt.opplysningspliktig is Organisasjon) {
             true
         } else {
