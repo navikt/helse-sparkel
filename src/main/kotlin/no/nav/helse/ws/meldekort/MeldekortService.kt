@@ -39,12 +39,12 @@ class MeldekortService(private val meldekortClient: MeldekortClient) {
 
     private fun sakMedVedtak(sak: Sak, vedtak: Vedtak): MeldekortUtbetalingsgrunnlagSak {
         return MeldekortUtbetalingsgrunnlagSak(
-                type = sak.tema.kodeverksRef,
+                type = sak.tema.termnavn,
                 kilde = "ARENA",
                 saksnummer = sak.fagsystemSakId,
-                saksstatus = sak.saksstatus.kodeverksRef,
+                saksstatus = sak.saksstatus.termnavn,
                 kravMottattDato = vedtak.datoKravMottatt.toLocalDate(),
-                vedtaksstatus = vedtak.vedtaksstatus.kodeverksRef,
+                vedtaksstatus = vedtak.vedtaksstatus.termnavn,
                 vedtakFom = vedtak.vedtaksperiode.fom.toLocalDate(),
                 vedtakTom = vedtak.vedtaksperiode.tom.toLocalDate(),
                 meldekort = vedtak.meldekortListe.map(this::toMeldekort)
@@ -63,10 +63,10 @@ class MeldekortService(private val meldekortClient: MeldekortClient) {
 
     private fun sakUtenVedtak(sak: Sak): List<MeldekortUtbetalingsgrunnlagSak> {
         return listOf(MeldekortUtbetalingsgrunnlagSak(
-                type = sak.tema.kodeverksRef,
+                type = sak.tema.termnavn,
                 kilde = "ARENA",
                 saksnummer = sak.fagsystemSakId,
-                saksstatus = sak.saksstatus.kodeverksRef
+                saksstatus = sak.saksstatus.termnavn
         ))
     }
 }
