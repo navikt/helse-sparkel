@@ -73,6 +73,11 @@ object InntektMapper {
             .name("inntekt_utenfor_periode_totals")
             .help("antall inntekter med periode (enten opptjeningsperiode eller utbetaltIPeriode) utenfor søkeperioden")
             .register()
+    private val inntektPeriodeCounter = Counter.build()
+            .name("inntekt_periode_totals")
+            .help("antall inntekter fordelt på periode (opptjeningsperiode eller utbetaltIPeriode")
+            .labelNames("type")
+            .register()
     private val inntektArbeidsgivertypeCounter = Counter.build()
             .name("inntekt_arbeidsgivertype_totals")
             .labelNames("type")
@@ -96,6 +101,13 @@ object InntektMapper {
                 } else {
                     andreAktørerCounter.inc()
                     false
+                }
+            }
+            .onEach {
+                if (harOpptjeningsperiode(it)) {
+                    inntektPeriodeCounter.labels("opptjeningsperiode").inc()
+                } else {
+                    inntektPeriodeCounter.labels("utbetaltIPeriode").inc()
                 }
             }
             .filter {
