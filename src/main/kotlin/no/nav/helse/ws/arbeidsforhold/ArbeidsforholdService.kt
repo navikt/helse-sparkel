@@ -1,5 +1,6 @@
 package no.nav.helse.ws.arbeidsforhold
 
+import io.prometheus.client.Histogram
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
@@ -16,6 +17,14 @@ import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
+    companion object {
+        private val arbeidsforholdHistogram = Histogram.build()
+                .buckets(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 40.0, 60.0, 80.0, 100.0)
+                .name("arbeidsforhold_sizes")
+                .help("fordeling over hvor mange arbeidsforhold en arbeidstaker har")
+                .register()
+    }
+
     fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).bimap({
                 when (it) {
@@ -24,6 +33,8 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     else -> Feilårsak.UkjentFeil
                 }
             }, { liste ->
+                arbeidsforholdHistogram.observe(liste.size.toDouble())
+
                 liste.map { arbeidsforhold ->
                     arbeidsforhold.arbeidsgiver.let { aktør ->
                         when (aktør) {
