@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.1.2"
 val prometheusVersion = "0.6.0"
-val cxfVersion = "3.2.7"
+val cxfVersion = "3.3.1"
 val orgJsonVersion = "20180813"
 val fuelVersion = "1.15.1"
 val wireMockVersion = "2.19.0"
@@ -45,6 +45,8 @@ dependencies {
     compile("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     compile("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
     compile("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
+    compile("javax.activation:activation:1.1.1")
+
 
     compile("no.nav.helse:cxf-prometheus-metrics:dd7d125")
 
