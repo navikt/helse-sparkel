@@ -61,7 +61,7 @@ fun main() {
                 .build()
 
         val stsClientWs = stsClient(env.securityTokenServiceEndpointUrl,
-                env.securityTokenUsername to env.securityTokenPassword, env.disableCNCheck)
+                env.securityTokenUsername to env.securityTokenPassword)
 
         val stsClientRest = StsRestClient(
                 env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)

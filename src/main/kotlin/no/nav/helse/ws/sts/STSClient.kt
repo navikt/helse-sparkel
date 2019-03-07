@@ -19,7 +19,7 @@ const val STS_CLIENT_AUTHENTICATION_POLICY = "classpath:ws/untPolicy.xml"
 const val STS_SAML_POLICY = "classpath:ws/requestSamlPolicy.xml"
 const val STS_SAML_POLICY_NO_TRANSPORT_BINDING = "classpath:ws/requestSamlPolicyNoTransportBinding.xml"
 
-fun stsClient(stsUrl: String, credentials: Pair<String, String>, disableCNCheck: Boolean = false): STSClient {
+fun stsClient(stsUrl: String, credentials: Pair<String, String>): STSClient {
     val bus = BusFactory.getDefaultBus()
     return STSClient(bus).apply {
         isEnableAppliesTo = false
@@ -32,9 +32,6 @@ fun stsClient(stsUrl: String, credentials: Pair<String, String>, disableCNCheck:
                 SecurityConstants.USERNAME to credentials.first,
                 SecurityConstants.PASSWORD to credentials.second
         )
-        if (disableCNCheck) {
-            setTlsClientParameters(TLSClientParameters().apply { isDisableCNCheck = true })
-        }
         setPolicy(bus.resolvePolicy(STS_CLIENT_AUTHENTICATION_POLICY))
     }
 }

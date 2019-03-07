@@ -18,7 +18,6 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     val aktørregisterUrl: String = envVar("AKTORREGISTER_URL")
 
     val stsRestUrl: String = envVar("SECURITY_TOKEN_SERVICE_REST_URL")
-    val disableCNCheck: Boolean = envVar("DISABLE_CN_CHECK", "false").let { "true" == it }
 
     private fun envVar(key: String, defaultValue: String? = null): String {
         return map[key] ?: defaultValue ?: throw RuntimeException("Missing required variable \"$key\"")
