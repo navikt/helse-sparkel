@@ -19,7 +19,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
 
     companion object {
         private val arbeidsforholdHistogram = Histogram.build()
-                .buckets(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 40.0, 60.0, 80.0, 100.0)
+                .buckets(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 40.0, 60.0, 80.0, 100.0)
                 .name("arbeidsforhold_sizes")
                 .help("fordeling over hvor mange arbeidsforhold en arbeidstaker har")
                 .register()
