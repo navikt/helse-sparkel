@@ -48,6 +48,22 @@ class PersonMappingTest {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun personMappingManglendeAdresse() {
+        val tpsResponse = manglerAdresseResponse()
+        val id = AktørId("1234567891011")
+        val expected = no.nav.helse.ws.person.Person(
+                id = id,
+                fornavn = "Leonora",
+                mellomnavn = "Dorothea",
+                etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
+                kjønn = Kjønn.KVINNE,
+                bostedsland = null)
+        val actual = PersonMapper.toPerson(tpsResponse)
+        assertEquals(expected, actual)
+    }
+
     private fun mannResponse(): Person {
         return Person().apply {
             personnavn = Personnavn().apply {
@@ -105,6 +121,31 @@ class PersonMappingTest {
                 strukturertAdresse = Gateadresse().apply {
                     landkode = Landkoder().apply {
                         value = "NOR"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun manglerAdresseResponse(): Person {
+        return Person().apply {
+            personnavn = Personnavn().apply {
+                fornavn = "Leonora"
+                mellomnavn = "Dorothea"
+                etternavn = "Dahl"
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "K"
+                    }
+                }
+                aktoer = AktoerId().apply {
+                    aktoerId = "1234567891011"
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                        year = 2018
+                        month = 11
+                        day = 19
                     }
                 }
             }

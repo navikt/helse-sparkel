@@ -16,7 +16,7 @@ object PersonMapper {
                 tpsPerson.personnavn.etternavn,
                 tpsPerson.foedselsdato.foedselsdato.toLocalDate(),
                 if (tpsPerson.kjoenn.kjoenn.value == "M") MANN else KVINNE,
-                tpsPerson.bostedsadresse.strukturertAdresse.landkode.value
+                tpsPerson.bostedsadresse?.strukturertAdresse?.landkode?.value
         )
     }
 }
@@ -32,5 +32,5 @@ data class Person(
         val etternavn: String,
         val fdato: LocalDate,
         val kjønn: Kjønn,
-        val bostedsland: String
+        val bostedsland: String?
 )
