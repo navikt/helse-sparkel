@@ -40,15 +40,16 @@ class InntektService(private val inntektClient: InntektClient) {
             })
 }
 
-class UgyldigOpptjeningsperiodeException(message: String) : Exception(message)
+class OpptjeningsperiodeStrekkerSegOverEnKalendermånedException(message: String) : Exception(message)
+class FomErStørreEnTomException(message: String) : Exception(message)
 
 data class Opptjeningsperiode(val fom: LocalDate, val tom: LocalDate, val antattPeriode: Boolean = false) {
     init {
         if (fom.withDayOfMonth(1) != tom.withDayOfMonth(1)) {
-            throw UgyldigOpptjeningsperiodeException("Opptjeningsperiode kan ikke strekke seg over flere måneder")
+            throw OpptjeningsperiodeStrekkerSegOverEnKalendermånedException("Opptjeningsperiode kan ikke strekke seg over flere måneder")
         }
         if (tom < fom) {
-            throw UgyldigOpptjeningsperiodeException("tom < fom")
+            throw FomErStørreEnTomException("tom < fom")
         }
     }
 }
@@ -85,6 +86,7 @@ object InntektMapper {
             .register()
     private val ugyldigOpptjeningsperiodeCounter = Counter.build()
             .name("inntekt_ugyldig_opptjeningsperiode_totals")
+            .labelNames("type")
             .help("antall inntekter med ugyldig opptjeningsperiode")
             .register()
 
@@ -135,8 +137,11 @@ object InntektMapper {
                             arbeidsgiver = arbeidsgiver,
                             opptjeningsperiode = opptjeningsperiode(inntekt),
                             beløp = inntekt.beloep)
-                } catch (err: UgyldigOpptjeningsperiodeException) {
-                    ugyldigOpptjeningsperiodeCounter.inc()
+                } catch (err: OpptjeningsperiodeStrekkerSegOverEnKalendermånedException) {
+                    ugyldigOpptjeningsperiodeCounter.labels("periode_over_en_kalendermåned").inc()
+                    null
+                } catch (err: FomErStørreEnTomException) {
+                    ugyldigOpptjeningsperiodeCounter.labels("fom_er_større_enn_tom").inc()
                     null
                 }
             }.filterNotNull()
