@@ -4,6 +4,7 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
     </appender>
 
+    <logger name="org.apache.cxf" level="WARN" />
     <logger name="io.ktor.auth.jwt" level="TRACE" />
 
     <root level="INFO">

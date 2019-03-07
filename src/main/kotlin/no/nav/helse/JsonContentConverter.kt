@@ -33,7 +33,7 @@ class JsonContentConverter : ContentConverter {
             else -> JSONObject(value)
         }.toString()
 
-        log.info("sending json, {} to {}", value, json)
+        log.trace("sending json, {} to {}", value, json)
         return TextContent(json, contentType.withCharset(context.call.suitableCharset()))
     }
 
