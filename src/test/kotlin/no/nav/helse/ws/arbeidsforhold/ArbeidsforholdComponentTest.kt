@@ -23,7 +23,7 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.O
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonResponse
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -178,13 +178,16 @@ class ArbeidsforholdComponentTest {
         }
 
         every {
-            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+            organisasjonV5.hentOrganisasjon(match {
                 it.orgnummer == "11223344"
             })
-        } returns HentNoekkelinfoOrganisasjonResponse().apply {
-            navn = UstrukturertNavn().apply {
-                with (navnelinje) {
-                    add("MATBUTIKKEN AS")
+        } returns HentOrganisasjonResponse().apply {
+            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
+                orgnummer = "11223344"
+                navn = UstrukturertNavn().apply {
+                    with (navnelinje) {
+                        add("MATBUTIKKEN AS")
+                    }
                 }
             }
         }
@@ -236,27 +239,33 @@ class ArbeidsforholdComponentTest {
         }
 
         every {
-            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+            organisasjonV5.hentOrganisasjon(match {
                 it.orgnummer == "913548221"
             })
-        } returns HentNoekkelinfoOrganisasjonResponse().apply {
-            navn = UstrukturertNavn().apply {
-                with (navnelinje) {
-                    add("EQUINOR AS")
-                    add("AVD STATOIL SOKKELVIRKSOMHET")
+        } returns HentOrganisasjonResponse().apply {
+            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
+                orgnummer = "913548221"
+                navn = UstrukturertNavn().apply {
+                    with(navnelinje) {
+                        add("EQUINOR AS")
+                        add("AVD STATOIL SOKKELVIRKSOMHET")
+                    }
                 }
             }
         }
 
         every {
-            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+            organisasjonV5.hentOrganisasjon(match {
                 it.orgnummer == "984054564"
             })
-        } returns HentNoekkelinfoOrganisasjonResponse().apply {
-            navn = UstrukturertNavn().apply {
-                with (navnelinje) {
-                    add("NAV")
-                    add("AVD WALDEMAR THRANES GATE")
+        } returns HentOrganisasjonResponse().apply {
+            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
+                orgnummer = "984054564"
+                navn = UstrukturertNavn().apply {
+                    with(navnelinje) {
+                        add("NAV")
+                        add("AVD WALDEMAR THRANES GATE")
+                    }
                 }
             }
         }

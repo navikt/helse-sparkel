@@ -13,27 +13,31 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.mockedSparkel
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonResponse
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class OrganisasjonComponentTest {
     @Test
-    fun `skal returnere organisasjonsnavn`() {
+    fun `skal returnere organiasasjon`() {
         val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val orgNr = "97112233"
 
         every {
-            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+            organisasjonV5.hentOrganisasjon(match {
                 it.orgnummer == orgNr
             })
-        } returns HentNoekkelinfoOrganisasjonResponse().apply {
-            navn = UstrukturertNavn().apply {
-                with (navnelinje) {
-                    add("NAV")
-                    add("AVD SANNERGATA 2")
+        } returns HentOrganisasjonResponse().apply {
+            organisasjon = Virksomhet().apply {
+                orgnummer = orgNr
+                navn = UstrukturertNavn().apply {
+                    with(navnelinje) {
+                        add("NAV")
+                        add("AVD SANNERGATA 2")
+                    }
                 }
             }
         }
@@ -87,7 +91,9 @@ class OrganisasjonComponentTest {
 
 private val expectedJson = """
 {
-    "navn": "NAV, AVD SANNERGATA 2"
+    "orgnr": "97112233",
+    "navn": "NAV, AVD SANNERGATA 2",
+    "type": "Virksomhet"
 }
 """.trimIndent()
 

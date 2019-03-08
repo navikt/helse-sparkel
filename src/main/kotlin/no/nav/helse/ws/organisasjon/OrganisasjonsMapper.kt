@@ -1,13 +1,23 @@
 package no.nav.helse.ws.organisasjon
 
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.JuridiskEnhet
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Orgledd
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.SammensattNavn
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentNoekkelinfoOrganisasjonResponse
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
 
 object OrganisasjonsMapper {
-    fun fraNoekkelInfo(
-            response : HentNoekkelinfoOrganisasjonResponse) : OrganisasjonResponse {
-        return OrganisasjonResponse(navn = name(response.navn))
+    fun fraOrganisasjon(organisasjon: no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon) : Organisasjon {
+        return Organisasjon(
+                orgnr = organisasjon.orgnummer,
+                navn = name(organisasjon.navn),
+                type = when (organisasjon) {
+                    is Orgledd -> Organisasjon.Type.Orgledd
+                    is JuridiskEnhet -> Organisasjon.Type.JuridiskEnhet
+                    is Virksomhet -> Organisasjon.Type.Virksomhet
+                    else -> Organisasjon.Type.Organisasjon
+                }
+        )
     }
 
     private fun name(sammensattNavn: SammensattNavn): String? {

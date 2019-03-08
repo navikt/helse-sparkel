@@ -2,22 +2,28 @@ package no.nav.helse.ws.organisasjon
 
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentNoekkelinfoOrganisasjonOrganisasjonIkkeFunnet
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentNoekkelinfoOrganisasjonUgyldigInput
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonOrganisasjonIkkeFunnet
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonUgyldigInput
 
 class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
 
-    fun hentOrganisasjon(orgnr: OrganisasjonsNummer, attributter : List<OrganisasjonsAttributt>) =
-            organisasjonsClient.hentOrganisasjon(orgnr, attributter).bimap({
+    fun hentOrganisasjon(orgnr: OrganisasjonsNummer) =
+            organisasjonsClient.hentOrganisasjon(orgnr).bimap({
                 when (it) {
-                    is HentNoekkelinfoOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
-                    is HentNoekkelinfoOrganisasjonUgyldigInput -> Feilårsak.FeilFraTjeneste
-                    is UkjentAttributtException -> Feilårsak.IkkeImplementert
+                    is HentOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
+                    is HentOrganisasjonUgyldigInput -> Feilårsak.FeilFraBruker
                     else -> Feilårsak.UkjentFeil
                 }
             }, {
-                OrganisasjonsMapper.fraNoekkelInfo(it)
+                OrganisasjonsMapper.fraOrganisasjon(it)
             })
 }
 
-data class OrganisasjonResponse(val navn: String?)
+data class Organisasjon(val orgnr: String, val type: Type, val navn: String?) {
+    enum class Type {
+        Orgledd,
+        JuridiskEnhet,
+        Virksomhet,
+        Organisasjon
+    }
+}
