@@ -54,7 +54,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
@@ -101,7 +101,7 @@ class InntektMapperTest {
                                             startDato = fom.minusMonths(1).atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.minusMonths(1).atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(2500)
@@ -114,7 +114,7 @@ class InntektMapperTest {
                                             startDato = tom.plusMonths(1).atDay(1).toXmlGregorianCalendar()
                                             sluttDato = tom.plusMonths(1).atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(3500)
@@ -127,7 +127,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
@@ -174,7 +174,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = PersonIdent().apply {
+                                        virksomhet = PersonIdent().apply {
                                             personIdent = "12345678911"
                                         }
                                         beloep = BigDecimal.valueOf(3500)
@@ -187,7 +187,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = AktoerId().apply {
+                                        virksomhet = AktoerId().apply {
                                             aktoerId = "11223344"
                                         }
                                         beloep = BigDecimal.valueOf(2500)
@@ -200,7 +200,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
@@ -243,7 +243,7 @@ class InntektMapperTest {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktørId.aktor
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         utbetaltIPeriode = fom.minusMonths(1).toXmlGregorianCalendar()
@@ -253,7 +253,7 @@ class InntektMapperTest {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktørId.aktor
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         utbetaltIPeriode = fom.minusMonths(1).toXmlGregorianCalendar()
@@ -271,7 +271,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(3000)
@@ -315,7 +315,7 @@ class InntektMapperTest {
                                             aktoerId = aktørId.aktor
                                         }
                                         utbetaltIPeriode = tom.plusMonths(1).toXmlGregorianCalendar()
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
@@ -325,7 +325,7 @@ class InntektMapperTest {
                                             aktoerId = aktørId.aktor
                                         }
                                         utbetaltIPeriode = fom.toXmlGregorianCalendar()
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(3000)
@@ -372,7 +372,7 @@ class InntektMapperTest {
                                             startDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                             sluttDato = fom.atDay(1).toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
@@ -385,7 +385,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.plusMonths(1).atDay(1).toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
@@ -398,7 +398,7 @@ class InntektMapperTest {
                                             startDato = fom.atDay(1).toXmlGregorianCalendar()
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "5678910"
                                         }
                                         beloep = BigDecimal.valueOf(1500)

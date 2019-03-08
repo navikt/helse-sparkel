@@ -2,8 +2,8 @@ package no.nav.helse.ws.inntekt
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feilårsak
 import no.nav.helse.Either
+import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
@@ -75,7 +75,7 @@ class InntektServiceTest {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktør.aktor
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "12345"
                                         }
                                         opptjeningsperiode = Periode().apply {
@@ -159,7 +159,7 @@ class InntektServiceTest {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktør.aktor
                                         }
-                                        opplysningspliktig = Organisasjon().apply {
+                                        virksomhet = Organisasjon().apply {
                                             orgnummer = "12345"
                                         }
                                         opptjeningsperiode = Periode().apply {

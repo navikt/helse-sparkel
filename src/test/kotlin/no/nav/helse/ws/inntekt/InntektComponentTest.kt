@@ -13,6 +13,8 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.organisasjon.OrganisasjonClient
+import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
@@ -28,10 +30,18 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsinntekt
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.JuridiskEnhet
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.OrgnrForOrganisasjon
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.YearMonth
 
 class InntektComponentTest {
@@ -147,66 +157,15 @@ class InntektComponentTest {
     @Test
     fun `skal svare med liste av inntekter`() {
         val inntektV3 = mockk<InntektV3>()
+        val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
 
-        val expected = HentInntektListeBolkResponse().apply {
-            with (arbeidsInntektIdentListe) {
-                add(ArbeidsInntektIdent().apply {
-                    ident = AktoerId().apply {
-                        aktoerId = aktørId.aktor
-                    }
-                    with (arbeidsInntektMaaned) {
-                        add(ArbeidsInntektMaaned().apply {
-                            aarMaaned = fom.toXmlGregorianCalendar()
-                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
-                                with (inntektListe) {
-                                    add(Loennsinntekt().apply {
-                                        beloep = BigDecimal.valueOf(2500)
-                                        fordel = Fordel().apply {
-                                            value = "kontantytelse"
-                                        }
-                                        inntektskilde = InntektsInformasjonsopphav().apply {
-                                            value = "A-ordningen"
-                                        }
-                                        inntektsperiodetype = Inntektsperiodetype().apply {
-                                            value = "Maaned"
-                                        }
-                                        inntektsstatus = Inntektsstatuser().apply {
-                                            value = "LoependeInnrapportert"
-                                        }
-                                        levereringstidspunkt = fom.toXmlGregorianCalendar()
-                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
-                                        opplysningspliktig = Organisasjon().apply {
-                                            orgnummer = "11223344"
-                                        }
-                                        virksomhet = Organisasjon().apply {
-                                            orgnummer = "11223344"
-                                        }
-                                        inntektsmottaker = AktoerId().apply {
-                                            aktoerId = aktørId.aktor
-                                        }
-                                        isInngaarIGrunnlagForTrekk = true
-                                        isUtloeserArbeidsgiveravgift = true
-                                        informasjonsstatus = Informasjonsstatuser().apply {
-                                            value = "InngaarAlltid"
-                                        }
-                                        beskrivelse = Loennsbeskrivelse().apply {
-                                            value = "fastloenn"
-                                        }
-                                        opptjeningsperiode = Periode().apply {
-                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
-                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
-                                        }
-                                    })
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-        }
+        val virksomhet1 = "11223344"
+        val virksomhet2 = "55667788"
+        val virksomhet3 = "99112233"
+        val expected = listeMedTreInntekter(aktørId, fom, virksomhet1, virksomhet2, virksomhet3)
 
         every {
             inntektV3.hentInntektListeBolk(match {
@@ -221,11 +180,11 @@ class InntektComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 inntektService = InntektService(InntektClient(inntektV3)))}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-02") {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
+                assertEquals(HttpStatusCode.OK, response.status())
                 assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
             }
         }
@@ -368,69 +327,113 @@ class InntektComponentTest {
         }
     }
 
+    private fun inntektUtenOpptjeningsperiode(aktørId: AktørId,
+                                             virksomhet: Organisasjon,
+                                             periode: YearMonth,
+                                             beløp: Long) =
+            Loennsinntekt().apply {
+                beloep = BigDecimal.valueOf(beløp)
+                fordel = Fordel().apply {
+                    value = "kontantytelse"
+                }
+                inntektskilde = InntektsInformasjonsopphav().apply {
+                    value = "A-ordningen"
+                }
+                inntektsperiodetype = Inntektsperiodetype().apply {
+                    value = "Maaned"
+                }
+                inntektsstatus = Inntektsstatuser().apply {
+                    value = "LoependeInnrapportert"
+                }
+                levereringstidspunkt = periode.toXmlGregorianCalendar()
+                utbetaltIPeriode = periode.toXmlGregorianCalendar()
+                opplysningspliktig = virksomhet
+                this.virksomhet = virksomhet
+                inntektsmottaker = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                isInngaarIGrunnlagForTrekk = true
+                isUtloeserArbeidsgiveravgift = true
+                informasjonsstatus = Informasjonsstatuser().apply {
+                    value = "InngaarAlltid"
+                }
+                beskrivelse = Loennsbeskrivelse().apply {
+                    value = "fastloenn"
+                }
+            }
+
+    private fun inntektMedOpptjeningsperiode(aktørId: AktørId,
+                                             virksomhet: Organisasjon,
+                                             periode: YearMonth,
+                                             opptjeningsperiodeFom: LocalDate,
+                                             opptjeningsperiodeTom: LocalDate,
+                                             beløp: Long) =
+            inntektUtenOpptjeningsperiode(aktørId, virksomhet, periode, beløp).apply {
+                opptjeningsperiode = Periode().apply {
+                    startDato = opptjeningsperiodeFom.toXmlGregorianCalendar()
+                    sluttDato = opptjeningsperiodeTom.toXmlGregorianCalendar()
+                }
+            }
+
+    private fun listeMedTreInntekter(aktørId: AktørId, fom: YearMonth, virksomhet1: String, virksomhet2: String, virksomhet3: String) = HentInntektListeBolkResponse().apply {
+        with (arbeidsInntektIdentListe) {
+            add(ArbeidsInntektIdent().apply {
+                ident = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                with (arbeidsInntektMaaned) {
+                    add(ArbeidsInntektMaaned().apply {
+                        aarMaaned = fom.toXmlGregorianCalendar()
+                        arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
+                            with (inntektListe) {
+                                add(inntektMedOpptjeningsperiode(
+                                        aktørId = aktørId,
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = virksomhet1
+                                        },
+                                        periode = YearMonth.of(2019, 1),
+                                        opptjeningsperiodeFom = LocalDate.parse("2019-01-01"),
+                                        opptjeningsperiodeTom = LocalDate.parse("2019-01-31"),
+                                        beløp = 2500
+                                ))
+                                add(inntektUtenOpptjeningsperiode(
+                                        aktørId = aktørId,
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = virksomhet2
+                                        },
+                                        periode = YearMonth.of(2019, 2),
+                                        beløp = 3500
+                                ))
+                                add(inntektMedOpptjeningsperiode(
+                                        aktørId = aktørId,
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = virksomhet3
+                                        },
+                                        periode = YearMonth.of(2019, 3),
+                                        opptjeningsperiodeFom = LocalDate.parse("2019-03-01"),
+                                        opptjeningsperiodeTom = LocalDate.parse("2019-03-31"),
+                                        beløp = 2500
+                                ))
+                            }
+                        }
+                    })
+                }
+            })
+        }
+    }
+
     @Test
     fun `skal svare med liste av inntekter for sammenligningsgrunnlag`() {
         val inntektV3 = mockk<InntektV3>()
+        val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
 
-        val expected = HentInntektListeBolkResponse().apply {
-            with (arbeidsInntektIdentListe) {
-                add(ArbeidsInntektIdent().apply {
-                    ident = AktoerId().apply {
-                        aktoerId = aktørId.aktor
-                    }
-                    with (arbeidsInntektMaaned) {
-                        add(ArbeidsInntektMaaned().apply {
-                            aarMaaned = fom.toXmlGregorianCalendar()
-                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
-                                with (inntektListe) {
-                                    add(Loennsinntekt().apply {
-                                        beloep = BigDecimal.valueOf(2500)
-                                        fordel = Fordel().apply {
-                                            value = "kontantytelse"
-                                        }
-                                        inntektskilde = InntektsInformasjonsopphav().apply {
-                                            value = "A-ordningen"
-                                        }
-                                        inntektsperiodetype = Inntektsperiodetype().apply {
-                                            value = "Maaned"
-                                        }
-                                        inntektsstatus = Inntektsstatuser().apply {
-                                            value = "LoependeInnrapportert"
-                                        }
-                                        levereringstidspunkt = fom.toXmlGregorianCalendar()
-                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
-                                        opplysningspliktig = Organisasjon().apply {
-                                            orgnummer = "11223344"
-                                        }
-                                        virksomhet = Organisasjon().apply {
-                                            orgnummer = "11223344"
-                                        }
-                                        inntektsmottaker = AktoerId().apply {
-                                            aktoerId = aktørId.aktor
-                                        }
-                                        isInngaarIGrunnlagForTrekk = true
-                                        isUtloeserArbeidsgiveravgift = true
-                                        informasjonsstatus = Informasjonsstatuser().apply {
-                                            value = "InngaarAlltid"
-                                        }
-                                        beskrivelse = Loennsbeskrivelse().apply {
-                                            value = "fastloenn"
-                                        }
-                                        opptjeningsperiode = Periode().apply {
-                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
-                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
-                                        }
-                                    })
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-        }
+        val virksomhet1 = "11223344"
+        val virksomhet2 = "55667788"
+        val virksomhet3 = "99112233"
+        val expected = listeMedTreInntekter(aktørId, fom, virksomhet1, virksomhet2, virksomhet3)
 
         every {
             inntektV3.hentInntektListeBolk(match {
@@ -445,11 +448,11 @@ class InntektComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 inntektService = InntektService(InntektClient(inntektV3)))}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-02") {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
+                assertEquals(HttpStatusCode.OK, response.status())
                 assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
             }
         }
@@ -495,6 +498,26 @@ private val expectedJson = """
         "opptjeningsperiode": {
             "tom": "2019-01-31",
             "fom": "2019-01-01",
+            "antattPeriode": false
+        }
+    }, {
+        "arbeidsgiver": {
+            "orgnr": "55667788"
+        },
+        "beløp": 3500,
+        "opptjeningsperiode": {
+            "tom": "2019-02-28",
+            "fom": "2019-02-01",
+            "antattPeriode": true
+        }
+    }, {
+        "arbeidsgiver": {
+            "orgnr": "99112233"
+        },
+        "beløp": 2500,
+        "opptjeningsperiode": {
+            "tom": "2019-03-31",
+            "fom": "2019-03-01",
             "antattPeriode": false
         }
     }]

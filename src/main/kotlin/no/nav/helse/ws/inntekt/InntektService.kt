@@ -121,17 +121,17 @@ object InntektMapper {
                 }
             }
             .filter {
-                inntektArbeidsgivertypeCounter.labels(when (it.opplysningspliktig) {
+                inntektArbeidsgivertypeCounter.labels(when (it.virksomhet) {
                     is Organisasjon -> "organisasjon"
                     is PersonIdent -> "personIdent"
                     is AktoerId -> "aktoerId"
                     else -> "ukjent"
                 }).inc()
 
-                erOpplysningspliktigEnOrganisasjon()(it)
+                erVirksomhetEnOrganisasjon()(it)
             }
             .map { inntekt ->
-                val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.opplysningspliktig as Organisasjon).orgnummer)
+                val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.virksomhet as Organisasjon).orgnummer)
                 try {
                     Inntekt(
                             arbeidsgiver = arbeidsgiver,
@@ -210,11 +210,11 @@ object InntektMapper {
             false
         }
 
-    private fun erOpplysningspliktigEnOrganisasjon() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
-        if (inntekt.opplysningspliktig is Organisasjon) {
+    private fun erVirksomhetEnOrganisasjon() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
+        if (inntekt.virksomhet is Organisasjon) {
             true
         } else {
-            log.warn("opplysningspliktig er forskjellig fra en Organisasjon")
+            log.warn("virksomhet er forskjellig fra en Organisasjon")
             false
         }
     }
