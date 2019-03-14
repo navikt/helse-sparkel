@@ -23,4 +23,8 @@ fun Route.sykepengeListe(sykepengerService: SykepengelisteService) {
                     .respond(call)
         }
     }
+
+    get("api/sykepengeperiode/{aktorId}") {
+        sykepengerService.finnSykepengeperioder(AktørId(call.parameters["aktorId"]!!)).respond(call)
+    }
 }

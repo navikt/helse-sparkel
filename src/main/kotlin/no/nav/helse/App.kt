@@ -39,6 +39,7 @@ import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingService
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import no.nav.helse.ws.sts.stsClient
+import no.nav.helse.ws.sykepenger.HentSykepengeListeRestClient
 import no.nav.helse.ws.sykepenger.SykepengelisteService
 import no.nav.helse.ws.sykepenger.sykepengeListe
 import org.slf4j.event.Level
@@ -72,6 +73,8 @@ fun main() {
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
+        val hentSykepengeperiodeClient = HentSykepengeListeRestClient(env.hentSykePengeperiodeEndpointUrl, stsClientRest)
+
         val arbeidsfordelingService = ArbeidsfordelingService(
                 arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
                 personService = personService)
@@ -87,6 +90,7 @@ fun main() {
 
         val sykepengelisteService = SykepengelisteService(
                 sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
+                hentSykepengeperiodeClient = hentSykepengeperiodeClient,
                 aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
         )
 

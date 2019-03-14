@@ -35,7 +35,5 @@ class HentSykepengerListeResponseTest {
         assertThat(transformertVedtak.fom).isEqualTo(LocalDate.of(2001, Month.JANUARY, 1))
         assertThat(transformertVedtak.tom).isEqualTo(LocalDate.of(2001, Month.JANUARY, 11))
         assertThat(transformertVedtak.grad).isEqualTo(10.0f)
-        assertThat(transformertVedtak.mottaker).isEqualTo("en slags aktør")
-        // TODO: When we find `beløp`, we should map that too
     }
 }

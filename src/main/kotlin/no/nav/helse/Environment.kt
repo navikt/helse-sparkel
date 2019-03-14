@@ -11,6 +11,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     val organisasjonEndpointUrl: String = envVar("ORGANISASJON_ENDPOINTURL")
     val sakOgBehandlingEndpointUrl: String = envVar("SAK_OG_BEHANDLING_ENDPOINTURL")
     val hentSykePengeListeEndpointUrl: String = envVar("HENT_SYKEPENGER_ENDPOINTURL")
+    val hentSykePengeperiodeEndpointUrl: String = envVar("HENT_SYKEPENGEPERIODER_ENDPOINTURL")
     val meldekortEndpointUrl: String = envVar("MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL")
     val arbeidsfordelingEndpointUrl: String = envVar("ARBEIDSFORDELING_ENDPOINTURL")
     val jwksUrl: String = envVar("JWKS_URL")
