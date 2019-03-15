@@ -11,7 +11,6 @@ import no.nav.helse.ws.person.PersonClient
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor
-import no.nav.helse.ws.sykepenger.SykepengerClient
 import org.apache.cxf.ws.security.trust.STSClient
 
 class WsClients(private val stsClientWs: STSClient, private val stsClientRest: StsRestClient, private val allowInsecureRequests: Boolean = false) {
@@ -83,17 +82,6 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
             }
         }
         return SakOgBehandlingClient(port)
-    }
-
-    fun sykepengeliste(endpointUrl: String): SykepengerClient {
-        val port = SoapPorts.SykepengerV2(endpointUrl).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
-        return SykepengerClient(port)
     }
 
     fun meldekort(endpointUrl: String): MeldekortClient {
