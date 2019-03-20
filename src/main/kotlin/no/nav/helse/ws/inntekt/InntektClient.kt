@@ -19,6 +19,7 @@ class InntektClient(private val inntektV3: InntektV3) {
 
     fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Beregningsgrunnlagfilter)
     fun hentSammenligningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Sammenligningsgrunnlagfilter)
+    fun hentInntekter(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntektListe(aktørId, fom, tom, Foreldrepengerfilter)
 
     private fun hentInntektListe(aktørId: AktørId, fom: YearMonth, tom: YearMonth, filter: String): Either<Exception, HentInntektListeBolkResponse> {
         val request = HentInntektListeBolkRequest().apply {
@@ -48,6 +49,7 @@ class InntektClient(private val inntektV3: InntektV3) {
     companion object {
         private const val Sammenligningsgrunnlagfilter = "8-30"
         private const val Beregningsgrunnlagfilter = "8-28"
+        private const val Foreldrepengerfilter = "ForeldrepengerA-Inntekt"
     }
 }
 

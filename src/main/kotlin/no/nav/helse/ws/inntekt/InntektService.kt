@@ -43,6 +43,10 @@ class InntektService(private val inntektClient: InntektClient, private val organ
         inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
     }
 
+    fun hentInntekter(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
+        inntektClient.hentInntekter(aktørId, fom, tom)
+    }
+
     private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =
             f().bimap({
                 when (it) {

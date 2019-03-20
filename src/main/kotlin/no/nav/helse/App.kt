@@ -26,6 +26,7 @@ import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdMedInntektService
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.inntekt.InntektService
@@ -86,6 +87,11 @@ fun main() {
                 organisasjonService = organisasjonService
         )
 
+        val arbeidsforholdMedInntektService = ArbeidsforholdMedInntektService(
+                arbeidsforholdService = arbeidsforholdService,
+                inntektService = inntektService
+        )
+
         val sakOgBehandlingService = SakOgBehandlingService(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
 
         val sykepengelisteService = SykepengelisteService(
@@ -95,7 +101,8 @@ fun main() {
 
         val meldekortServie = MeldekortService(wsClients.meldekort(env.meldekortEndpointUrl))
 
-        sparkel(env.jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService, meldekortServie,
+        sparkel(env.jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService,
+                arbeidsforholdMedInntektService, meldekortServie,
                 organisasjonService, personService, sakOgBehandlingService, sykepengelisteService)
     }
 
@@ -112,6 +119,7 @@ fun Application.sparkel(
         arbeidsfordelingService: ArbeidsfordelingService,
         arbeidsforholdService: ArbeidsforholdService,
         inntektService: InntektService,
+        arbeidsforholdMedInntektService: ArbeidsforholdMedInntektService,
         meldekortService: MeldekortService,
         organisasjonService: OrganisasjonService,
         personService: PersonService,
@@ -163,7 +171,7 @@ fun Application.sparkel(
 
             person(personService)
 
-            arbeidsforhold(arbeidsforholdService)
+            arbeidsforhold(arbeidsforholdService, arbeidsforholdMedInntektService)
 
             organisasjon(organisasjonService)
 
