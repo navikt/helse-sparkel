@@ -69,7 +69,9 @@ fun main() {
 
         val wsClients = WsClients(stsClientWs, stsClientRest)
 
-        val inntektService = InntektService(wsClients.inntekt(env.inntektEndpointUrl))
+        val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
+
+        val inntektService = InntektService(wsClients.inntekt(env.inntektEndpointUrl), organisasjonService)
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
@@ -78,8 +80,6 @@ fun main() {
         val arbeidsfordelingService = ArbeidsfordelingService(
                 arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
                 personService = personService)
-
-        val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
 
         val arbeidsforholdService = ArbeidsforholdService(
                 arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),

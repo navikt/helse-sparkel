@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
+import java.time.LocalDate
 import kotlin.test.assertEquals
 
 class OrganisasjonIntegrationTest {
@@ -129,6 +130,57 @@ class OrganisasjonIntegrationTest {
                     assertEquals(5, (actual.right.navn as UstrukturertNavn).navnelinje.size)
                     assertNull((actual.right.navn as UstrukturertNavn).navnelinje.firstOrNull { it.isNotBlank() })
                 }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med feil når virksomhetsoppslag gir feil`() {
+        val juridiskOrgnr = "987654321"
+
+        val requestStub = WireMock.post(WireMock.urlPathEqualTo("/organisasjon"))
+                .withSoapAction("http://nav.no/tjeneste/virksomhet/organisasjon/v5/BindinghentVirksomhetsOrgnrForJuridiskOrgnrBolk/")
+                .withRequestBody(ContainsPattern("<organisasjonsnummer>$juridiskOrgnr</organisasjonsnummer>"))
+                .withRequestBody(ContainsPattern("<hentingsdato>2019-01-01Z</hentingsdato>"))
+
+        organisasjonStub(
+                server = server,
+                scenario = "organisasjon_hent_virksomheter",
+                request = requestStub,
+                response = WireMock.serverError().withBody(faultXml("SOAP fault"))
+        ) { organisasjonClient ->
+            val actual = organisasjonClient.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(juridiskOrgnr),
+                    LocalDate.parse("2019-01-01"))
+
+            when (actual) {
+                is Either.Left -> assertEquals("SOAP fault", actual.left.message)
+                is Either.Right -> fail { "Expected Either.Left to be returned" }
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med med unntaksliste`() {
+        val juridiskOrgnr = "987654321"
+
+        val requestStub = WireMock.post(WireMock.urlPathEqualTo("/organisasjon"))
+                .withSoapAction("http://nav.no/tjeneste/virksomhet/organisasjon/v5/BindinghentVirksomhetsOrgnrForJuridiskOrgnrBolk/")
+                .withRequestBody(ContainsPattern("<organisasjonsnummer>$juridiskOrgnr</organisasjonsnummer>"))
+                .withRequestBody(ContainsPattern("<hentingsdato>2019-01-01Z</hentingsdato>"))
+
+        organisasjonStub(
+                server = server,
+                scenario = "organisasjon_hent_virksomheter",
+                request = requestStub,
+                response = WireMock.okXml(virksomhetFinnesIkke(juridiskOrgnr))
+                        .withHeader("Content-type", "application/xml;charset=utf-8")
+        ) { organisasjonClient ->
+            val actual = organisasjonClient.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(juridiskOrgnr),
+                    LocalDate.parse("2019-01-01"))
+
+            when (actual) {
+                is Either.Right -> assertEquals("$juridiskOrgnr er opphørt eller eksisterer ikke på dato 2019-01-01", actual.right.unntakForOrgnrListe[0].unntaksmelding)
                 is Either.Left -> fail { "Expected Either.Right to be returned" }
             }
         }
@@ -280,6 +332,21 @@ private fun faultXml(fault: String) = """
             <faultcode xmlns:ns1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">soap:Server</faultcode>
             <faultstring>$fault</faultstring>
         </soap:Fault>
+    </soap:Body>
+</soap:Envelope>
+""".trimIndent()
+
+private fun virksomhetFinnesIkke(orgNr: String) = """
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <ns2:hentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/organisasjon/v5">
+            <response>
+                <unntakForOrgnrListe>
+                    <unntaksmelding>$orgNr er opphørt eller eksisterer ikke på dato 2019-01-01</unntaksmelding>
+                    <organisasjonsnummer>$orgNr</organisasjonsnummer>
+                </unntakForOrgnrListe>
+            </response>
+        </ns2:hentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse>
     </soap:Body>
 </soap:Envelope>
 """.trimIndent()

@@ -5,7 +5,12 @@ import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.flatMap
+import no.nav.helse.map
+import no.nav.helse.sequenceU
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
@@ -18,7 +23,17 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-class InntektService(private val inntektClient: InntektClient) {
+class InntektService(private val inntektClient: InntektClient, private val organisasjonService: OrganisasjonService) {
+
+    companion object {
+        private val log = LoggerFactory.getLogger("InntektService")
+
+        private val virksomhetsCounter = Counter.build()
+                .name("inntekt_virksomheter_totals")
+                .labelNames("type")
+                .help("antall inntekter fordelt på ulike virksomhetstyper (juridisk enhet eller virksomhet)")
+                .register()
+    }
 
     fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
         inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
@@ -36,8 +51,31 @@ class InntektService(private val inntektClient: InntektClient) {
                     else -> Feilårsak.UkjentFeil
                 }
             }, {
-                    InntektMapper.mapToInntekt(aktørId, fom, tom, it.arbeidsInntektIdentListe)
-            })
+                InntektMapper.mapToInntekt(aktørId, fom, tom, it.arbeidsInntektIdentListe)
+            }).flatMap { inntekter ->
+                inntekter.map {  inntekt ->
+                    when (inntekt.arbeidsgiver) {
+                        is Arbeidsgiver.Organisasjon -> {
+                            organisasjonService.hentOrganisasjon(OrganisasjonsNummer(inntekt.arbeidsgiver.orgnr)).flatMap { organisasjon ->
+                                virksomhetsCounter.labels(organisasjon.type.name).inc()
+
+                                if (organisasjon.type == no.nav.helse.ws.organisasjon.Organisasjon.Type.JuridiskEnhet) {
+                                    organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(organisasjon.orgnr)).map { virksomhetsnummer ->
+                                        inntekt.copy(
+                                                arbeidsgiver = Arbeidsgiver.Organisasjon(virksomhetsnummer.value)
+                                        )
+                                    }
+                                } else if (organisasjon.type == no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet) {
+                                    Either.Right(inntekt)
+                                } else {
+                                    log.error("unknown virksomhetstype: ${organisasjon.type}")
+                                    Either.Left(Feilårsak.UkjentFeil)
+                                }
+                            }
+                        }
+                    }
+                }.sequenceU()
+            }
 }
 
 class OpptjeningsperiodeStrekkerSegOverEnKalendermånedException(message: String) : Exception(message)
@@ -105,46 +143,46 @@ object InntektMapper {
                     false
                 }
             }
-            .onEach {
-                if (harOpptjeningsperiode(it)) {
-                    inntektPeriodeCounter.labels("opptjeningsperiode").inc()
-                } else {
-                    inntektPeriodeCounter.labels("utbetaltIPeriode").inc()
-                }
-            }
-            .filter {
-                if (erInnenforPeriode(fom, tom)(it)) {
-                    true
-                } else {
-                    inntekterUtenforPeriodeCounter.inc()
-                    false
-                }
-            }
-            .filter {
-                inntektArbeidsgivertypeCounter.labels(when (it.virksomhet) {
-                    is Organisasjon -> "organisasjon"
-                    is PersonIdent -> "personIdent"
-                    is AktoerId -> "aktoerId"
-                    else -> "ukjent"
-                }).inc()
+                    .onEach {
+                        if (harOpptjeningsperiode(it)) {
+                            inntektPeriodeCounter.labels("opptjeningsperiode").inc()
+                        } else {
+                            inntektPeriodeCounter.labels("utbetaltIPeriode").inc()
+                        }
+                    }
+                    .filter {
+                        if (erInnenforPeriode(fom, tom)(it)) {
+                            true
+                        } else {
+                            inntekterUtenforPeriodeCounter.inc()
+                            false
+                        }
+                    }
+                    .filter {
+                        inntektArbeidsgivertypeCounter.labels(when (it.virksomhet) {
+                            is Organisasjon -> "organisasjon"
+                            is PersonIdent -> "personIdent"
+                            is AktoerId -> "aktoerId"
+                            else -> "ukjent"
+                        }).inc()
 
-                erVirksomhetEnOrganisasjon()(it)
-            }
-            .map { inntekt ->
-                val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.virksomhet as Organisasjon).orgnummer)
-                try {
-                    Inntekt(
-                            arbeidsgiver = arbeidsgiver,
-                            opptjeningsperiode = opptjeningsperiode(inntekt),
-                            beløp = inntekt.beloep)
-                } catch (err: OpptjeningsperiodeStrekkerSegOverEnKalendermånedException) {
-                    ugyldigOpptjeningsperiodeCounter.labels("periode_over_en_kalendermåned").inc()
-                    null
-                } catch (err: FomErStørreEnTomException) {
-                    ugyldigOpptjeningsperiodeCounter.labels("fom_er_større_enn_tom").inc()
-                    null
-                }
-            }.filterNotNull()
+                        erVirksomhetEnOrganisasjon()(it)
+                    }
+                    .map { inntekt ->
+                        val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.virksomhet as Organisasjon).orgnummer)
+                        try {
+                            Inntekt(
+                                    arbeidsgiver = arbeidsgiver,
+                                    opptjeningsperiode = opptjeningsperiode(inntekt),
+                                    beløp = inntekt.beloep)
+                        } catch (err: OpptjeningsperiodeStrekkerSegOverEnKalendermånedException) {
+                            ugyldigOpptjeningsperiodeCounter.labels("periode_over_en_kalendermåned").inc()
+                            null
+                        } catch (err: FomErStørreEnTomException) {
+                            ugyldigOpptjeningsperiodeCounter.labels("fom_er_større_enn_tom").inc()
+                            null
+                        }
+                    }.filterNotNull()
 
     private fun erSammeAktør(aktørId: AktørId) = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         if (inntekt.inntektsmottaker is AktoerId) {
@@ -183,32 +221,32 @@ object InntektMapper {
             )
 
     private fun erOpptjeningsperioderInnenforPeriode(fom: YearMonth, tom: YearMonth, inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
-        if (harOpptjeningsperiode(inntekt)) {
-            if (fom.atDay(1) <= inntekt.opptjeningsperiode.startDato.toLocalDate()
-                    && tom.atEndOfMonth() >= inntekt.opptjeningsperiode.sluttDato.toLocalDate()) {
-                true
+            if (harOpptjeningsperiode(inntekt)) {
+                if (fom.atDay(1) <= inntekt.opptjeningsperiode.startDato.toLocalDate()
+                        && tom.atEndOfMonth() >= inntekt.opptjeningsperiode.sluttDato.toLocalDate()) {
+                    true
+                } else {
+                    log.warn("opptjeningsperioden (${inntekt.opptjeningsperiode.startDato.toLocalDate()} - ${inntekt.opptjeningsperiode.sluttDato.toLocalDate()}) " +
+                            "er utenfor perioden")
+                    false
+                }
             } else {
-                log.warn("opptjeningsperioden (${inntekt.opptjeningsperiode.startDato.toLocalDate()} - ${inntekt.opptjeningsperiode.sluttDato.toLocalDate()}) " +
-                        "er utenfor perioden")
+                log.info("opptjeningsperiode er ikke angitt")
                 false
             }
-        } else {
-            log.info("opptjeningsperiode er ikke angitt")
-            false
-        }
 
     private fun erUtbetalingsperiodeInnenforPeriode(fom: YearMonth, tom: YearMonth, inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
-        if (!harOpptjeningsperiode(inntekt)) {
-            if (fom.atDay(1) <= inntekt.utbetaltIPeriode.toLocalDate()
-                    && tom.atEndOfMonth() >= inntekt.utbetaltIPeriode.toLocalDate()) {
-                true
+            if (!harOpptjeningsperiode(inntekt)) {
+                if (fom.atDay(1) <= inntekt.utbetaltIPeriode.toLocalDate()
+                        && tom.atEndOfMonth() >= inntekt.utbetaltIPeriode.toLocalDate()) {
+                    true
+                } else {
+                    log.warn("utbetaltIPeriode (${inntekt.utbetaltIPeriode.toLocalDate()}) er utenfor perioden")
+                    false
+                }
             } else {
-                log.warn("utbetaltIPeriode (${inntekt.utbetaltIPeriode.toLocalDate()}) er utenfor perioden")
                 false
             }
-        } else {
-            false
-        }
 
     private fun erVirksomhetEnOrganisasjon() = { inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt ->
         if (inntekt.virksomhet is Organisasjon) {

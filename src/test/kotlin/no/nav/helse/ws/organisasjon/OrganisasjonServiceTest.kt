@@ -9,7 +9,10 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonUgyldi
 import no.nav.tjeneste.virksomhet.organisasjon.v5.feil.OrganisasjonIkkeFunnet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.OrgnrForOrganisasjon
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UnntakForOrgnr
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
@@ -82,6 +85,99 @@ class OrganisasjonServiceTest {
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe feil til UkjentFeil`() {
+        val organisasjon = mockk<OrganisasjonClient>()
+        every {
+            organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
+        } returns Either.Left(Exception())
+
+        val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
+                OrganisasjonsNummer("1234"))
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal mappe unntaksliste til IkkeFunnet`() {
+        val juridiskOrgNr = "1234"
+
+        val organisasjon = mockk<OrganisasjonClient>()
+        every {
+            organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
+        } returns Either.Right(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
+            with(unntakForOrgnrListe) {
+                add(UnntakForOrgnr().apply {
+                    organisasjonsnummer = juridiskOrgNr
+                })
+            }
+        })
+
+        val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
+                OrganisasjonsNummer(juridiskOrgNr))
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal hente orgnr for virksomhet i en juridisk enhet`() {
+        val juridiskOrgNr = "1234"
+        val virksomhetOrgNr = "4321"
+
+        val organisasjon = mockk<OrganisasjonClient>()
+        every {
+            organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
+        } returns Either.Right(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
+            with(orgnrForOrganisasjonListe) {
+                add(OrgnrForOrganisasjon().apply {
+                    juridiskOrganisasjonsnummer = juridiskOrgNr
+                    organisasjonsnummer = virksomhetOrgNr
+                })
+            }
+        })
+
+        val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
+                OrganisasjonsNummer(juridiskOrgNr))
+
+        when (actual) {
+            is Either.Right -> assertEquals(virksomhetOrgNr, actual.right.value)
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal gi IkkeFunnet dersom virksomhetsoppslag gir resultat på feil juridisk enhet`() {
+        val juridiskOrgNr = "1234"
+        val enAnnenJuridiskOrgNr = "554433"
+        val virksomhetOrgNr = "4321"
+
+        val organisasjon = mockk<OrganisasjonClient>()
+        every {
+            organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
+        } returns Either.Right(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
+            with(orgnrForOrganisasjonListe) {
+                add(OrgnrForOrganisasjon().apply {
+                    juridiskOrganisasjonsnummer = enAnnenJuridiskOrgNr
+                    organisasjonsnummer = virksomhetOrgNr
+                })
+            }
+        })
+
+        val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
+                OrganisasjonsNummer(juridiskOrgNr))
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
