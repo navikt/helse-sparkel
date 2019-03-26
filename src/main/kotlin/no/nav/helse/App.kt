@@ -95,6 +95,7 @@ fun main() {
         val sakOgBehandlingService = SakOgBehandlingService(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
 
         val sykepengelisteService = SykepengelisteService(
+                sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
                 hentSykepengeperiodeClient = hentSykepengeperiodeClient,
                 aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
         )
