@@ -10,6 +10,8 @@ import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -34,6 +36,10 @@ fun Route.arbeidsforhold(
             }
 
             arbeidsforholdService.finnArbeidsforhold(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+                it.map {
+                    ArbeidsforholdDTO(ArbeidsgiverDTO((it.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value, it.arbeidsgiver.virksomhet.navn), it.startdato, it.sluttdato)
+                }
+            }.map {
                 ArbeidsforholdResponse(it)
             }.respond(call)
         }
@@ -57,11 +63,18 @@ fun Route.arbeidsforhold(
             }
 
             arbeidsforholdService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+                it.map {
+                    ArbeidsgiverDTO(it.virksomhet.orgnr.value, it.virksomhet.navn)
+                }
+            }.map {
                 ArbeidsgivereResponse(it)
             }.respond(call)
         }
     }
 }
 
-data class ArbeidsforholdResponse(val arbeidsforhold: List<Arbeidsforhold>)
-data class ArbeidsgivereResponse(val arbeidsgivere: List<Arbeidsgiver>)
+data class ArbeidsgiverDTO(val orgnummer: String, val navn: String?)
+data class ArbeidsforholdDTO(val arbeidsgiver: ArbeidsgiverDTO, val startdato: LocalDate, val sluttdato: LocalDate? = null)
+
+data class ArbeidsforholdResponse(val arbeidsforhold: List<ArbeidsforholdDTO>)
+data class ArbeidsgivereResponse(val arbeidsgivere: List<ArbeidsgiverDTO>)

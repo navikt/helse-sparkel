@@ -7,16 +7,22 @@ import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
 import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
     companion object {
+        private val log = LoggerFactory.getLogger("ArbeidsforholdService")
+
         private val arbeidsforholdHistogram = Histogram.build()
                 .buckets(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 40.0, 60.0, 80.0, 100.0)
                 .name("arbeidsforhold_sizes")
@@ -37,16 +43,20 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 liste.map { arbeidsforhold ->
                     arbeidsforhold.arbeidsgiver.let { aktør ->
                         when (aktør) {
-                            is Organisasjon -> Arbeidsgiver.Organisasjon(aktør.orgnummer, hentOrganisasjonsnavn(aktør) ?: "FEIL VED HENTING AV NAVN")
-                            else -> Arbeidsgiver.Organisasjon("0000000000", "UKJENT ARBEIDSGIVERTYPE")
+                            is Organisasjon -> no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver.Virksomhet(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(aktør.orgnummer), hentOrganisasjonsnavn(aktør)))
+                            is Person -> no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver.Person(aktør.ident.ident)
+                            else -> {
+                                log.error("unknown arbeidsgivertype: $aktør")
+                                null
+                            }
                         }
-                    }.let { arbeidsgiver ->
+                    }?.let { arbeidsgiver ->
                         Arbeidsforhold(arbeidsgiver,
                                 arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
                                 arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate()
                         )
                     }
-                }
+                }.filterNotNull()
             })
 
     fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -66,7 +76,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 }.distinctBy { organisasjon ->
                     organisasjon.orgnummer
                 }.map { organisasjon ->
-                    Arbeidsgiver.Organisasjon(organisasjon.orgnummer, hentOrganisasjonsnavn(organisasjon))
+                    Arbeidsgiver.Virksomhet(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(organisasjon.orgnummer), hentOrganisasjonsnavn(organisasjon)))
                 }
             })
 
@@ -75,9 +85,3 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 it.navn
             }.orElse { null }
 }
-
-sealed class Arbeidsgiver {
-    data class Organisasjon(val orgnummer: String, val navn: String?): Arbeidsgiver()
-}
-
-data class Arbeidsforhold(val arbeidsgiver: Arbeidsgiver, val startdato: LocalDate, val sluttdato: LocalDate? = null)

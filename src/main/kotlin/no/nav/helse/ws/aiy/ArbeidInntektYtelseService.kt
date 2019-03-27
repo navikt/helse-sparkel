@@ -7,7 +7,7 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
 import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
-import no.nav.helse.ws.arbeidsforhold.Arbeidsgiver
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.inntekt.InntektService
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -40,7 +40,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                     }.also { grupperteInntekter ->
                         arbeidsforholdliste.forEach { arbeidsforhold ->
                             grupperteInntekter.keys.filter { virksomhet ->
-                                virksomhet.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnummer
+                                virksomhet.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
                             }.ifEmpty {
                                 arbeidsforholdAvviksCounter.inc()
                                 log.warn("did not find inntekter for arbeidsforhold with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
@@ -48,7 +48,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         }
                     }.map { entry ->
                         arbeidsforholdliste.firstOrNull { arbeidsforhold ->
-                            (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnummer == entry.key.identifikator
+                            (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value == entry.key.identifikator
                         }?.let {
                             ArbeidsforholdMedInntekt(it, entry.value)
                         } ?: run {
