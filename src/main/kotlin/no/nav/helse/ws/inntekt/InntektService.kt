@@ -9,6 +9,7 @@ import no.nav.helse.flatMap
 import no.nav.helse.map
 import no.nav.helse.sequenceU
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.domain.*
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
@@ -19,8 +20,6 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.YearMonth
 
 class InntektService(private val inntektClient: InntektClient, private val organisasjonService: OrganisasjonService) {
@@ -58,15 +57,15 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                 InntektMapper.mapToInntekt(aktørId, fom, tom, it.arbeidsInntektIdentListe)
             }).flatMap { inntekter ->
                 inntekter.map {  inntekt ->
-                    when (inntekt.arbeidsgiver) {
-                        is Arbeidsgiver.Organisasjon -> {
-                            organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.arbeidsgiver.orgnr)).flatMap { organisasjon ->
+                    when (inntekt.virksomhet) {
+                        is Virksomhet.Organisasjon -> {
+                            organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.virksomhet.identifikator)).flatMap { organisasjon ->
                                 virksomhetsCounter.labels(organisasjon.type()).inc()
 
                                 when (organisasjon) {
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr).map { virksomhetsnummer ->
                                         inntekt.copy(
-                                                arbeidsgiver = Arbeidsgiver.Organisasjon(virksomhetsnummer.value)
+                                                virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
                                         )
                                     }
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
@@ -77,29 +76,14 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                 }
                             }
                         }
+                        else -> {
+                            log.error("unknown virksomhetstype: ${inntekt.virksomhet.type()}")
+                            Either.Left(Feilårsak.UkjentFeil)
+                        }
                     }
                 }.sequenceU()
             }
 }
-
-class OpptjeningsperiodeStrekkerSegOverEnKalendermånedException(message: String) : Exception(message)
-class FomErStørreEnTomException(message: String) : Exception(message)
-
-data class Opptjeningsperiode(val fom: LocalDate, val tom: LocalDate, val antattPeriode: Boolean = false) {
-    init {
-        if (fom.withDayOfMonth(1) != tom.withDayOfMonth(1)) {
-            throw OpptjeningsperiodeStrekkerSegOverEnKalendermånedException("Opptjeningsperiode kan ikke strekke seg over flere måneder")
-        }
-        if (tom < fom) {
-            throw FomErStørreEnTomException("tom < fom")
-        }
-    }
-}
-
-sealed class Arbeidsgiver {
-    data class Organisasjon(val orgnr: String): Arbeidsgiver()
-}
-data class Inntekt(val arbeidsgiver: Arbeidsgiver, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal)
 
 object InntektMapper {
     private val log = LoggerFactory.getLogger("InntektMapper")
@@ -173,18 +157,27 @@ object InntektMapper {
                         erVirksomhetEnOrganisasjon()(it)
                     }
                     .map { inntekt ->
-                        val arbeidsgiver = Arbeidsgiver.Organisasjon((inntekt.virksomhet as Organisasjon).orgnummer)
-                        try {
-                            Inntekt(
-                                    arbeidsgiver = arbeidsgiver,
-                                    opptjeningsperiode = opptjeningsperiode(inntekt),
-                                    beløp = inntekt.beloep)
-                        } catch (err: OpptjeningsperiodeStrekkerSegOverEnKalendermånedException) {
-                            ugyldigOpptjeningsperiodeCounter.labels("periode_over_en_kalendermåned").inc()
-                            null
-                        } catch (err: FomErStørreEnTomException) {
-                            ugyldigOpptjeningsperiodeCounter.labels("fom_er_større_enn_tom").inc()
-                            null
+                        when (inntekt.virksomhet) {
+                            is Organisasjon -> Virksomhet.Organisasjon(Organisasjonsnummer((inntekt.virksomhet as Organisasjon).orgnummer))
+                            is PersonIdent -> Virksomhet.Person((inntekt.virksomhet as PersonIdent).personIdent)
+                            is AktoerId -> Virksomhet.NavAktør((inntekt.virksomhet as AktoerId).aktoerId)
+                            else -> {
+                                log.warn("ukjent virksomhet: ${inntekt.virksomhet.javaClass.name}")
+                                null
+                            }
+                        }?.let { virksomhet ->
+                            try {
+                                Inntekt(
+                                        virksomhet = virksomhet,
+                                        opptjeningsperiode = opptjeningsperiode(inntekt),
+                                        beløp = inntekt.beloep)
+                            } catch (err: OpptjeningsperiodeStrekkerSegOverEnKalendermånedException) {
+                                ugyldigOpptjeningsperiodeCounter.labels("periode_over_en_kalendermåned").inc()
+                                null
+                            } catch (err: FomErStørreEnTomException) {
+                                ugyldigOpptjeningsperiodeCounter.labels("fom_er_større_enn_tom").inc()
+                                null
+                            }
                         }
                     }.filterNotNull()
 

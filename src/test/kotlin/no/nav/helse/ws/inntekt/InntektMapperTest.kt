@@ -2,6 +2,9 @@ package no.nav.helse.ws.inntekt
 
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
+import no.nav.helse.ws.inntekt.domain.Virksomhet
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
@@ -25,7 +28,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
 
@@ -55,7 +58,7 @@ class InntektMapperTest {
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })
@@ -82,7 +85,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
 
@@ -102,7 +105,7 @@ class InntektMapperTest {
                                             sluttDato = fom.minusMonths(1).atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(2500)
                                     })
@@ -115,7 +118,7 @@ class InntektMapperTest {
                                             sluttDato = tom.plusMonths(1).atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(3500)
                                     })
@@ -128,7 +131,7 @@ class InntektMapperTest {
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })
@@ -155,7 +158,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
 
@@ -201,7 +204,7 @@ class InntektMapperTest {
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })
@@ -228,7 +231,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(3000))
         )
 
@@ -244,7 +247,7 @@ class InntektMapperTest {
                                             aktoerId = aktørId.aktor
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         utbetaltIPeriode = fom.minusMonths(1).toXmlGregorianCalendar()
                                         beloep = BigDecimal.valueOf(1500)
@@ -254,7 +257,7 @@ class InntektMapperTest {
                                             aktoerId = aktørId.aktor
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         utbetaltIPeriode = fom.minusMonths(1).toXmlGregorianCalendar()
                                         opptjeningsperiode = Periode().apply {
@@ -272,7 +275,7 @@ class InntektMapperTest {
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(3000)
                                     })
@@ -299,7 +302,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), true), BigDecimal.valueOf(3000))
         )
 
@@ -316,7 +319,7 @@ class InntektMapperTest {
                                         }
                                         utbetaltIPeriode = tom.plusMonths(1).toXmlGregorianCalendar()
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })
@@ -326,7 +329,7 @@ class InntektMapperTest {
                                         }
                                         utbetaltIPeriode = fom.toXmlGregorianCalendar()
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(3000)
                                     })
@@ -353,7 +356,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("5678910"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth(), false), BigDecimal.valueOf(1500))
         )
 
@@ -373,7 +376,7 @@ class InntektMapperTest {
                                             sluttDato = fom.atDay(1).toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })
@@ -386,7 +389,7 @@ class InntektMapperTest {
                                             sluttDato = fom.plusMonths(1).atDay(1).toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })
@@ -399,7 +402,7 @@ class InntektMapperTest {
                                             sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
                                         }
                                         virksomhet = Organisasjon().apply {
-                                            orgnummer = "5678910"
+                                            orgnummer = "889640782"
                                         }
                                         beloep = BigDecimal.valueOf(1500)
                                     })

@@ -6,13 +6,10 @@ import no.nav.helse.map
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
 import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
-import no.nav.helse.ws.arbeidsforhold.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.Arbeidsgiver
 import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.inntekt.Opptjeningsperiode
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -35,16 +32,15 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).flatMap { arbeidsforholdliste ->
                 inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom)).map { inntekter ->
                     inntekter.groupBy { inntekt ->
-                        inntekt.arbeidsgiver
+                        inntekt.virksomhet
                     }.mapValues { entry ->
                         entry.value.map { inntekt ->
                             InntektUtenArbeidsgiver(YearMonth.from(inntekt.opptjeningsperiode.fom), inntekt.beløp)
                         }
                     }.also { grupperteInntekter ->
                         arbeidsforholdliste.forEach { arbeidsforhold ->
-                            grupperteInntekter.keys.filter { arbeidsgiver ->
-                                (arbeidsgiver as no.nav.helse.ws.inntekt.Arbeidsgiver.Organisasjon).orgnr ==
-                                        (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnummer
+                            grupperteInntekter.keys.filter { virksomhet ->
+                                virksomhet.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnummer
                             }.ifEmpty {
                                 arbeidsforholdAvviksCounter.inc()
                                 log.warn("did not find inntekter for arbeidsforhold with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
@@ -52,8 +48,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         }
                     }.map { entry ->
                         arbeidsforholdliste.firstOrNull { arbeidsforhold ->
-                            (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnummer ==
-                                    (entry.key as no.nav.helse.ws.inntekt.Arbeidsgiver.Organisasjon).orgnr
+                            (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnummer == entry.key.identifikator
                         }?.let {
                             ArbeidsforholdMedInntekt(it, entry.value)
                         } ?: run {

@@ -6,15 +6,11 @@ import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
+import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -53,7 +49,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("889640782"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
                         BigDecimal.valueOf(2500))
         )
@@ -145,7 +141,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("889640782"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
                         BigDecimal.valueOf(2500))
         )
@@ -217,7 +213,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.Inntekt(Arbeidsgiver.Organisasjon("889640782"),
+                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
                         BigDecimal.valueOf(2500))
         )

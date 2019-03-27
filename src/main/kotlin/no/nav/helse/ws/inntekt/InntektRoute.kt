@@ -13,6 +13,10 @@ import no.nav.helse.map
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.domain.Inntekt
+import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
+import no.nav.helse.ws.inntekt.domain.Virksomhet
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
@@ -49,9 +53,15 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
         }
 
         f(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+            it.map {
+                InntektDTO(ArbeidsgiverDTO(it.virksomhet.identifikator), it.opptjeningsperiode, it.beløp)
+            }
+        }.map {
             InntektResponse(it)
         }.respond(call)
     }
 }
 
-data class InntektResponse(val inntekter: List<Inntekt>)
+data class ArbeidsgiverDTO(val orgnr: String)
+data class InntektDTO(val arbeidsgiver: ArbeidsgiverDTO, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal)
+data class InntektResponse(val inntekter: List<InntektDTO>)
