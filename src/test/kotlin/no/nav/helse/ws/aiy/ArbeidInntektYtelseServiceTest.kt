@@ -5,6 +5,8 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Either
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
+import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.Arbeidsgiver
@@ -41,13 +43,13 @@ class ArbeidInntektYtelseServiceTest {
 
         val expected = listOf(
                 ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", "S. VINDEL & SØNN"), fom), listOf(
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2019-01-01"), LocalDate.parse("2019-01-31")), BigDecimal(20000)),
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2019-02-01"), LocalDate.parse("2019-02-28")), BigDecimal(25000))
+                        InntektUtenArbeidsgiver(YearMonth.of(2019, 1), BigDecimal(20000)),
+                        InntektUtenArbeidsgiver(YearMonth.of(2019, 2), BigDecimal(25000))
                 )),
                 ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Organisasjon("66778899", "Matbutikken A/S"), LocalDate.parse("2018-01-01"), fom), listOf(
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2018-10-01"), LocalDate.parse("2018-10-31")), BigDecimal(15000)),
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2018-11-01"), LocalDate.parse("2018-11-30")), BigDecimal(16000)),
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2018-12-01"), LocalDate.parse("2018-12-31")), BigDecimal(17000))
+                        InntektUtenArbeidsgiver(YearMonth.of(2018, 10), BigDecimal(15000)),
+                        InntektUtenArbeidsgiver(YearMonth.of(2018, 11), BigDecimal(16000)),
+                        InntektUtenArbeidsgiver(YearMonth.of(2018, 12), BigDecimal(17000))
                 ))
         )
 
@@ -104,8 +106,8 @@ class ArbeidInntektYtelseServiceTest {
 
         val expected = listOf(
                 ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", "S. VINDEL & SØNN"), fom), listOf(
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2019-01-01"), LocalDate.parse("2019-01-31")), BigDecimal(20000)),
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2019-02-01"), LocalDate.parse("2019-02-28")), BigDecimal(25000))
+                        InntektUtenArbeidsgiver(YearMonth.of(2019, 1), BigDecimal(20000)),
+                        InntektUtenArbeidsgiver(YearMonth.of(2019, 2), BigDecimal(25000))
                 ))
         )
 
@@ -161,9 +163,9 @@ class ArbeidInntektYtelseServiceTest {
 
         val expected = listOf(
                 ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Organisasjon("66778899", "Matbutikken A/S"), LocalDate.parse("2018-01-01"), fom), listOf(
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2018-10-01"), LocalDate.parse("2018-10-31")), BigDecimal(15000)),
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2018-11-01"), LocalDate.parse("2018-11-30")), BigDecimal(16000)),
-                        InntektUtenArbeidsgiver(Opptjeningsperiode(LocalDate.parse("2018-12-01"), LocalDate.parse("2018-12-31")), BigDecimal(17000))
+                        InntektUtenArbeidsgiver(YearMonth.of(2018, 10), BigDecimal(15000)),
+                        InntektUtenArbeidsgiver(YearMonth.of(2018, 11), BigDecimal(16000)),
+                        InntektUtenArbeidsgiver(YearMonth.of(2018, 12), BigDecimal(17000))
                 ))
         )
 

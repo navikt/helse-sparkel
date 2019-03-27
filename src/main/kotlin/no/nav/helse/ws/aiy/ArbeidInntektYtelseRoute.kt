@@ -9,6 +9,7 @@ import no.nav.helse.map
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 

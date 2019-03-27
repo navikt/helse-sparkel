@@ -4,6 +4,8 @@ import io.prometheus.client.Counter
 import no.nav.helse.flatMap
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
+import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.Arbeidsgiver
@@ -36,7 +38,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         inntekt.arbeidsgiver
                     }.mapValues { entry ->
                         entry.value.map { inntekt ->
-                            InntektUtenArbeidsgiver(inntekt.opptjeningsperiode, inntekt.beløp)
+                            InntektUtenArbeidsgiver(YearMonth.from(inntekt.opptjeningsperiode.fom), inntekt.beløp)
                         }
                     }.also { grupperteInntekter ->
                         arbeidsforholdliste.forEach { arbeidsforhold ->
@@ -63,6 +65,3 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 }
             }
 }
-
-data class InntektUtenArbeidsgiver(val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal)
-data class ArbeidsforholdMedInntekt(val arbeidsforhold: Arbeidsforhold, val inntekter: List<InntektUtenArbeidsgiver>)

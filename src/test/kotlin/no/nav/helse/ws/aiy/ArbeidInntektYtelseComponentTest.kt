@@ -350,27 +350,15 @@ private val expectedJson_arbeidsforholdMedInntekter = """
       "inntekter": [
         {
           "beløp": 2500,
-          "opptjeningsperiode": {
-            "tom": "2019-01-31",
-            "fom": "2019-01-01",
-            "antattPeriode": false
-          }
+          "utbetalingsperiode": "2019-01"
         },
         {
           "beløp": 3500,
-          "opptjeningsperiode": {
-            "tom": "2019-02-28",
-            "fom": "2019-02-01",
-            "antattPeriode": true
-          }
+          "utbetalingsperiode": "2019-02"
         },
         {
           "beløp": 2500,
-          "opptjeningsperiode": {
-            "tom": "2019-03-31",
-            "fom": "2019-03-01",
-            "antattPeriode": false
-          }
+          "utbetalingsperiode": "2019-03"
         }
       ]
     }
