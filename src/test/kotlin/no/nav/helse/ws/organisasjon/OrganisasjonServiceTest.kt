@@ -21,7 +21,7 @@ class OrganisasjonServiceTest {
 
     @Test
     fun `skal svare med organisasjon`() {
-        val orgNr = "1234"
+        val orgNr = "889640782"
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentOrganisasjon(match {
@@ -36,7 +36,7 @@ class OrganisasjonServiceTest {
             }
         })
 
-        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(OrganisasjonsNummer(orgNr))
+        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer(orgNr))
 
         when (actual) {
             is Either.Right -> assertEquals("NAV", actual.right.navn)
@@ -51,7 +51,7 @@ class OrganisasjonServiceTest {
             organisasjon.hentOrganisasjon(any())
         } returns Either.Left(HentOrganisasjonOrganisasjonIkkeFunnet("SOAP fault", OrganisasjonIkkeFunnet()))
 
-        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(OrganisasjonsNummer("1234"))
+        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer("889640782"))
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
@@ -66,7 +66,7 @@ class OrganisasjonServiceTest {
             organisasjon.hentOrganisasjon(any())
         } returns Either.Left(HentOrganisasjonUgyldigInput("SOAP fault", UgyldigInput()))
 
-        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(OrganisasjonsNummer("1234"))
+        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer("889640782"))
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.FeilFraBruker, actual.left)
@@ -81,7 +81,7 @@ class OrganisasjonServiceTest {
             organisasjon.hentOrganisasjon(any())
         } returns Either.Left(Exception())
 
-        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(OrganisasjonsNummer("1234"))
+        val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer("889640782"))
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
@@ -97,7 +97,7 @@ class OrganisasjonServiceTest {
         } returns Either.Left(Exception())
 
         val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
-                OrganisasjonsNummer("1234"))
+                Organisasjonsnummer("889640782"))
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
@@ -107,7 +107,7 @@ class OrganisasjonServiceTest {
 
     @Test
     fun `skal mappe unntaksliste til IkkeFunnet`() {
-        val juridiskOrgNr = "1234"
+        val juridiskOrgNr = "889640782"
 
         val organisasjon = mockk<OrganisasjonClient>()
         every {
@@ -121,7 +121,7 @@ class OrganisasjonServiceTest {
         })
 
         val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
-                OrganisasjonsNummer(juridiskOrgNr))
+                Organisasjonsnummer(juridiskOrgNr))
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
@@ -131,8 +131,8 @@ class OrganisasjonServiceTest {
 
     @Test
     fun `skal hente orgnr for virksomhet i en juridisk enhet`() {
-        val juridiskOrgNr = "1234"
-        val virksomhetOrgNr = "4321"
+        val juridiskOrgNr = "889640782"
+        val virksomhetOrgNr = "995298775"
 
         val organisasjon = mockk<OrganisasjonClient>()
         every {
@@ -147,7 +147,7 @@ class OrganisasjonServiceTest {
         })
 
         val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
-                OrganisasjonsNummer(juridiskOrgNr))
+                Organisasjonsnummer(juridiskOrgNr))
 
         when (actual) {
             is Either.Right -> assertEquals(virksomhetOrgNr, actual.right.value)
@@ -157,9 +157,9 @@ class OrganisasjonServiceTest {
 
     @Test
     fun `skal gi IkkeFunnet dersom virksomhetsoppslag gir resultat på feil juridisk enhet`() {
-        val juridiskOrgNr = "1234"
-        val enAnnenJuridiskOrgNr = "554433"
-        val virksomhetOrgNr = "4321"
+        val juridiskOrgNr = "889640782"
+        val virksomhetOrgNr = "995298775"
+        val enAnnenJuridiskOrgNr = "995277670"
 
         val organisasjon = mockk<OrganisasjonClient>()
         every {
@@ -174,7 +174,7 @@ class OrganisasjonServiceTest {
         })
 
         val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
-                OrganisasjonsNummer(juridiskOrgNr))
+                Organisasjonsnummer(juridiskOrgNr))
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)

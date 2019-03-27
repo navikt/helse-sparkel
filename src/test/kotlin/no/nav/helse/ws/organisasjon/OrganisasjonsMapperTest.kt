@@ -9,16 +9,16 @@ class OrganisasjonsMapperTest {
 
     @Test
     fun `skal mappe tomt navn`() {
-        assertEquals(Organisasjon("1234", no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, null), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
-            orgnummer = "1234"
+        assertEquals(Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, null), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
+            orgnummer = "889640782"
             navn = UstrukturertNavn()
         }))
     }
 
     @Test
     fun `skal mappe en linje`() {
-        assertEquals(Organisasjon("1234", no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, "NAV"), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
-            orgnummer = "1234"
+        assertEquals(Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, "NAV"), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
+            orgnummer = "889640782"
             navn = UstrukturertNavn().apply {
                 with (navnelinje) {
                     add("NAV")
@@ -29,8 +29,8 @@ class OrganisasjonsMapperTest {
 
     @Test
     fun `skal mappe flere linjer`() {
-        assertEquals(Organisasjon("1234", no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, "NAV, AVD SANNERGATA 2"), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
-            orgnummer = "1234"
+        assertEquals(Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, "NAV, AVD SANNERGATA 2"), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
+            orgnummer = "889640782"
             navn = UstrukturertNavn().apply {
                 with (navnelinje) {
                     add("NAV")
@@ -42,8 +42,8 @@ class OrganisasjonsMapperTest {
 
     @Test
     fun `skal mappe linjer med hull i`() {
-        assertEquals(Organisasjon("1234", no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, "NAV, AVD SANNERGATA 2, OSLO"), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
-            orgnummer = "1234"
+        assertEquals(Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Organisasjon, "NAV, AVD SANNERGATA 2, OSLO"), OrganisasjonsMapper.fraOrganisasjon(Organisasjon().apply {
+            orgnummer = "889640782"
             navn = UstrukturertNavn().apply {
                 with (navnelinje) {
                     add("NAV")

@@ -9,7 +9,7 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
 object OrganisasjonsMapper {
     fun fraOrganisasjon(organisasjon: no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon) : Organisasjon {
         return Organisasjon(
-                orgnr = organisasjon.orgnummer,
+                orgnr = Organisasjonsnummer(organisasjon.orgnummer),
                 navn = name(organisasjon.navn),
                 type = when (organisasjon) {
                     is Orgledd -> Organisasjon.Type.Orgledd

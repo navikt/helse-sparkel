@@ -24,7 +24,7 @@ class OrganisasjonComponentTest {
     fun `skal returnere organiasasjon`() {
         val organisasjonV5 = mockk<OrganisasjonV5>()
 
-        val orgNr = "97112233"
+        val orgNr = "889640782"
 
         every {
             organisasjonV5.hentOrganisasjon(match {
@@ -63,7 +63,7 @@ class OrganisasjonComponentTest {
     fun `skal svare med feil ved feil`() {
         val organisasjonV5 = mockk<OrganisasjonV5>()
 
-        val orgNr = "97112233"
+        val orgNr = "889640782"
 
         every {
             organisasjonV5.hentNoekkelinfoOrganisasjon(match {
@@ -91,7 +91,7 @@ class OrganisasjonComponentTest {
 
 private val expectedJson = """
 {
-    "orgnr": "97112233",
+    "orgnr": "889640782",
     "navn": "NAV, AVD SANNERGATA 2",
     "type": "Virksomhet"
 }

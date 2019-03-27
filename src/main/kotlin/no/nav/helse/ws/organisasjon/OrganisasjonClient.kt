@@ -14,7 +14,7 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
 
     private val log = LoggerFactory.getLogger("OrganisasjonClient")
 
-    fun hentOrganisasjon(orgnr: OrganisasjonsNummer) : Either<Exception, Organisasjon> {
+    fun hentOrganisasjon(orgnr: Organisasjonsnummer) : Either<Exception, Organisasjon> {
         val request = HentOrganisasjonRequest().apply { orgnummer = orgnr.value }
         return try {
             Either.Right(organisasjonV5.hentOrganisasjon(request).organisasjon)
@@ -24,7 +24,7 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
         }
     }
 
-    fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: OrganisasjonsNummer, dato: LocalDate = LocalDate.now()) =
+    fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
             try {
                 val request = HentVirksomhetsOrgnrForJuridiskOrgnrBolkRequest().apply {
                     with(organisasjonsfilterListe) {
@@ -41,7 +41,13 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
             }
 }
 
-data class OrganisasjonsNummer(val value : String)
+data class Organisasjonsnummer(val value : String) {
+    init {
+        if (!Organisasjonsnummervalidator.erGyldig(value)) {
+            throw IllegalArgumentException("Organisasjonsnummer $value er ugyldig")
+        }
+    }
+}
 
 
 

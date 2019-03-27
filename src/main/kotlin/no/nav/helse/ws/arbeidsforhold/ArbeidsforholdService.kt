@@ -8,7 +8,7 @@ import no.nav.helse.map
 import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
+import no.nav.helse.ws.organisasjon.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
@@ -71,7 +71,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
             })
 
     private fun hentOrganisasjonsnavn(organisasjon: Organisasjon) =
-            organisasjon.navn ?: organisasjonService.hentOrganisasjon(OrganisasjonsNummer(organisasjon.orgnummer)).map {
+            organisasjon.navn ?: organisasjonService.hentOrganisasjon(Organisasjonsnummer(organisasjon.orgnummer)).map {
                 it.navn
             }.orElse { null }
 }

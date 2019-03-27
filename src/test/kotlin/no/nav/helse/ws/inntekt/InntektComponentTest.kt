@@ -162,9 +162,9 @@ class InntektComponentTest {
         val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
 
-        val virksomhet1 = "11223344"
-        val virksomhet2 = "55667788"
-        val virksomhet3 = "99112233"
+        val virksomhet1 = "889640782"
+        val virksomhet2 = "912998827"
+        val virksomhet3 = "995298775"
         val expected = listeMedTreInntekter(aktørId, fom, virksomhet1, virksomhet2, virksomhet3)
 
         every {
@@ -197,7 +197,7 @@ class InntektComponentTest {
             with (orgnrForOrganisasjonListe) {
                 add(OrgnrForOrganisasjon().apply {
                     juridiskOrganisasjonsnummer = virksomhet1
-                    organisasjonsnummer = "44332211"
+                    organisasjonsnummer = "995277670"
                 })
             }
         }
@@ -489,9 +489,9 @@ class InntektComponentTest {
         val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
 
-        val virksomhet1 = "11223344"
-        val virksomhet2 = "55667788"
-        val virksomhet3 = "99112233"
+        val virksomhet1 = "889640782"
+        val virksomhet2 = "912998827"
+        val virksomhet3 = "995298775"
         val expected = listeMedTreInntekter(aktørId, fom, virksomhet1, virksomhet2, virksomhet3)
 
         every {
@@ -524,7 +524,7 @@ class InntektComponentTest {
             with (orgnrForOrganisasjonListe) {
                 add(OrgnrForOrganisasjon().apply {
                     juridiskOrganisasjonsnummer = virksomhet1
-                    organisasjonsnummer = "44332211"
+                    organisasjonsnummer = "995277670"
                 })
             }
         }
@@ -610,7 +610,7 @@ private val expectedJson = """
 {
     "inntekter": [{
         "arbeidsgiver": {
-            "orgnr": "44332211",
+            "orgnr": "995277670",
         },
         "beløp": 2500,
         "opptjeningsperiode": {
@@ -620,7 +620,7 @@ private val expectedJson = """
         }
     }, {
         "arbeidsgiver": {
-            "orgnr": "55667788"
+            "orgnr": "912998827"
         },
         "beløp": 3500,
         "opptjeningsperiode": {
@@ -630,7 +630,7 @@ private val expectedJson = """
         }
     }, {
         "arbeidsgiver": {
-            "orgnr": "99112233"
+            "orgnr": "995298775"
         },
         "beløp": 2500,
         "opptjeningsperiode": {

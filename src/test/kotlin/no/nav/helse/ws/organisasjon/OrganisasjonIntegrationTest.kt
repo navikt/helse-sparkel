@@ -66,7 +66,7 @@ class OrganisasjonIntegrationTest {
                 request = requestStub,
                 response = WireMock.serverError().withBody(faultXml("SOAP fault"))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentOrganisasjon(OrganisasjonsNummer(orgNr))
+            val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
             when (actual) {
                 is Either.Left -> assertEquals("SOAP fault", actual.left.message)
@@ -77,7 +77,7 @@ class OrganisasjonIntegrationTest {
 
     @Test
     fun `Henting av organisasjon`() {
-        val orgNr = "971524963"
+        val orgNr = "889640782"
 
         val requestStub = WireMock.post(WireMock.urlPathEqualTo("/organisasjon"))
                 .withSoapAction("http://nav.no/tjeneste/virksomhet/organisasjon/v5/BindinghentOrganisasjon/")
@@ -93,7 +93,7 @@ class OrganisasjonIntegrationTest {
                         navnLinje2 = "AVD SANNERGATA 2"
                 ))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentOrganisasjon(OrganisasjonsNummer(orgNr))
+            val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
             when (actual) {
                 is Either.Right -> {
@@ -108,7 +108,7 @@ class OrganisasjonIntegrationTest {
 
     @Test
     fun `Henting av organisasjon uten navnelinjer`() {
-        val orgNr = "971524963"
+        val orgNr = "889640782"
 
         val requestStub = WireMock.post(WireMock.urlPathEqualTo("/organisasjon"))
                 .withSoapAction("http://nav.no/tjeneste/virksomhet/organisasjon/v5/BindinghentOrganisasjon/")
@@ -122,7 +122,7 @@ class OrganisasjonIntegrationTest {
                         orgNr = orgNr
                 ))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentOrganisasjon(OrganisasjonsNummer(orgNr))
+            val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
             when (actual) {
                 is Either.Right -> {
@@ -137,7 +137,7 @@ class OrganisasjonIntegrationTest {
 
     @Test
     fun `skal svare med feil når virksomhetsoppslag gir feil`() {
-        val juridiskOrgnr = "987654321"
+        val juridiskOrgnr = "889640782"
 
         val requestStub = WireMock.post(WireMock.urlPathEqualTo("/organisasjon"))
                 .withSoapAction("http://nav.no/tjeneste/virksomhet/organisasjon/v5/BindinghentVirksomhetsOrgnrForJuridiskOrgnrBolk/")
@@ -150,7 +150,7 @@ class OrganisasjonIntegrationTest {
                 request = requestStub,
                 response = WireMock.serverError().withBody(faultXml("SOAP fault"))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(juridiskOrgnr),
+            val actual = organisasjonClient.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(juridiskOrgnr),
                     LocalDate.parse("2019-01-01"))
 
             when (actual) {
@@ -162,7 +162,7 @@ class OrganisasjonIntegrationTest {
 
     @Test
     fun `skal svare med med unntaksliste`() {
-        val juridiskOrgnr = "987654321"
+        val juridiskOrgnr = "889640782"
 
         val requestStub = WireMock.post(WireMock.urlPathEqualTo("/organisasjon"))
                 .withSoapAction("http://nav.no/tjeneste/virksomhet/organisasjon/v5/BindinghentVirksomhetsOrgnrForJuridiskOrgnrBolk/")
@@ -176,7 +176,7 @@ class OrganisasjonIntegrationTest {
                 response = WireMock.okXml(virksomhetFinnesIkke(juridiskOrgnr))
                         .withHeader("Content-type", "application/xml;charset=utf-8")
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(juridiskOrgnr),
+            val actual = organisasjonClient.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(juridiskOrgnr),
                     LocalDate.parse("2019-01-01"))
 
             when (actual) {

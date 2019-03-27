@@ -10,7 +10,7 @@ import no.nav.helse.map
 import no.nav.helse.sequenceU
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
+import no.nav.helse.ws.organisasjon.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
@@ -60,11 +60,11 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                 inntekter.map {  inntekt ->
                     when (inntekt.arbeidsgiver) {
                         is Arbeidsgiver.Organisasjon -> {
-                            organisasjonService.hentOrganisasjon(OrganisasjonsNummer(inntekt.arbeidsgiver.orgnr)).flatMap { organisasjon ->
+                            organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.arbeidsgiver.orgnr)).flatMap { organisasjon ->
                                 virksomhetsCounter.labels(organisasjon.type.name).inc()
 
                                 if (organisasjon.type == no.nav.helse.ws.organisasjon.Organisasjon.Type.JuridiskEnhet) {
-                                    organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(organisasjon.orgnr)).map { virksomhetsnummer ->
+                                    organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr).map { virksomhetsnummer ->
                                         inntekt.copy(
                                                 arbeidsgiver = Arbeidsgiver.Organisasjon(virksomhetsnummer.value)
                                         )

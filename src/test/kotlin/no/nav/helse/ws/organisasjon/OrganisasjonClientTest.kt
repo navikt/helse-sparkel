@@ -39,7 +39,7 @@ class OrganisasjonClientTest {
         }
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentOrganisasjon(OrganisasjonsNummer(orgNr))
+        val actual = client.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
         when (actual) {
             is Either.Right -> assertEquals("STORTINGET", (actual.right.navn as UstrukturertNavn).navnelinje[0])
@@ -57,7 +57,7 @@ class OrganisasjonClientTest {
         } throws(Exception("SOAP fault"))
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentOrganisasjon(OrganisasjonsNummer(orgNr))
+        val actual = client.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
         when (actual) {
             is Either.Left -> assertEquals("SOAP fault", actual.left.message)
@@ -67,8 +67,8 @@ class OrganisasjonClientTest {
 
     @Test
     fun `skal hente virksomheter for organisasjon`() {
-        val juridiskOrgnr = "987654321"
-        val virksomhetOrgnr = "123456789"
+        val juridiskOrgnr = "889640782"
+        val virksomhetOrgnr = "995298775"
 
         val organisasjonV5 = mockk<OrganisasjonV5>()
         every {
@@ -87,7 +87,7 @@ class OrganisasjonClientTest {
         }
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(juridiskOrgnr))
+        val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(juridiskOrgnr))
 
         when (actual) {
             is Either.Right -> {
@@ -101,8 +101,7 @@ class OrganisasjonClientTest {
 
     @Test
     fun `skal svare med unntaksliste`() {
-        val juridiskOrgnr = "987654321"
-        val virksomhetOrgnr = "123456789"
+        val juridiskOrgnr = "889640782"
 
         val organisasjonV5 = mockk<OrganisasjonV5>()
         every {
@@ -121,7 +120,7 @@ class OrganisasjonClientTest {
         }
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(juridiskOrgnr))
+        val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(juridiskOrgnr))
 
         when (actual) {
             is Either.Right -> {
@@ -144,7 +143,7 @@ class OrganisasjonClientTest {
         } throws(Exception("SOAP fault"))
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(OrganisasjonsNummer(orgNr), LocalDate.now())
+        val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(orgNr), LocalDate.now())
 
         when (actual) {
             is Either.Left -> assertEquals("SOAP fault", actual.left.message)

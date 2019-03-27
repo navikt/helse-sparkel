@@ -154,7 +154,7 @@ class ArbeidsforholdComponentTest {
             with (arbeidsforhold) {
                 add(Arbeidsforhold().apply {
                     arbeidsgiver = Organisasjon().apply {
-                        orgnummer = "11223344"
+                        orgnummer = "889640782"
                     }
                     ansettelsesPeriode = AnsettelsesPeriode().apply {
                         periode = Gyldighetsperiode().apply {
@@ -164,7 +164,7 @@ class ArbeidsforholdComponentTest {
                 })
                 add(Arbeidsforhold().apply {
                     arbeidsgiver = Organisasjon().apply {
-                        orgnummer = "66778899"
+                        orgnummer = "995298775"
                         navn = "S. VINDEL & SØNN"
                     }
                     ansettelsesPeriode = AnsettelsesPeriode().apply {
@@ -179,11 +179,11 @@ class ArbeidsforholdComponentTest {
 
         every {
             organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == "11223344"
+                it.orgnummer == "889640782"
             })
         } returns HentOrganisasjonResponse().apply {
             organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
-                orgnummer = "11223344"
+                orgnummer = "889640782"
                 navn = UstrukturertNavn().apply {
                     with (navnelinje) {
                         add("MATBUTIKKEN AS")
@@ -206,7 +206,7 @@ class ArbeidsforholdComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(200, response.status()?.value)
+                assertEquals(HttpStatusCode.OK, response.status())
                 assertJsonEquals(JSONObject(expectedJson_arbeidsforhold), JSONObject(response.content))
             }
         }
@@ -483,13 +483,13 @@ private val expectedJson_arbeidsforhold = """
 {
     "arbeidsforhold": [{
         "arbeidsgiver": {
-            "orgnummer": "11223344",
+            "orgnummer": "889640782",
             "navn": "MATBUTIKKEN AS"
         },
         "startdato": "2019-01-01"
     },{
         "arbeidsgiver": {
-            "orgnummer": "66778899",
+            "orgnummer": "995298775",
             "navn": "S. VINDEL & SØNN"
         },
         "startdato": "2015-01-01",

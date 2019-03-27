@@ -7,7 +7,7 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.OrganisasjonsNummer
+import no.nav.helse.ws.organisasjon.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
@@ -91,14 +91,14 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", "MATBUTIKKEN AS"), LocalDate.parse("2019-01-01"))
+                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("889640782", "MATBUTIKKEN AS"), LocalDate.parse("2019-01-01"))
         )
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
         } returns listOf(Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "22334455"
+                orgnummer = "889640782"
             }
             ansettelsesPeriode = AnsettelsesPeriode().apply {
                 periode = Gyldighetsperiode().apply {
@@ -110,8 +110,8 @@ class ArbeidsforholdServiceTest {
         }
 
         every {
-            organisasjonService.hentOrganisasjon(OrganisasjonsNummer("22334455"))
-        } returns Either.Right(no.nav.helse.ws.organisasjon.Organisasjon("22334455", no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, "MATBUTIKKEN AS"))
+            organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, "MATBUTIKKEN AS"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
@@ -136,14 +136,14 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("22334455", "FEIL VED HENTING AV NAVN"), LocalDate.parse("2019-01-01"))
+                no.nav.helse.ws.arbeidsforhold.Arbeidsforhold(Arbeidsgiver.Organisasjon("889640782", "FEIL VED HENTING AV NAVN"), LocalDate.parse("2019-01-01"))
         )
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
         } returns listOf(Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "22334455"
+                orgnummer = "889640782"
             }
             ansettelsesPeriode = AnsettelsesPeriode().apply {
                 periode = Gyldighetsperiode().apply {
@@ -155,7 +155,7 @@ class ArbeidsforholdServiceTest {
         }
 
         every {
-            organisasjonService.hentOrganisasjon(OrganisasjonsNummer("22334455"))
+            organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
@@ -348,20 +348,20 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                Arbeidsgiver.Organisasjon("22334455", "S. VINDEL & SØNN"),
-                Arbeidsgiver.Organisasjon("66778899", "MATBUTIKKEN AS")
+                Arbeidsgiver.Organisasjon("995298775", "S. VINDEL & SØNN"),
+                Arbeidsgiver.Organisasjon("889640782", "MATBUTIKKEN AS")
         )
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
         } returns listOf(Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "22334455"
+                orgnummer = "995298775"
                 navn = "S. VINDEL & SØNN"
             }
         }, Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "66778899"
+                orgnummer = "889640782"
                 navn = null
             }
         }).let {
@@ -369,8 +369,8 @@ class ArbeidsforholdServiceTest {
         }
 
         every {
-            organisasjonService.hentOrganisasjon(OrganisasjonsNummer("66778899"))
-        } returns no.nav.helse.ws.organisasjon.Organisasjon("66778899", no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, "MATBUTIKKEN AS").let {
+            organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
+        } returns no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, "MATBUTIKKEN AS").let {
             Either.Right(it)
         }
 
@@ -418,14 +418,14 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                Arbeidsgiver.Organisasjon("22334455", null)
+                Arbeidsgiver.Organisasjon("889640782", null)
         )
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
         } returns listOf(Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "22334455"
+                orgnummer = "889640782"
                 navn = null
             }
         }).let {
@@ -457,19 +457,19 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                Arbeidsgiver.Organisasjon("22334455", "S. VINDEL & SØNN")
+                Arbeidsgiver.Organisasjon("889640782", "S. VINDEL & SØNN")
         )
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
         } returns listOf(Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "22334455"
+                orgnummer = "889640782"
                 navn = "S. VINDEL & SØNN"
             }
         }, Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
-                orgnummer = "22334455"
+                orgnummer = "889640782"
                 navn = "S. VINDEL & SØNN"
             }
         }).let {

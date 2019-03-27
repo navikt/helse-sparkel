@@ -168,6 +168,8 @@ class ArbeidInntektYtelseComponentTest {
 
         val aktørId = AktørId("1831212532188")
 
+        val virksomhet = "889640782"
+
         every {
             arbeidsforholdV3.finnArbeidsforholdPrArbeidstaker(match {
                 it.ident.ident == aktørId.aktor
@@ -176,7 +178,7 @@ class ArbeidInntektYtelseComponentTest {
             with (arbeidsforhold) {
                 add(Arbeidsforhold().apply {
                     arbeidsgiver = Organisasjon().apply {
-                        orgnummer = "11223344"
+                        orgnummer = virksomhet
                     }
                     ansettelsesPeriode = AnsettelsesPeriode().apply {
                         periode = Gyldighetsperiode().apply {
@@ -187,7 +189,6 @@ class ArbeidInntektYtelseComponentTest {
             }
         }
 
-        val virksomhet = "11223344"
         val treInntekter = listeMedTreInntekter(aktørId, YearMonth.of(2017, 1), virksomhet)
 
         every {
@@ -341,7 +342,7 @@ private val expectedJson_arbeidsforholdMedInntekter = """
     {
       "arbeidsforhold": {
         "arbeidsgiver": {
-          "orgnummer": "11223344",
+          "orgnummer": "889640782",
           "navn": "NAV"
         },
         "startdato": "2019-01-01"

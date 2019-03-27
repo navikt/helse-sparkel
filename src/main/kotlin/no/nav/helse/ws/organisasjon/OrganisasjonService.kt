@@ -16,7 +16,7 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
         private val log = LoggerFactory.getLogger("OrganisasjonService")
     }
 
-    fun hentOrganisasjon(orgnr: OrganisasjonsNummer) =
+    fun hentOrganisasjon(orgnr: Organisasjonsnummer) =
             organisasjonsClient.hentOrganisasjon(orgnr).bimap({
                 when (it) {
                     is HentOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
@@ -27,7 +27,7 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
                 OrganisasjonsMapper.fraOrganisasjon(it)
             })
 
-    fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: OrganisasjonsNummer, dato: LocalDate = LocalDate.now()) =
+    fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
             organisasjonsClient.hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr, dato).mapLeft {
                 Feilårsak.UkjentFeil
             }.flatMap {
@@ -41,7 +41,7 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
                 } ?: it.orgnrForOrganisasjonListe.firstOrNull {
                     it.juridiskOrganisasjonsnummer == orgnr.value
                 }?.let { organisasjon ->
-                    Either.Right(OrganisasjonsNummer(organisasjon.organisasjonsnummer))
+                    Either.Right(Organisasjonsnummer(organisasjon.organisasjonsnummer))
                 } ?: Feilårsak.IkkeFunnet.let {
                     log.error("did not find virksomhet for juridisk orgnr ${orgnr.value}")
                     Either.Left(it)
@@ -49,7 +49,7 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
             }
 }
 
-data class Organisasjon(val orgnr: String, val type: Type, val navn: String?) {
+data class Organisasjon(val orgnr: Organisasjonsnummer, val type: Type, val navn: String?) {
     enum class Type {
         Orgledd,
         JuridiskEnhet,
