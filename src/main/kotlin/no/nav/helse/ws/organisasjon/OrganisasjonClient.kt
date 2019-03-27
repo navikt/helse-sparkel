@@ -2,6 +2,7 @@ package no.nav.helse.ws.organisasjon
 
 import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjonsfilter
@@ -39,14 +40,6 @@ class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
                 log.error("Error during organisasjon lookup", err)
                 Either.Left(err)
             }
-}
-
-data class Organisasjonsnummer(val value : String) {
-    init {
-        if (!Organisasjonsnummervalidator.erGyldig(value)) {
-            throw IllegalArgumentException("Organisasjonsnummer $value er ugyldig")
-        }
-    }
 }
 
 

@@ -10,7 +10,7 @@ import no.nav.helse.map
 import no.nav.helse.sequenceU
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.Organisasjonsnummer
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
@@ -61,19 +61,19 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                     when (inntekt.arbeidsgiver) {
                         is Arbeidsgiver.Organisasjon -> {
                             organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.arbeidsgiver.orgnr)).flatMap { organisasjon ->
-                                virksomhetsCounter.labels(organisasjon.type.name).inc()
+                                virksomhetsCounter.labels(organisasjon.type()).inc()
 
-                                if (organisasjon.type == no.nav.helse.ws.organisasjon.Organisasjon.Type.JuridiskEnhet) {
-                                    organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr).map { virksomhetsnummer ->
+                                when (organisasjon) {
+                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr).map { virksomhetsnummer ->
                                         inntekt.copy(
                                                 arbeidsgiver = Arbeidsgiver.Organisasjon(virksomhetsnummer.value)
                                         )
                                     }
-                                } else if (organisasjon.type == no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet) {
-                                    Either.Right(inntekt)
-                                } else {
-                                    log.error("unknown virksomhetstype: ${organisasjon.type}")
-                                    Either.Left(Feilårsak.UkjentFeil)
+                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
+                                    else -> {
+                                        log.error("unknown virksomhetstype: ${organisasjon.type()}")
+                                        Either.Left(Feilårsak.UkjentFeil)
+                                    }
                                 }
                             }
                         }

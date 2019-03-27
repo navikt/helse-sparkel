@@ -8,7 +8,7 @@ import no.nav.helse.map
 import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.Organisasjonsnummer
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon

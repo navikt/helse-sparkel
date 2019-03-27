@@ -4,7 +4,9 @@ import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
 import no.nav.helse.flatMap
+import no.nav.helse.map
 import no.nav.helse.mapLeft
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonOrganisasjonIkkeFunnet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonUgyldigInput
 import org.slf4j.LoggerFactory
@@ -17,15 +19,17 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
     }
 
     fun hentOrganisasjon(orgnr: Organisasjonsnummer) =
-            organisasjonsClient.hentOrganisasjon(orgnr).bimap({
+            organisasjonsClient.hentOrganisasjon(orgnr).mapLeft {
                 when (it) {
                     is HentOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
                     is HentOrganisasjonUgyldigInput -> Feilårsak.FeilFraBruker
                     else -> Feilårsak.UkjentFeil
                 }
-            }, {
-                OrganisasjonsMapper.fraOrganisasjon(it)
-            })
+            }.flatMap {
+                OrganisasjonsMapper.fraOrganisasjon(it)?.let {
+                    Either.Right(it)
+                } ?: Either.Left(Feilårsak.UkjentFeil)
+            }
 
     fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
             organisasjonsClient.hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr, dato).mapLeft {
@@ -47,13 +51,4 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
                     Either.Left(it)
                 }
             }
-}
-
-data class Organisasjon(val orgnr: Organisasjonsnummer, val type: Type, val navn: String?) {
-    enum class Type {
-        Orgledd,
-        JuridiskEnhet,
-        Virksomhet,
-        Organisasjon
-    }
 }

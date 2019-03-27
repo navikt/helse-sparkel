@@ -7,7 +7,7 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.Organisasjonsnummer
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
@@ -101,7 +101,7 @@ class InntektServiceTest {
             organisasjonService.hentOrganisasjon(match {
                 it.value == "889640782"
             })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, null))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
 
         val actual = InntektService(inntektClient, organisasjonService).hentBeregningsgrunnlag(aktør, fom, tom)
 
@@ -193,7 +193,7 @@ class InntektServiceTest {
             organisasjonService.hentOrganisasjon(match {
                 it.value == "889640782"
             })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, null))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
 
         val actual = InntektService(inntektClient, organisasjonService).hentSammenligningsgrunnlag(aktør, fom, tom)
 
@@ -265,7 +265,7 @@ class InntektServiceTest {
             organisasjonService.hentOrganisasjon(match {
                 it.value == "889640782"
             })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, null))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
 
         val actual = InntektService(inntektClient, organisasjonService).hentSammenligningsgrunnlag(aktør, fom, tom)
 

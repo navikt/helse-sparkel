@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.OrgnrForOrganisasjon

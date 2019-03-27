@@ -1,5 +1,6 @@
 package no.nav.helse.ws.organisasjon
 
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test

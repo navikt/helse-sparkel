@@ -7,7 +7,7 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.Organisasjonsnummer
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
@@ -111,7 +111,7 @@ class ArbeidsforholdServiceTest {
 
         every {
             organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
-        } returns Either.Right(no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, "MATBUTIKKEN AS"))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), "MATBUTIKKEN AS"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
@@ -370,7 +370,7 @@ class ArbeidsforholdServiceTest {
 
         every {
             organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
-        } returns no.nav.helse.ws.organisasjon.Organisasjon(Organisasjonsnummer("889640782"), no.nav.helse.ws.organisasjon.Organisasjon.Type.Virksomhet, "MATBUTIKKEN AS").let {
+        } returns no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), "MATBUTIKKEN AS").let {
             Either.Right(it)
         }
 

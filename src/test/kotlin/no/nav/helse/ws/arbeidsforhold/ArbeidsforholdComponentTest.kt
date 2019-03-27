@@ -182,7 +182,7 @@ class ArbeidsforholdComponentTest {
                 it.orgnummer == "889640782"
             })
         } returns HentOrganisasjonResponse().apply {
-            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
+            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet().apply {
                 orgnummer = "889640782"
                 navn = UstrukturertNavn().apply {
                     with (navnelinje) {
@@ -243,7 +243,7 @@ class ArbeidsforholdComponentTest {
                 it.orgnummer == "913548221"
             })
         } returns HentOrganisasjonResponse().apply {
-            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
+            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet().apply {
                 orgnummer = "913548221"
                 navn = UstrukturertNavn().apply {
                     with(navnelinje) {
@@ -259,7 +259,7 @@ class ArbeidsforholdComponentTest {
                 it.orgnummer == "984054564"
             })
         } returns HentOrganisasjonResponse().apply {
-            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon().apply {
+            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet().apply {
                 orgnummer = "984054564"
                 navn = UstrukturertNavn().apply {
                     with(navnelinje) {
