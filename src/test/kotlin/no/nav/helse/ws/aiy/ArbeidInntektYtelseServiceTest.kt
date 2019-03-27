@@ -1,10 +1,13 @@
-package no.nav.helse.ws.arbeidsforhold
+package no.nav.helse.ws.aiy
 
 import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Either
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.arbeidsforhold.Arbeidsforhold
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
+import no.nav.helse.ws.arbeidsforhold.Arbeidsgiver
 import no.nav.helse.ws.inntekt.Inntekt
 import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.inntekt.Opptjeningsperiode
@@ -15,7 +18,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-class ArbeidsforholdMedInntektServiceTest {
+class ArbeidInntektYtelseServiceTest {
 
     @Test
     fun `skal sammenstille arbeidsforhold og inntekter`() {
@@ -51,7 +54,7 @@ class ArbeidsforholdMedInntektServiceTest {
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
         val inntektService = mockk<InntektService>()
 
-        val aktiveArbeidsforholdService = ArbeidsforholdMedInntektService(arbeidsforholdService, inntektService)
+        val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService)
 
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
@@ -109,7 +112,7 @@ class ArbeidsforholdMedInntektServiceTest {
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
         val inntektService = mockk<InntektService>()
 
-        val aktiveArbeidsforholdService = ArbeidsforholdMedInntektService(arbeidsforholdService, inntektService)
+        val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService)
 
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
@@ -167,7 +170,7 @@ class ArbeidsforholdMedInntektServiceTest {
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
         val inntektService = mockk<InntektService>()
 
-        val aktiveArbeidsforholdService = ArbeidsforholdMedInntektService(arbeidsforholdService, inntektService)
+        val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService)
 
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")

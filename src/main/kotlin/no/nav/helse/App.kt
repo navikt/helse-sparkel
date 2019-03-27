@@ -26,7 +26,8 @@ import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdMedInntektService
+import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
+import no.nav.helse.ws.aiy.arbeidInntektYtelse
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.inntekt.InntektService
@@ -87,7 +88,7 @@ fun main() {
                 organisasjonService = organisasjonService
         )
 
-        val arbeidsforholdMedInntektService = ArbeidsforholdMedInntektService(
+        val arbeidsforholdMedInntektService = ArbeidInntektYtelseService(
                 arbeidsforholdService = arbeidsforholdService,
                 inntektService = inntektService
         )
@@ -120,7 +121,7 @@ fun Application.sparkel(
         arbeidsfordelingService: ArbeidsfordelingService,
         arbeidsforholdService: ArbeidsforholdService,
         inntektService: InntektService,
-        arbeidsforholdMedInntektService: ArbeidsforholdMedInntektService,
+        arbeidInntektYtelseService: ArbeidInntektYtelseService,
         meldekortService: MeldekortService,
         organisasjonService: OrganisasjonService,
         personService: PersonService,
@@ -172,7 +173,9 @@ fun Application.sparkel(
 
             person(personService)
 
-            arbeidsforhold(arbeidsforholdService, arbeidsforholdMedInntektService)
+            arbeidInntektYtelse(arbeidInntektYtelseService)
+
+            arbeidsforhold(arbeidsforholdService)
 
             organisasjon(organisasjonService)
 

@@ -1,9 +1,12 @@
-package no.nav.helse.ws.arbeidsforhold
+package no.nav.helse.ws.aiy
 
 import io.prometheus.client.Counter
 import no.nav.helse.flatMap
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.arbeidsforhold.Arbeidsforhold
+import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
+import no.nav.helse.ws.arbeidsforhold.Arbeidsgiver
 import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.inntekt.Opptjeningsperiode
 import org.slf4j.LoggerFactory
@@ -11,10 +14,10 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-class ArbeidsforholdMedInntektService(private val arbeidsforholdService: ArbeidsforholdService, private val inntektService: InntektService) {
+class ArbeidInntektYtelseService(private val arbeidsforholdService: ArbeidsforholdService, private val inntektService: InntektService) {
 
     companion object {
-        private val log = LoggerFactory.getLogger("ArbeidsforholdMedInntektService")
+        private val log = LoggerFactory.getLogger("ArbeidInntektYtelseService")
 
         private val arbeidsforholdAvviksCounter = Counter.build()
                 .name("arbeidsforhold_avvik_totals")
