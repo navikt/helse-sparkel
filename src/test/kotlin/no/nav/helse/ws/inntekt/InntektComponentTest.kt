@@ -626,7 +626,7 @@ private val expectedJson = """
         "opptjeningsperiode": {
             "tom": "2019-02-28",
             "fom": "2019-02-01",
-            "antattPeriode": true
+            "antattPeriode": false
         }
     }, {
         "arbeidsgiver": {

@@ -15,7 +15,6 @@ import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
-import no.nav.helse.ws.inntekt.domain.Virksomhet
 import java.math.BigDecimal
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
@@ -54,7 +53,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
 
         f(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
             it.map {
-                InntektDTO(ArbeidsgiverDTO(it.virksomhet.identifikator), it.opptjeningsperiode, it.beløp)
+                InntektDTO(ArbeidsgiverDTO(it.virksomhet.identifikator), Opptjeningsperiode(it.utbetalingsperiode.atDay(1), it.utbetalingsperiode.atEndOfMonth()), it.beløp)
             }
         }.map {
             InntektResponse(it)

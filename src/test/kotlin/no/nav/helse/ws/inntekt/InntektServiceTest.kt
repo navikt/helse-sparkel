@@ -50,8 +50,7 @@ class InntektServiceTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
-                        BigDecimal.valueOf(2500))
+                        fom, BigDecimal.valueOf(2500))
         )
 
         val inntektClient = mockk<InntektClient>()
@@ -76,10 +75,7 @@ class InntektServiceTest {
                                         virksomhet = Organisasjon().apply {
                                             orgnummer = "889640782"
                                         }
-                                        opptjeningsperiode = Periode().apply {
-                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
-                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
-                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
                                     })
                                 }
                             }
@@ -142,8 +138,7 @@ class InntektServiceTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
-                        BigDecimal.valueOf(2500))
+                        fom, BigDecimal.valueOf(2500))
         )
 
         val inntektClient = mockk<InntektClient>()
@@ -168,10 +163,7 @@ class InntektServiceTest {
                                         virksomhet = Organisasjon().apply {
                                             orgnummer = "889640782"
                                         }
-                                        opptjeningsperiode = Periode().apply {
-                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
-                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
-                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
                                     })
                                 }
                             }
@@ -214,8 +206,7 @@ class InntektServiceTest {
 
         val expected = listOf(
                 no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
-                        Opptjeningsperiode(fom.atDay(1), fom.atEndOfMonth()),
-                        BigDecimal.valueOf(2500))
+                        fom, BigDecimal.valueOf(2500))
         )
 
         val inntektClient = mockk<InntektClient>()
@@ -240,10 +231,7 @@ class InntektServiceTest {
                                         virksomhet = Organisasjon().apply {
                                             orgnummer = "889640782"
                                         }
-                                        opptjeningsperiode = Periode().apply {
-                                            startDato = fom.atDay(1).toXmlGregorianCalendar()
-                                            sluttDato = fom.atEndOfMonth().toXmlGregorianCalendar()
-                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
                                     })
                                 }
                             }

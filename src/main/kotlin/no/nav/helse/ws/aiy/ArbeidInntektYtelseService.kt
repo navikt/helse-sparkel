@@ -35,7 +35,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         inntekt.virksomhet
                     }.mapValues { entry ->
                         entry.value.map { inntekt ->
-                            InntektUtenArbeidsgiver(YearMonth.from(inntekt.opptjeningsperiode.fom), inntekt.beløp)
+                            InntektUtenArbeidsgiver(inntekt.utbetalingsperiode, inntekt.beløp)
                         }
                     }.also { grupperteInntekter ->
                         arbeidsforholdliste.forEach { arbeidsforhold ->

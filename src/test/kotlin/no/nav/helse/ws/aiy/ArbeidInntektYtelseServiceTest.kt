@@ -37,11 +37,11 @@ class ArbeidInntektYtelseServiceTest {
         )
 
         val inntekter = listOf(
-                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), Opptjeningsperiode(LocalDate.parse("2019-01-01"), LocalDate.parse("2019-01-31")), BigDecimal(20000)),
-                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), Opptjeningsperiode(LocalDate.parse("2019-02-01"), LocalDate.parse("2019-02-28")), BigDecimal(25000)),
-                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-10-01"), LocalDate.parse("2018-10-31")), BigDecimal(15000)),
-                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-11-01"), LocalDate.parse("2018-11-30")), BigDecimal(16000)),
-                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-12-01"), LocalDate.parse("2018-12-31")), BigDecimal(17000))
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2019, 1), BigDecimal(20000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2019, 2), BigDecimal(25000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 10), BigDecimal(15000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 11), BigDecimal(16000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
         )
 
         val expected = listOf(
@@ -100,11 +100,11 @@ class ArbeidInntektYtelseServiceTest {
         )
 
         val inntekter = listOf(
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), Opptjeningsperiode(LocalDate.parse("2019-01-01"), LocalDate.parse("2019-01-31")), BigDecimal(20000)),
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), Opptjeningsperiode(LocalDate.parse("2019-02-01"), LocalDate.parse("2019-02-28")), BigDecimal(25000)),
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-10-01"), LocalDate.parse("2018-10-31")), BigDecimal(15000)),
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-11-01"), LocalDate.parse("2018-11-30")), BigDecimal(16000)),
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-12-01"), LocalDate.parse("2018-12-31")), BigDecimal(17000))
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2019, 1), BigDecimal(20000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2019, 2), BigDecimal(25000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 10), BigDecimal(15000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 11), BigDecimal(16000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
         )
 
         val expected = listOf(
@@ -159,9 +159,9 @@ class ArbeidInntektYtelseServiceTest {
         )
 
         val inntekter = listOf(
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-10-01"), LocalDate.parse("2018-10-31")), BigDecimal(15000)),
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-11-01"), LocalDate.parse("2018-11-30")), BigDecimal(16000)),
-                Inntekt(no.nav.helse.ws.inntekt.domain.Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), Opptjeningsperiode(LocalDate.parse("2018-12-01"), LocalDate.parse("2018-12-31")), BigDecimal(17000))
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 10), BigDecimal(15000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 11), BigDecimal(16000)),
+                Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
         )
 
         val expected = listOf(
