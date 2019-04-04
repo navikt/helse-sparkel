@@ -1,0 +1,66 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: sparkel
+  namespace: default
+  labels:
+    team: tbd
+spec:
+  image: is_set_from_pipeline
+  port: 8080
+  liveness:
+    path: isalive
+    initialDelay: 20
+    timeout: 1
+    periodSeconds: 5
+    failureThreshold: 10
+  readiness:
+    path: isready
+    initialDelay: 20
+    timeout: 1
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  ingresses:
+    - https://sparkel.nais.adeo.no
+  replicas:
+    min: 1
+    max: 1
+    cpuThresholdPercentage: 90
+  prometheus:
+    enabled: true
+    path: /metrics
+  secrets: true
+  env:
+    - name: JWKS_URL
+      value: http://security-token-service/rest/v1/sts/jwks
+    - name: JWT_ISSUER
+      value: https://security-token-service.nais.adeo.no
+    - name: SECURITY_TOKEN_SERVICE_URL
+      value: https://sts.adeo.no/SecurityTokenServiceProvider/
+    - name: SECURITY_TOKEN_SERVICE_REST_URL
+      value: http://security-token-service
+    - name: PERSON_ENDPOINTURL
+      value: https://wasapp.adeo.no/tpsws/ws/Person/v3
+    - name: INNTEKT_ENDPOINTURL
+      value: https://app.adeo.no/inntektskomponenten-ws/inntekt/v3/Inntekt
+    - name: AAREG_ENDPOINTURL
+      value: https://modapp.adeo.no/aareg-core/ArbeidsforholdService/v3
+    - name: ORGANISASJON_ENDPOINTURL
+      value: https://modapp.adeo.no/ereg/ws/OrganisasjonService/v5
+    - name: SAK_OG_BEHANDLING_ENDPOINTURL
+      value: https://modapp.adeo.no/sakogbehandling/ws/SakOgBehandling_v1
+    - name: HENT_SYKEPENGER_ENDPOINTURL
+      value: https://modapp.adeo.no/infotrygd-ws/SykepengerService/v2
+    - name: HENT_SYKEPENGEPERIODER_ENDPOINTURL
+      value: https://infotrygd-sykepenger.nais.preprod.local/v1
+    - name: MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL
+      value: https://arena.adeo.no/ail_ws/MeldekortUtbetalingsgrunnlag_v1
+    - name: AKTORREGISTER_URL
+      value: https://app.adeo.no/aktoerregister
+    - name: ARBEIDSFORDELING_ENDPOINTURL
+      value: https://app.adeo.no/norg2/ws/Arbeidsfordeling/v1
