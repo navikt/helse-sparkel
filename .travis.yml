@@ -34,6 +34,19 @@ script:
       -d "$PREPROD_DEPLOYMENT" \
       -H "Accept: application/vnd.github.ant-man-preview+json" \
       https://api.github.com/repos/navikt/helse-sparkel/deployments
+
+    PROD_NAISERATOR=$(docker run -v ${PWD}:/workdir mikefarah/yq yq r nais-prod.yaml -j)
+    PROD_NAISERATOR=$(echo $PROD_NAISERATOR | jq '.spec.image = "'$DOCKER_IMG_NAME':'$COMMIT_SHORT'"' -c)
+
+    PROD_DEPLOYMENT=$(cat deployment.json | jq '.payload.kubernetes.resources += ['$PROD_NAISERATOR']')
+    PROD_DEPLOYMENT=$(echo $PROD_DEPLOYMENT | jq '.environment = "prod-fss"')
+    PROD_DEPLOYMENT=$(echo $PROD_DEPLOYMENT | jq '.ref = "'$COMMIT_SHORT'"')
+
+    curl -i -n \
+      -X POST \
+      -d "$PROD_DEPLOYMENT" \
+      -H "Accept: application/vnd.github.ant-man-preview+json" \
+      https://api.github.com/repos/navikt/helse-sparkel/deployments
   fi
 before_cache:
 - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
