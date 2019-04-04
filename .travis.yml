@@ -43,7 +43,7 @@ script:
     PREPROD_DEPLOYMENT=$(echo $DEPLOYMENT_JSON | jq '.payload.kubernetes.resources += ['$PREPROD_NAISERATOR']')
     PREPROD_DEPLOYMENT=$(echo $PREPROD_DEPLOYMENT | jq '.environment = "dev-fss"')
 
-    curl -v -n \
+    curl -i -n \
       -X POST \
       -d "$PREPROD_DEPLOYMENT" \
       -H "Accept: application/vnd.github.ant-man-preview+json" \
