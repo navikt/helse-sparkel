@@ -23,7 +23,7 @@ script:
     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
     docker push $DOCKER_IMG_NAME:$COMMIT_SHORT
 
-    DEPLOYMENT_JSON=<<<EOF
+    DEPLOYMENT_JSON=<<EOF
   {
     "ref": "$COMMIT_SHORT",
     "description": "Automated deployment request from pipeline",
