@@ -22,27 +22,12 @@ script:
     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
     docker push $DOCKER_IMG_NAME:$COMMIT_SHORT
 
-    DEPLOYMENT_JSON=<<EOF
-  {
-    "ref": "$COMMIT_SHORT",
-    "description": "Automated deployment request from pipeline",
-    "environment": "set_from_pipeline",
-    "required_contexts": [],
-    "payload": {
-      "version": [1, 0, 0],
-      "team": "tbd",
-      "kubernetes": {
-        "resources": []
-      }
-    }
-  }
-  EOF
-
     PREPROD_NAISERATOR=$(docker run -v ${PWD}:/workdir mikefarah/yq yq r nais-preprod.yaml -j)
-    PREPROD_NAISERATOR=$(echo $PREPROD_NAISERATOR | jq '.spec.image = "'$DOCKER_IMG_NAME':'$COMMIT_SHORT'"')
+    PREPROD_NAISERATOR=$(echo $PREPROD_NAISERATOR | jq '.spec.image = "'$DOCKER_IMG_NAME':'$COMMIT_SHORT'"' -c)
 
-    PREPROD_DEPLOYMENT=$(echo $DEPLOYMENT_JSON | jq '.payload.kubernetes.resources += ['$PREPROD_NAISERATOR']')
+    PREPROD_DEPLOYMENT=$(cat deployment.json | jq '.payload.kubernetes.resources += ['$PREPROD_NAISERATOR']')
     PREPROD_DEPLOYMENT=$(echo $PREPROD_DEPLOYMENT | jq '.environment = "dev-fss"')
+    PREPROD_DEPLOYMENT=$(echo $PREPROD_DEPLOYMENT | jq '.ref = "'$COMMIT_SHORT'"')
 
     curl -i -n \
       -X POST \
