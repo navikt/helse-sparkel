@@ -18,7 +18,7 @@ before_install:
 - export COMMIT_SHORT=$(git rev-parse --short HEAD)
 - export ORIGINAL_COMMITTER=$(git log -1 --pretty=format:'%an <%ae>')
 - echo -e "machine api.github.com login x-access-token password $GH_TOKEN" > ~/.netrc
-- python3 -m pip install yq
+- pip3 install yq
 script:
 - "./gradlew build --scan && docker build --pull -t $DOCKER_IMG_NAME:$COMMIT_SHORT
   ."
