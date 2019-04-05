@@ -9,12 +9,7 @@ import no.nav.helse.map
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
-import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdDTO
-import no.nav.helse.ws.arbeidsforhold.ArbeidsgiverDTO
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
+import no.nav.helse.ws.aiy.dto.ArbeidsforholdMedInntekterResponse
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -39,17 +34,10 @@ fun Route.arbeidInntektYtelse(
             }
 
             arbeidInntektYtelseService.finnArbeidsforholdMedInntekter(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
-                it.map {
-                    ArbeidsforholdMedInntektDTO(
-                            ArbeidsforholdDTO(ArbeidsgiverDTO((it.arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value, it.arbeidsforhold.arbeidsgiver.virksomhet.navn), it.arbeidsforhold.startdato, it.arbeidsforhold.sluttdato),
-                            it.inntekter)
-                }
+                it.map(ArbeidsInntektYtelseDtoMapper::toDto)
             }.map {
                 ArbeidsforholdMedInntekterResponse(it)
             }.respond(call)
         }
     }
 }
-
-data class ArbeidsforholdMedInntektDTO(val arbeidsforhold: ArbeidsforholdDTO, val inntekter: List<InntektUtenArbeidsgiver>)
-data class ArbeidsforholdMedInntekterResponse(val arbeidsforhold: List<ArbeidsforholdMedInntektDTO>)

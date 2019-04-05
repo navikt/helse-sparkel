@@ -9,8 +9,7 @@ import io.ktor.util.pipeline.PipelineContext
 import no.nav.helse.*
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.domain.Inntekt
-import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
-import java.math.BigDecimal
+import no.nav.helse.ws.inntekt.dto.InntektResponse
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
@@ -47,26 +46,9 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
         }
 
         f(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
-            it.map {
-                val erYtelse = when (it) {
-                    is Inntekt.Ytelse -> true
-                    is Inntekt.PensjonEllerTrygd -> true
-                    else -> false
-                }
-                val kode = when (it) {
-                    is Inntekt.Ytelse -> it.kode
-                    is Inntekt.PensjonEllerTrygd -> it.kode
-                    is Inntekt.Næring -> it.kode
-                    else -> null
-                }
-                InntektDTO(ArbeidsgiverDTO(it.virksomhet.identifikator), Opptjeningsperiode(it.utbetalingsperiode.atDay(1), it.utbetalingsperiode.atEndOfMonth()), it.beløp, erYtelse, kode)
-            }
+            it.map(InntektDtoMapper::toDto)
         }.map {
             InntektResponse(it)
         }.respond(call)
     }
 }
-
-data class ArbeidsgiverDTO(val orgnr: String)
-data class InntektDTO(val arbeidsgiver: ArbeidsgiverDTO, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal, val ytelse: Boolean, val kode: String?)
-data class InntektResponse(val inntekter: List<InntektDTO>)
