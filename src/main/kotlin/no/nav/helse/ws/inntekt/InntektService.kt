@@ -43,15 +43,24 @@ class InntektService(private val inntektClient: InntektClient, private val organ
     }
 
     private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =
-            f().bimap({
+            f().mapLeft {
                 when (it) {
                     is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
                     is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
-            }, {
-                InntektMapper.mapToInntekt(aktørId, fom, tom, it.arbeidsInntektIdentListe)
-            }).flatMap { inntekter ->
+            }.flatMap { response ->
+                if (response.sikkerhetsavvikListe != null && !response.sikkerhetsavvikListe.isEmpty()) {
+                    log.error("Sikkerhetsavvik fra inntekt: ${response.sikkerhetsavvikListe.joinToString {
+                        it.tekst
+                    } }")
+                    Either.Left(Feilårsak.FeilFraTjeneste)
+                } else {
+                    Either.Right(response.arbeidsInntektIdentListe)
+                }
+            }.map {
+                InntektMapper.mapToInntekt(aktørId, fom, tom, it)
+            }.flatMap { inntekter ->
                 inntekter.map {  inntekt ->
                     when (inntekt.virksomhet) {
                         is Virksomhet.Organisasjon -> {

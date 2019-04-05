@@ -109,6 +109,40 @@ class InntektServiceTest {
     }
 
     @Test
+    fun `skal gi feil når tjenesten svarer med sikkerhetsavvik`() {
+        val aktør = AktørId("11987654321")
+
+        val fom = YearMonth.parse("2019-01")
+        val tom = YearMonth.parse("2019-02")
+
+        val inntektClient = mockk<InntektClient>()
+        every {
+            inntektClient.hentBeregningsgrunnlag(aktør, fom, tom)
+        } returns HentInntektListeBolkResponse().apply {
+            with (sikkerhetsavvikListe) {
+                add(Sikkerhetsavvik().apply {
+                    tekst = "en feil nr 1"
+                })
+                add(Sikkerhetsavvik().apply {
+                    tekst = "en feil nr 2"
+                })
+            }
+        }.let {
+            Either.Right(it)
+        }
+
+        val organisasjonService = mockk<OrganisasjonService>()
+
+        val actual = InntektService(inntektClient, organisasjonService).hentBeregningsgrunnlag(aktør, fom, tom)
+
+        when (actual) {
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Right -> fail { "Expected Either.Left to be returned" }
+        }
+
+    }
+
+    @Test
     fun `skal gi feil når oppslag gir feil for sammenligningsgrunnlag`() {
         val aktør = AktørId("11987654321")
 
