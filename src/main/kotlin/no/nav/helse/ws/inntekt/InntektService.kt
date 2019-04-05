@@ -10,10 +10,7 @@ import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
@@ -69,9 +66,20 @@ class InntektService(private val inntektClient: InntektClient, private val organ
 
                                 when (organisasjon) {
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr).map { virksomhetsnummer ->
-                                        inntekt.copy(
-                                                virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
-                                        )
+                                        when (inntekt) {
+                                            is Inntekt.Lønn -> inntekt.copy(
+                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
+                                            )
+                                            is Inntekt.Næring -> inntekt.copy(
+                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
+                                            )
+                                            is Inntekt.Ytelse -> inntekt.copy(
+                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
+                                            )
+                                            is Inntekt.PensjonEllerTrygd -> inntekt.copy(
+                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
+                                            )
+                                        }
                                     }
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
                                     else -> {
@@ -95,7 +103,8 @@ object InntektMapper {
 
     private val inntektCounter = Counter.build()
             .name("inntekt_totals")
-            .help("antall inntekter mottatt")
+            .help("antall inntekter mottatt, fordelt på inntektstype")
+            .labelNames("type")
             .register()
     private val andreAktørerCounter = Counter.build()
             .name("inntekt_andre_aktorer_totals")
@@ -127,7 +136,13 @@ object InntektMapper {
             }.flatMap {
                 it.arbeidsInntektInformasjon.inntektListe
             }.onEach {
-                inntektCounter.inc()
+                inntektCounter.labels(when (it) {
+                    is YtelseFraOffentlige -> "ytelse"
+                    is PensjonEllerTrygd -> "pensjonEllerTrygd"
+                    is Naeringsinntekt -> "næring"
+                    is Loennsinntekt -> "lønn"
+                    else -> "ukjent"
+                }).inc()
             }.filter {
                 if (erSammeAktør(aktørId)(it)) {
                     true
@@ -182,10 +197,41 @@ object InntektMapper {
                                 null
                             }
                         }?.let { virksomhet ->
-                            Inntekt(
-                                    virksomhet = virksomhet,
-                                    utbetalingsperiode = YearMonth.of(inntekt.utbetaltIPeriode.year, inntekt.utbetaltIPeriode.month),
-                                    beløp = inntekt.beloep)
+                            val utbetalingsperiode = YearMonth.of(inntekt.utbetaltIPeriode.year, inntekt.utbetaltIPeriode.month)
+
+                            when (inntekt) {
+                                is YtelseFraOffentlige -> {
+                                    Inntekt.Ytelse(
+                                            virksomhet = virksomhet,
+                                            utbetalingsperiode = utbetalingsperiode,
+                                            beløp = inntekt.beloep,
+                                            kode = inntekt.beskrivelse.value)
+                                }
+                                is PensjonEllerTrygd -> {
+                                    Inntekt.PensjonEllerTrygd(
+                                            virksomhet = virksomhet,
+                                            utbetalingsperiode = utbetalingsperiode,
+                                            beløp = inntekt.beloep,
+                                            kode = inntekt.beskrivelse.value)
+                                }
+                                is Naeringsinntekt -> {
+                                    Inntekt.Næring(
+                                            virksomhet = virksomhet,
+                                            utbetalingsperiode = utbetalingsperiode,
+                                            beløp = inntekt.beloep,
+                                            kode = inntekt.beskrivelse.value)
+                                }
+                                is Loennsinntekt -> {
+                                    Inntekt.Lønn(
+                                            virksomhet = virksomhet,
+                                            utbetalingsperiode = utbetalingsperiode,
+                                            beløp = inntekt.beloep)
+                                }
+                                else -> {
+                                    log.error("ukjent inntektstype ${inntekt.javaClass.name}")
+                                    null
+                                }
+                            }
                         }
                     }.filterNotNull()
 

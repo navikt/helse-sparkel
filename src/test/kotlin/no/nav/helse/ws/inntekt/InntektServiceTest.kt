@@ -48,8 +48,14 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
-                        fom, BigDecimal.valueOf(2500))
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                        fom, BigDecimal.valueOf(2500)),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                        fom, BigDecimal.valueOf(500), "barnetrygd"),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                        fom, BigDecimal.valueOf(1500), "næringsinntekt"),
+                no.nav.helse.ws.inntekt.domain.Inntekt.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                        fom, BigDecimal.valueOf(3000), "alderspensjon")
         )
 
         val inntektClient = mockk<InntektClient>()
@@ -66,7 +72,7 @@ class InntektServiceTest {
                             aarMaaned = fom.toXmlGregorianCalendar()
                             arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
                                 with (inntektListe) {
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         beloep = BigDecimal.valueOf(2500)
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktør.aktor
@@ -75,6 +81,45 @@ class InntektServiceTest {
                                             orgnummer = "889640782"
                                         }
                                         utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                    })
+                                    add(YtelseFraOffentlige().apply {
+                                        beloep = BigDecimal.valueOf(500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktør.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "995277670"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        beskrivelse = YtelseFraOffentligeBeskrivelse().apply {
+                                            value = "barnetrygd"
+                                        }
+                                    })
+                                    add(Naeringsinntekt().apply {
+                                        beloep = BigDecimal.valueOf(1500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktør.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "889640782"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        beskrivelse = Naeringsinntektsbeskrivelse().apply {
+                                            value = "næringsinntekt"
+                                        }
+                                    })
+                                    add(PensjonEllerTrygd().apply {
+                                        beloep = BigDecimal.valueOf(3000)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktør.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "995277670"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        beskrivelse = PensjonEllerTrygdebeskrivelse().apply {
+                                            value = "alderspensjon"
+                                        }
                                     })
                                 }
                             }
@@ -93,6 +138,12 @@ class InntektServiceTest {
                 it.value == "889640782"
             })
         } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
+
+        every {
+            organisasjonService.hentOrganisasjon(match {
+                it.value == "995277670"
+            })
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Organisasjonsledd(Organisasjonsnummer("995277670"), null))
 
         val actual = InntektService(inntektClient, organisasjonService).hentBeregningsgrunnlag(aktør, fom, tom)
 
@@ -170,7 +221,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500))
         )
 
@@ -188,7 +239,7 @@ class InntektServiceTest {
                             aarMaaned = fom.toXmlGregorianCalendar()
                             arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
                                 with (inntektListe) {
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         beloep = BigDecimal.valueOf(2500)
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktør.aktor
@@ -238,7 +289,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500))
         )
 
@@ -256,7 +307,7 @@ class InntektServiceTest {
                             aarMaaned = fom.toXmlGregorianCalendar()
                             arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
                                 with (inntektListe) {
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         beloep = BigDecimal.valueOf(2500)
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktør.aktor
@@ -305,7 +356,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500))
         )
 
@@ -323,7 +374,7 @@ class InntektServiceTest {
                             aarMaaned = fom.toXmlGregorianCalendar()
                             arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
                                 with (inntektListe) {
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         beloep = BigDecimal.valueOf(2500)
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktør.aktor

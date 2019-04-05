@@ -2,17 +2,9 @@ package no.nav.helse.ws.inntekt
 
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -28,7 +20,7 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(1500))
         )
 
@@ -39,17 +31,17 @@ class InntektMapperTest {
                         add(ArbeidsInntektMaaned().apply {
                             arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
                                 with(inntektListe) {
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         inntektsmottaker = PersonIdent().apply {
                                             personIdent = "12345678911"
                                         }
                                     })
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         inntektsmottaker = Organisasjon().apply {
                                             orgnummer = "11223344"
                                         }
                                     })
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktørId.aktor
                                         }
@@ -76,13 +68,101 @@ class InntektMapperTest {
     }
 
     @Test
+    fun `skal mappe forskjellige inntektstyper`() {
+        val aktørId = AktørId("11987654321")
+        val tom = YearMonth.now()
+        val fom = tom.minusMonths(1)
+
+        val expected = listOf(
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                        fom, BigDecimal.valueOf(2500)),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                        fom, BigDecimal.valueOf(500), "barnetrygd"),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                        fom, BigDecimal.valueOf(1500), "næringsinntekt"),
+                no.nav.helse.ws.inntekt.domain.Inntekt.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                        fom, BigDecimal.valueOf(3000), "alderspensjon")
+        )
+        val inntekter = HentInntektListeBolkResponse().apply {
+            with(arbeidsInntektIdentListe) {
+                add(ArbeidsInntektIdent().apply {
+                    with(arbeidsInntektMaaned) {
+                        add(ArbeidsInntektMaaned().apply {
+                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
+                                with(inntektListe) {
+                                    add(Loennsinntekt().apply {
+                                        beloep = BigDecimal.valueOf(2500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "889640782"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                    })
+                                    add(YtelseFraOffentlige().apply {
+                                        beloep = BigDecimal.valueOf(500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "995277670"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        beskrivelse = YtelseFraOffentligeBeskrivelse().apply {
+                                            value = "barnetrygd"
+                                        }
+                                    })
+                                    add(Naeringsinntekt().apply {
+                                        beloep = BigDecimal.valueOf(1500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "889640782"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        beskrivelse = Naeringsinntektsbeskrivelse().apply {
+                                            value = "næringsinntekt"
+                                        }
+                                    })
+                                    add(PensjonEllerTrygd().apply {
+                                        beloep = BigDecimal.valueOf(3000)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktørId.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "995277670"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                        beskrivelse = PensjonEllerTrygdebeskrivelse().apply {
+                                            value = "alderspensjon"
+                                        }
+                                    })
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        }
+
+        val actual = InntektMapper.mapToInntekt(aktørId, fom, tom, inntekter.arbeidsInntektIdentListe)
+
+        assertEquals(expected.size, actual.size)
+        expected.forEachIndexed { key, inntekt ->
+            assertEquals(inntekt, actual[key])
+        }
+    }
+
+    @Test
     fun `skal fjerne inntekter med utbetalingsperiode utenfor fom og tom`() {
         val aktørId = AktørId("11987654321")
         val tom = YearMonth.now()
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(1500))
         )
 
@@ -93,7 +173,7 @@ class InntektMapperTest {
                         add(ArbeidsInntektMaaned().apply {
                             arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
                                 with(inntektListe) {
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktørId.aktor
                                         }
@@ -103,7 +183,7 @@ class InntektMapperTest {
                                         }
                                         beloep = BigDecimal.valueOf(2500)
                                     })
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktørId.aktor
                                         }
@@ -113,7 +193,7 @@ class InntektMapperTest {
                                         }
                                         beloep = BigDecimal.valueOf(3500)
                                     })
-                                    add(Inntekt().apply {
+                                    add(Loennsinntekt().apply {
                                         inntektsmottaker = AktoerId().apply {
                                             aktoerId = aktørId.aktor
                                         }

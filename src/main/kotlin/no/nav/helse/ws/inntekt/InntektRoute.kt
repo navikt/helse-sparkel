@@ -6,12 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.pipeline.PipelineContext
-import no.nav.helse.Either
-import no.nav.helse.Feilårsak
-import no.nav.helse.HttpFeil
-import no.nav.helse.map
-import no.nav.helse.respond
-import no.nav.helse.respondFeil
+import no.nav.helse.*
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Opptjeningsperiode
@@ -53,7 +48,18 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
 
         f(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
             it.map {
-                InntektDTO(ArbeidsgiverDTO(it.virksomhet.identifikator), Opptjeningsperiode(it.utbetalingsperiode.atDay(1), it.utbetalingsperiode.atEndOfMonth()), it.beløp)
+                val erYtelse = when (it) {
+                    is Inntekt.Ytelse -> true
+                    is Inntekt.PensjonEllerTrygd -> true
+                    else -> false
+                }
+                val kode = when (it) {
+                    is Inntekt.Ytelse -> it.kode
+                    is Inntekt.PensjonEllerTrygd -> it.kode
+                    is Inntekt.Næring -> it.kode
+                    else -> null
+                }
+                InntektDTO(ArbeidsgiverDTO(it.virksomhet.identifikator), Opptjeningsperiode(it.utbetalingsperiode.atDay(1), it.utbetalingsperiode.atEndOfMonth()), it.beløp, erYtelse, kode)
             }
         }.map {
             InntektResponse(it)
@@ -62,5 +68,5 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
 }
 
 data class ArbeidsgiverDTO(val orgnr: String)
-data class InntektDTO(val arbeidsgiver: ArbeidsgiverDTO, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal)
+data class InntektDTO(val arbeidsgiver: ArbeidsgiverDTO, val opptjeningsperiode: Opptjeningsperiode, val beløp: BigDecimal, val ytelse: Boolean, val kode: String?)
 data class InntektResponse(val inntekter: List<InntektDTO>)

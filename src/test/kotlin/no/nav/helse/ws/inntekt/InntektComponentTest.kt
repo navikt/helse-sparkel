@@ -16,19 +16,7 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektIdent
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektInformasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsInntektMaaned
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Fordel
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Informasjonsstatuser
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.InntektsInformasjonsopphav
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntektsperiodetype
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntektsstatuser
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsbeskrivelse
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Loennsinntekt
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.JuridiskEnhet
@@ -617,7 +605,8 @@ private val expectedJson = """
             "tom": "2019-01-31",
             "fom": "2019-01-01",
             "antattPeriode": false
-        }
+        },
+        "ytelse": false
     }, {
         "arbeidsgiver": {
             "orgnr": "912998827"
@@ -627,7 +616,8 @@ private val expectedJson = """
             "tom": "2019-02-28",
             "fom": "2019-02-01",
             "antattPeriode": false
-        }
+        },
+        "ytelse": false
     }, {
         "arbeidsgiver": {
             "orgnr": "995298775"
@@ -637,7 +627,8 @@ private val expectedJson = """
             "tom": "2019-03-31",
             "fom": "2019-03-01",
             "antattPeriode": false
-        }
+        },
+        "ytelse": false
     }]
 }
 """.trimIndent()
