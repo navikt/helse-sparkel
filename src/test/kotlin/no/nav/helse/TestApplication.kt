@@ -6,6 +6,7 @@ import io.mockk.mockk
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
+import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.meldekort.MeldekortService
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -21,8 +22,10 @@ fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, 
                               organisasjonService: OrganisasjonService = mockk(),
                               personService: PersonService = mockk(),
                               sakOgBehandlingService: SakOgBehandlingService = mockk(),
-                              sykepengelisteService: SykepengelisteService = mockk()) {
+                              sykepengelisteService: SykepengelisteService = mockk(),
+                              infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService = mockk()
+                              ) {
     return sparkel(jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService,
             arbeidInntektYtelseService, meldekortService, organisasjonService,
-            personService, sakOgBehandlingService, sykepengelisteService)
+            personService, sakOgBehandlingService, sykepengelisteService, infotrygdBeregningsgrunnlagService)
 }
