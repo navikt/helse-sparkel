@@ -1,15 +1,11 @@
 package no.nav.helse.ws.inntekt
 
 import io.prometheus.client.Counter
-import no.nav.helse.Either
-import no.nav.helse.Feilårsak
-import no.nav.helse.bimap
+import no.nav.helse.*
 import no.nav.helse.common.toLocalDate
-import no.nav.helse.flatMap
-import no.nav.helse.map
-import no.nav.helse.sequenceU
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.inntekt.domain.*
+import no.nav.helse.ws.inntekt.domain.Inntekt
+import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
@@ -71,7 +67,7 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
                                     else -> {
                                         log.error("unknown virksomhetstype: ${organisasjon.type()}")
-                                        Either.Left(Feilårsak.UkjentFeil)
+                                        Either.Right(inntekt)
                                     }
                                 }
                             }
