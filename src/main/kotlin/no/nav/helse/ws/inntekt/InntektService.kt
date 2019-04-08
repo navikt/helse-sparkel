@@ -83,7 +83,7 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                     }
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
                                     else -> {
-                                        log.error("unknown virksomhetstype: $organisasjon after lookup of virksomhetsnummer for ${inntekt.virksomhet} with inntektstype ${inntekt.javaClass.name}")
+                                        log.warn("unknown virksomhetstype: $organisasjon after lookup of virksomhetsnummer for ${inntekt.virksomhet} with inntektstype ${inntekt.javaClass.name}")
                                         Either.Right(inntekt)
                                     }
                                 }
