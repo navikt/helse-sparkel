@@ -53,7 +53,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                             ArbeidsforholdMedInntekt(it, entry.value)
                         } ?: run {
                             inntektAvviksCounter.inc(entry.value.size.toDouble())
-                            log.warn("did not find arbeidsforhold for ${entry.value.size} inntekter with arbeidsgiver=${entry.key}")
+                            log.warn("did not find arbeidsforhold for ${entry.value.size} inntekter (${entry.value.joinToString { it.javaClass.name }}) with arbeidsgiver=${entry.key}")
                             null
                         }
                     }.filterNotNull()
