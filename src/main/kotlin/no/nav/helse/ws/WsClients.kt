@@ -4,6 +4,7 @@ import no.nav.helse.http.aktør.AktørregisterClient
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingClient
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
 import no.nav.helse.ws.inntekt.InntektClient
 import no.nav.helse.ws.meldekort.MeldekortClient
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
@@ -105,6 +106,17 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
             }
         }
         return MeldekortClient(port)
+    }
+
+    fun infotrygdBeregningsgrunnlag(endpointUrl: String): InfotrygdBeregningsgrunnlagListeClient {
+        val port = SoapPorts.InfotrygdBeregningsgrunnlagV1(endpointUrl).apply {
+            if (allowInsecureRequests) {
+                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+            } else {
+                stsClientWs.configureFor(this)
+            }
+        }
+        return InfotrygdBeregningsgrunnlagListeClient(port)
     }
 
 }

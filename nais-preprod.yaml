@@ -64,3 +64,5 @@ spec:
       value: https://app-q1.adeo.no/aktoerregister
     - name: ARBEIDSFORDELING_ENDPOINTURL
       value: https://app-q1.adeo.no/norg2/ws/Arbeidsfordeling/v1
+    - name: FINN_INFOTRYGD_GRUNNLAG_LISTE_ENDPOINTURL
+      value: https://modapp-q1.adeo.no/infotrygd-ws/InfotrygdBeregningsgrunnlag/v1

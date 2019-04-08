@@ -24,12 +24,14 @@ import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.nais.nais
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
-import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
 import no.nav.helse.ws.aiy.arbeidInntektYtelse
+import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
+import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
+import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagService
+import no.nav.helse.ws.infotrygdberegningsgrunnlag.infotrygdBeregningsgrunnlag
 import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.meldekort.MeldekortService
@@ -103,9 +105,14 @@ fun main() {
 
         val meldekortServie = MeldekortService(wsClients.meldekort(env.meldekortEndpointUrl))
 
+        val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(
+                infotrygdClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl),
+                aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
+        )
+
         sparkel(env.jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService,
                 arbeidsforholdMedInntektService, meldekortServie,
-                organisasjonService, personService, sakOgBehandlingService, sykepengelisteService)
+                organisasjonService, personService, sakOgBehandlingService, sykepengelisteService, infotrygdBeregningsgrunnlagService)
     }
 
     app.start(wait = false)
@@ -126,7 +133,8 @@ fun Application.sparkel(
         organisasjonService: OrganisasjonService,
         personService: PersonService,
         sakOgBehandlingService: SakOgBehandlingService,
-        sykepengelisteService: SykepengelisteService
+        sykepengelisteService: SykepengelisteService,
+        infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService
 ) {
     install(CallId) {
         header("Nav-Call-Id")
@@ -184,6 +192,8 @@ fun Application.sparkel(
             sykepengeListe(sykepengelisteService)
 
             meldekort(meldekortService)
+
+            infotrygdBeregningsgrunnlag(infotrygdBeregningsgrunnlagService)
         }
 
         nais(collectorRegistry)
