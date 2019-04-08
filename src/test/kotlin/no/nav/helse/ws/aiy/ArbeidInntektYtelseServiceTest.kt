@@ -6,7 +6,6 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Either
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
-import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
@@ -43,15 +42,17 @@ class ArbeidInntektYtelseServiceTest {
                 Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
         )
 
+        val virksomhet1 = Organisasjonsnummer("889640782")
+        val virksomhet2 = Organisasjonsnummer("995298775")
         val expected = listOf(
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), "S. VINDEL & SØNN")), fom), listOf(
-                        InntektUtenArbeidsgiver(YearMonth.of(2019, 1), BigDecimal(20000)),
-                        InntektUtenArbeidsgiver(YearMonth.of(2019, 2), BigDecimal(25000))
+                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet1, "S. VINDEL & SØNN")), fom), listOf(
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
                 )),
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("995298775"), "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom), listOf(
-                        InntektUtenArbeidsgiver(YearMonth.of(2018, 10), BigDecimal(15000)),
-                        InntektUtenArbeidsgiver(YearMonth.of(2018, 11), BigDecimal(16000)),
-                        InntektUtenArbeidsgiver(YearMonth.of(2018, 12), BigDecimal(17000))
+                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet2, "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom), listOf(
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
                 ))
         )
 
@@ -106,10 +107,11 @@ class ArbeidInntektYtelseServiceTest {
                 Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
         )
 
+        val virksomhet1 = Organisasjonsnummer("889640782")
         val expected = listOf(
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), "S. VINDEL & SØNN")), fom), listOf(
-                        InntektUtenArbeidsgiver(YearMonth.of(2019, 1), BigDecimal(20000)),
-                        InntektUtenArbeidsgiver(YearMonth.of(2019, 2), BigDecimal(25000))
+                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet1, "S. VINDEL & SØNN")), fom), listOf(
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
                 ))
         )
 
@@ -163,11 +165,12 @@ class ArbeidInntektYtelseServiceTest {
                 Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
         )
 
+        val virksomhet2 = Organisasjonsnummer("995298775")
         val expected = listOf(
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("995298775"), "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom), listOf(
-                        InntektUtenArbeidsgiver(YearMonth.of(2018, 10), BigDecimal(15000)),
-                        InntektUtenArbeidsgiver(YearMonth.of(2018, 11), BigDecimal(16000)),
-                        InntektUtenArbeidsgiver(YearMonth.of(2018, 12), BigDecimal(17000))
+                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet2, "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom), listOf(
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
                 ))
         )
 

@@ -5,7 +5,6 @@ import no.nav.helse.flatMap
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
-import no.nav.helse.ws.aiy.domain.InntektUtenArbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.inntekt.InntektService
@@ -33,10 +32,6 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom)).map { inntekter ->
                     inntekter.groupBy { inntekt ->
                         inntekt.virksomhet
-                    }.mapValues { entry ->
-                        entry.value.map { inntekt ->
-                            InntektUtenArbeidsgiver(inntekt.utbetalingsperiode, inntekt.beløp)
-                        }
                     }.also { grupperteInntekter ->
                         arbeidsforholdliste.forEach { arbeidsforhold ->
                             grupperteInntekter.keys.filter { virksomhet ->
