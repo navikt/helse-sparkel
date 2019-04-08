@@ -289,7 +289,7 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(2500))
         )
 
@@ -333,7 +333,15 @@ class InntektServiceTest {
             organisasjonService.hentOrganisasjon(match {
                 it.value == "889640782"
             })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), null))
+
+        every {
+            organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(match {
+                it.value == "889640782"
+            }, match {
+                it == fom.atDay(1)
+            })
+        } returns Either.Right(Organisasjonsnummer("995277670"))
 
         val actual = InntektService(inntektClient, organisasjonService).hentSammenligningsgrunnlag(aktør, fom, tom)
 

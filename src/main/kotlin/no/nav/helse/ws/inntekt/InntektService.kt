@@ -65,7 +65,7 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                 virksomhetsCounter.labels(organisasjon.type()).inc()
 
                                 when (organisasjon) {
-                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr).map { virksomhetsnummer ->
+                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).map { virksomhetsnummer ->
                                         when (inntekt) {
                                             is Inntekt.Lønn -> inntekt.copy(
                                                     virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
