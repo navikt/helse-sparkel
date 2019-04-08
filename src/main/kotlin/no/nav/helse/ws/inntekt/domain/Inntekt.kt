@@ -18,6 +18,13 @@ sealed class Inntekt(open val virksomhet: Virksomhet, open val utbetalingsperiod
         else -> null
     }
 
+    fun type() = when (this) {
+        is Ytelse -> "Ytelse"
+        is PensjonEllerTrygd -> "PensjonEllerTrygd"
+        is Næring -> "Næring"
+        is Lønn -> "Lønn"
+    }
+
     data class Ytelse(override val virksomhet: Virksomhet, override val utbetalingsperiode: YearMonth, override val beløp: BigDecimal, val kode: String): Inntekt(virksomhet, utbetalingsperiode, beløp)
     data class PensjonEllerTrygd(override val virksomhet: Virksomhet, override val utbetalingsperiode: YearMonth, override val beløp: BigDecimal, val kode: String): Inntekt(virksomhet, utbetalingsperiode, beløp)
     data class Næring(override val virksomhet: Virksomhet, override val utbetalingsperiode: YearMonth, override val beløp: BigDecimal, val kode: String): Inntekt(virksomhet, utbetalingsperiode, beløp)
