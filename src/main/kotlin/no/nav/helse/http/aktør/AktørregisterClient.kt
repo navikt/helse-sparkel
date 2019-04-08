@@ -1,6 +1,7 @@
 package no.nav.helse.http.aktør
 
 import com.github.kittinunf.fuel.httpGet
+import no.nav.helse.Call
 import no.nav.helse.Either
 import no.nav.helse.flatMap
 import no.nav.helse.sts.StsRestClient
@@ -11,12 +12,15 @@ private val log = LoggerFactory.getLogger("AktørregisterClient")
 
 class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 
+
     fun gjeldendeIdenter(ident: String): Either<String, List<Ident>> {
         log.info("lookup gjeldende identer with ident=$ident")
 
         val bearer = stsRestClient.token()
 
-        val (_, _, result) = "$baseUrl/api/v1/identer?gjeldende=true".httpGet()
+        val url = "$baseUrl/api/v1/identer?gjeldende=true"
+        val call = Call().start(url, "GET")
+        val (_, _, result) = url.httpGet()
                 .header(mapOf(
                         "Authorization" to "Bearer $bearer",
                         "Accept" to "application/json",
@@ -25,6 +29,7 @@ class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient
                         "Nav-Personidenter" to ident
                 ))
                 .responseString()
+        call.after()
 
         val response = JSONObject(result.get())
 
