@@ -5,7 +5,7 @@ import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Either
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
+import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
@@ -44,12 +44,13 @@ class ArbeidInntektYtelseServiceTest {
 
         val virksomhet1 = Organisasjonsnummer("889640782")
         val virksomhet2 = Organisasjonsnummer("995298775")
-        val expected = listOf(
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet1, "S. VINDEL & SØNN")), fom), listOf(
+        val expected = ArbeidInntektYtelse(
+                arbeidsforhold = mapOf(
+                        Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet1, "S. VINDEL & SØNN")), fom) to listOf(
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000)),
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
-                )),
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet2, "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom), listOf(
+                ),
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet2, "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom) to listOf(
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000)),
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000)),
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
@@ -82,7 +83,7 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(2, actual.right.size)
+                assertEquals(2, actual.right.arbeidsforhold.size)
                 assertEquals(expected, actual.right)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -108,8 +109,9 @@ class ArbeidInntektYtelseServiceTest {
         )
 
         val virksomhet1 = Organisasjonsnummer("889640782")
-        val expected = listOf(
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet1, "S. VINDEL & SØNN")), fom), listOf(
+        val expected = ArbeidInntektYtelse(
+                arbeidsforhold = mapOf(
+                        Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet1, "S. VINDEL & SØNN")), fom) to listOf(
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000)),
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
                 ))
@@ -141,7 +143,7 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(1, actual.right.size)
+                assertEquals(1, actual.right.arbeidsforhold.size)
                 assertEquals(expected, actual.right)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -166,8 +168,9 @@ class ArbeidInntektYtelseServiceTest {
         )
 
         val virksomhet2 = Organisasjonsnummer("995298775")
-        val expected = listOf(
-                ArbeidsforholdMedInntekt(Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet2, "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom), listOf(
+        val expected = ArbeidInntektYtelse(
+                arbeidsforhold = mapOf(
+                        Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(virksomhet2, "Matbutikken A/S")), LocalDate.parse("2018-01-01"), fom) to listOf(
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000)),
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000)),
                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
@@ -200,7 +203,7 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(1, actual.right.size)
+                assertEquals(1, actual.right.arbeidsforhold.size)
                 assertEquals(expected, actual.right)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }

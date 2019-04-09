@@ -4,10 +4,11 @@ import io.prometheus.client.Counter
 import no.nav.helse.flatMap
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.aiy.domain.ArbeidsforholdMedInntekt
+import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.inntekt.InntektService
+import no.nav.helse.ws.inntekt.domain.Inntekt
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.YearMonth
@@ -28,30 +29,63 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     }
 
     fun finnArbeidsforholdMedInntekter(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).flatMap { arbeidsforholdliste ->
-                inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom)).map { inntekter ->
-                    inntekter.groupBy { inntekt ->
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom)).flatMap { inntekter ->
+                inntekter.groupBy { inntekt ->
+                    inntekt::class.java
+                }.mapValues { entry ->
+                    entry.value.groupBy {  inntekt ->
                         inntekt.virksomhet
-                    }.also { grupperteInntekter ->
-                        arbeidsforholdliste.forEach { arbeidsforhold ->
-                            grupperteInntekter.keys.filter { virksomhet ->
+                    }
+                }.let { grupperteInntekter ->
+                    arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).map { arbeidsforholdliste ->
+                        val arbeidsforhold = grupperteInntekter[Inntekt.Lønn::class.java].orEmpty().mapValues { entry ->
+                            entry.value.map { inntekt ->
+                                inntekt as Inntekt.Lønn
+                            }
+                        }.filterKeys {  virksomhet ->
+                            arbeidsforholdliste.any { arbeidsforhold ->
                                 virksomhet.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
-                            }.ifEmpty {
-                                arbeidsforholdAvviksCounter.inc()
-                                log.warn("did not find inntekter for arbeidsforhold with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
+                            }
+                        }.mapKeys { entry ->
+                            arbeidsforholdliste.first { arbeidsforhold ->
+                                entry.key.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
+                            }
+                        }.also { inntekter ->
+                            arbeidsforholdliste.forEach { arbeidsforhold ->
+                                if (!inntekter.containsKey(arbeidsforhold)) {
+                                    arbeidsforholdAvviksCounter.inc()
+                                    log.warn("did not find inntekter for arbeidsforhold with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
+                                }
+                            }
+
+                            grupperteInntekter[Inntekt.Lønn::class.java]?.forEach { entry ->
+                                if (inntekter.keys.firstOrNull { arbeidsforhold ->
+                                    entry.key.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
+                                } == null) {
+                                    inntektAvviksCounter.inc(entry.value.size.toDouble())
+                                    log.warn("did not find arbeidsforhold for ${entry.value.size} inntekter (${entry.value.joinToString { it.type() }}) with arbeidsgiver=${entry.key}")
+                                }
                             }
                         }
-                    }.map { entry ->
-                        arbeidsforholdliste.firstOrNull { arbeidsforhold ->
-                            (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value == entry.key.identifikator
-                        }?.let {
-                            ArbeidsforholdMedInntekt(it, entry.value)
-                        } ?: run {
-                            inntektAvviksCounter.inc(entry.value.size.toDouble())
-                            log.warn("did not find arbeidsforhold for ${entry.value.size} inntekter (${entry.value.joinToString { it.type() }}) with arbeidsgiver=${entry.key}")
-                            null
+
+                        val ytelser = grupperteInntekter[Inntekt.Ytelse::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
+                            inntektEtterVirksomhet.value.map { inntekt ->
+                                inntekt as Inntekt.Ytelse
+                            }
                         }
-                    }.filterNotNull()
+                        val pensjonEllerTrygd = grupperteInntekter[Inntekt.PensjonEllerTrygd::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
+                            inntektEtterVirksomhet.value.map { inntekt ->
+                                inntekt as Inntekt.PensjonEllerTrygd
+                            }
+                        }
+                        val næringsinntekt = grupperteInntekter[Inntekt.Næring::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
+                            inntektEtterVirksomhet.value.map { inntekt ->
+                                inntekt as Inntekt.Næring
+                            }
+                        }
+
+                        ArbeidInntektYtelse(arbeidsforhold, ytelser, pensjonEllerTrygd, næringsinntekt)
+                    }
                 }
             }
 }

@@ -9,7 +9,6 @@ import no.nav.helse.map
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.aiy.dto.ArbeidsforholdMedInntekterResponse
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -34,9 +33,7 @@ fun Route.arbeidInntektYtelse(
             }
 
             arbeidInntektYtelseService.finnArbeidsforholdMedInntekter(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
-                it.map(ArbeidsInntektYtelseDtoMapper::toDto)
-            }.map {
-                ArbeidsforholdMedInntekterResponse(it)
+                it.let(ArbeidsInntektYtelseDtoMapper::toDto)
             }.respond(call)
         }
     }
