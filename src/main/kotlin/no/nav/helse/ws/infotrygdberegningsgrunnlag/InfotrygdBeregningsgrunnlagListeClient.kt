@@ -18,7 +18,7 @@ class InfotrygdBeregningsgrunnlagListeClient(private val infotrygdBeregningsgrun
         return try {
             Either.Right(infotrygdBeregningsgrunnlag.finnGrunnlagListe(request))
         } catch (ex: Exception) {
-            log.error("Error while doing sak og behndling lookup", ex)
+            log.error("Error while doing infotrygdBeregningsgrunnlag lookup", ex)
             Either.Left(ex)
         }
     }
