@@ -6,5 +6,5 @@ data class ArbeidsforholdFrilanser(
         val arbeidsgiver: Arbeidsgiver,
         val startdato: LocalDate?,
         val sluttdato: LocalDate?,
-        val yrke: String
+        val yrke: String?
 )

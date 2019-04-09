@@ -75,7 +75,7 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                 },
                                 startdato = arbeidsforholdFrilanser.frilansPeriode?.fom?.toLocalDate(),
                                 sluttdato = arbeidsforholdFrilanser.frilansPeriode?.tom?.toLocalDate(),
-                                yrke = arbeidsforholdFrilanser.yrke.value
+                                yrke = arbeidsforholdFrilanser.yrke?.value
                         )
                     }
                 }
