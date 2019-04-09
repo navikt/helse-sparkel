@@ -3,8 +3,7 @@ package no.nav.helse.ws.aiy
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.aiy.dto.*
 import no.nav.helse.ws.arbeidsforhold.ArbeidDtoMapper
-import no.nav.helse.ws.inntekt.domain.Arbeidsgiver
-import no.nav.helse.ws.inntekt.dto.ArbeidsgiverDTO
+import no.nav.helse.ws.inntekt.InntektDtoMapper
 
 object ArbeidsInntektYtelseDtoMapper {
 
@@ -25,7 +24,7 @@ object ArbeidsInntektYtelseDtoMapper {
                     }.let {
                         FrilansArbeidsforholdMedInntektDTO(
                                 arbeidsforhold = FrilansArbeidsforholdDTO(
-                                        arbeidsgiver = ArbeidsgiverDTO((frilansArbeidsforhold.key.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnr),
+                                        arbeidsgiver = InntektDtoMapper.toDto(frilansArbeidsforhold.key.arbeidsgiver),
                                         yrke = frilansArbeidsforhold.key.yrke,
                                         startdato = frilansArbeidsforhold.key.startdato,
                                         sluttdato = frilansArbeidsforhold.key.sluttdato

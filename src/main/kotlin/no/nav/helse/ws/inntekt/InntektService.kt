@@ -5,7 +5,6 @@ import no.nav.helse.*
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
-import no.nav.helse.ws.inntekt.domain.Arbeidsgiver
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -69,16 +68,21 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                     it.arbeidsInntektInformasjon.arbeidsforholdListe.map { arbeidsforholdFrilanser ->
                         frilansCounter.inc()
 
-                        ArbeidsforholdFrilanser(
-                                arbeidsgiver = (arbeidsforholdFrilanser.arbeidsgiver as Organisasjon).let {
-                                    Arbeidsgiver.Organisasjon(it.orgnummer)
-                                },
-                                startdato = arbeidsforholdFrilanser.frilansPeriode?.fom?.toLocalDate(),
-                                sluttdato = arbeidsforholdFrilanser.frilansPeriode?.tom?.toLocalDate(),
-                                yrke = arbeidsforholdFrilanser.yrke?.value
-                        )
+                        when (arbeidsforholdFrilanser.arbeidsgiver) {
+                            is PersonIdent -> Virksomhet.Person((arbeidsforholdFrilanser.arbeidsgiver as PersonIdent).personIdent)
+                            is AktoerId -> Virksomhet.NavAktør((arbeidsforholdFrilanser.arbeidsgiver as AktoerId).aktoerId)
+                            is Organisasjon -> Virksomhet.Organisasjon(Organisasjonsnummer((arbeidsforholdFrilanser.arbeidsgiver as Organisasjon).orgnummer))
+                            else -> null
+                        }?.let {virksomhet ->
+                            ArbeidsforholdFrilanser(
+                                    arbeidsgiver = virksomhet,
+                                    startdato = arbeidsforholdFrilanser.frilansPeriode?.fom?.toLocalDate(),
+                                    sluttdato = arbeidsforholdFrilanser.frilansPeriode?.tom?.toLocalDate(),
+                                    yrke = arbeidsforholdFrilanser.yrke?.value
+                            )
+                        }
                     }
-                }
+                }.filterNotNull()
             }
 
     private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =

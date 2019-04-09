@@ -79,11 +79,11 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                                 }
                             }.filterKeys { virksomhet ->
                                 frilansArbeidsforholdliste.any { frilansArbeidsforhold ->
-                                    virksomhet.identifikator == (frilansArbeidsforhold.arbeidsgiver as no.nav.helse.ws.inntekt.domain.Arbeidsgiver.Organisasjon).orgnr
+                                    virksomhet.identifikator == frilansArbeidsforhold.arbeidsgiver.identifikator
                                 }
                             }.mapKeys { entry ->
                                 frilansArbeidsforholdliste.first { frilansArbeidsforhold ->
-                                    entry.key.identifikator == (frilansArbeidsforhold.arbeidsgiver as no.nav.helse.ws.inntekt.domain.Arbeidsgiver.Organisasjon).orgnr
+                                    entry.key.identifikator == frilansArbeidsforhold.arbeidsgiver.identifikator
                                 }
                             }.also { inntekter ->
                                 frilansArbeidsforholdliste.forEach { frilansArbeidsforhold ->

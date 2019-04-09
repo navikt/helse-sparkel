@@ -599,6 +599,7 @@ private val expectedJson = """
     "inntekter": [{
         "arbeidsgiver": {
             "orgnr": "995277670",
+            "type": "Organisasjon"
         },
         "beløp": 2500,
         "opptjeningsperiode": {
@@ -609,7 +610,8 @@ private val expectedJson = """
         "ytelse": false
     }, {
         "arbeidsgiver": {
-            "orgnr": "912998827"
+            "orgnr": "912998827",
+            "type": "Organisasjon"
         },
         "beløp": 3500,
         "opptjeningsperiode": {
@@ -620,7 +622,8 @@ private val expectedJson = """
         "ytelse": false
     }, {
         "arbeidsgiver": {
-            "orgnr": "995298775"
+            "orgnr": "995298775",
+            "type": "Organisasjon"
         },
         "beløp": 2500,
         "opptjeningsperiode": {
