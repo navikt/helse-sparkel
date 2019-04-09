@@ -73,6 +73,10 @@ class ArbeidInntektYtelseServiceTest {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
 
+        every {
+            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+        } returns Either.Right(emptyList())
+
         val actual = aktiveArbeidsforholdService.finnArbeidsforholdMedInntekter(aktørId, fom, tom)
 
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals")
@@ -133,6 +137,10 @@ class ArbeidInntektYtelseServiceTest {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
 
+        every {
+            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+        } returns Either.Right(emptyList())
+
         val actual = aktiveArbeidsforholdService.finnArbeidsforholdMedInntekter(aktørId, fom, tom)
 
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals")
@@ -192,6 +200,10 @@ class ArbeidInntektYtelseServiceTest {
         every {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
+
+        every {
+            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+        } returns Either.Right(emptyList())
 
         val actual = aktiveArbeidsforholdService.finnArbeidsforholdMedInntekter(aktørId, fom, tom)
 

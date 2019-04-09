@@ -22,6 +22,10 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .name("arbeidsforhold_avvik_totals")
                 .help("antall arbeidsforhold som ikke har noen tilhørende inntekter")
                 .register()
+        private val frilansArbeidsforholdAvviksCounter = Counter.build()
+                .name("frilans_arbeidsforhold_avvik_totals")
+                .help("antall frilansarbeidsforhold som ikke har noen tilhørende inntekter")
+                .register()
         private val inntektAvviksCounter = Counter.build()
                 .name("inntekt_avvik_totals")
                 .help("antall inntekter som ikke har noen tilhørende arbeidsforhold")
@@ -37,54 +41,77 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         inntekt.virksomhet
                     }
                 }.let { grupperteInntekter ->
-                    arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).map { arbeidsforholdliste ->
-                        val arbeidsforhold = grupperteInntekter[Inntekt.Lønn::class.java].orEmpty().mapValues { entry ->
-                            entry.value.map { inntekt ->
-                                inntekt as Inntekt.Lønn
-                            }
-                        }.filterKeys {  virksomhet ->
-                            arbeidsforholdliste.any { arbeidsforhold ->
-                                virksomhet.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
-                            }
-                        }.mapKeys { entry ->
-                            arbeidsforholdliste.first { arbeidsforhold ->
-                                entry.key.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
-                            }
-                        }.also { inntekter ->
-                            arbeidsforholdliste.forEach { arbeidsforhold ->
-                                if (!inntekter.containsKey(arbeidsforhold)) {
-                                    arbeidsforholdAvviksCounter.inc()
-                                    log.warn("did not find inntekter for arbeidsforhold with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
+                    inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom)).flatMap { frilansArbeidsforholdliste ->
+                        arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).map { arbeidsforholdliste ->
+                            val arbeidsforhold = grupperteInntekter[Inntekt.Lønn::class.java].orEmpty().mapValues { entry ->
+                                entry.value.map { inntekt ->
+                                    inntekt as Inntekt.Lønn
                                 }
-                            }
-
-                            grupperteInntekter[Inntekt.Lønn::class.java]?.forEach { entry ->
-                                if (inntekter.keys.firstOrNull { arbeidsforhold ->
+                            }.filterKeys { virksomhet ->
+                                arbeidsforholdliste.any { arbeidsforhold ->
+                                    virksomhet.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
+                                }
+                            }.mapKeys { entry ->
+                                arbeidsforholdliste.first { arbeidsforhold ->
                                     entry.key.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
-                                } == null) {
-                                    inntektAvviksCounter.inc(entry.value.size.toDouble())
-                                    log.warn("did not find arbeidsforhold for ${entry.value.size} inntekter (${entry.value.joinToString { it.type() }}) with arbeidsgiver=${entry.key}")
+                                }
+                            }.also { inntekter ->
+                                arbeidsforholdliste.forEach { arbeidsforhold ->
+                                    if (!inntekter.containsKey(arbeidsforhold)) {
+                                        arbeidsforholdAvviksCounter.inc()
+                                        log.warn("did not find inntekter for arbeidsforhold with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
+                                    }
+                                }
+
+                                grupperteInntekter[Inntekt.Lønn::class.java]?.forEach { entry ->
+                                    if (inntekter.keys.firstOrNull { arbeidsforhold ->
+                                                entry.key.identifikator == (arbeidsforhold.arbeidsgiver as Arbeidsgiver.Virksomhet).virksomhet.orgnr.value
+                                            } == null) {
+                                        inntektAvviksCounter.inc(entry.value.size.toDouble())
+                                        log.warn("did not find arbeidsforhold for ${entry.value.size} inntekter (${entry.value.joinToString { it.type() }}) with arbeidsgiver=${entry.key}")
+                                    }
                                 }
                             }
-                        }
 
-                        val ytelser = grupperteInntekter[Inntekt.Ytelse::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
-                            inntektEtterVirksomhet.value.map { inntekt ->
-                                inntekt as Inntekt.Ytelse
+                            val frilansArbeidsforhold = grupperteInntekter[Inntekt.Lønn::class.java].orEmpty().mapValues { entry ->
+                                entry.value.map { inntekt ->
+                                    inntekt as Inntekt.Lønn
+                                }
+                            }.filterKeys { virksomhet ->
+                                frilansArbeidsforholdliste.any { frilansArbeidsforhold ->
+                                    virksomhet.identifikator == (frilansArbeidsforhold.arbeidsgiver as no.nav.helse.ws.inntekt.domain.Arbeidsgiver.Organisasjon).orgnr
+                                }
+                            }.mapKeys { entry ->
+                                frilansArbeidsforholdliste.first { frilansArbeidsforhold ->
+                                    entry.key.identifikator == (frilansArbeidsforhold.arbeidsgiver as no.nav.helse.ws.inntekt.domain.Arbeidsgiver.Organisasjon).orgnr
+                                }
+                            }.also { inntekter ->
+                                frilansArbeidsforholdliste.forEach { frilansArbeidsforhold ->
+                                    if (!inntekter.containsKey(frilansArbeidsforhold)) {
+                                        frilansArbeidsforholdAvviksCounter.inc()
+                                        log.warn("did not find inntekter for frilansarbeidsforhold with arbeidsgiver=${frilansArbeidsforhold.arbeidsgiver}")
+                                    }
+                                }
                             }
-                        }
-                        val pensjonEllerTrygd = grupperteInntekter[Inntekt.PensjonEllerTrygd::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
-                            inntektEtterVirksomhet.value.map { inntekt ->
-                                inntekt as Inntekt.PensjonEllerTrygd
-                            }
-                        }
-                        val næringsinntekt = grupperteInntekter[Inntekt.Næring::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
-                            inntektEtterVirksomhet.value.map { inntekt ->
-                                inntekt as Inntekt.Næring
-                            }
-                        }
 
-                        ArbeidInntektYtelse(arbeidsforhold, ytelser, pensjonEllerTrygd, næringsinntekt)
+                            val ytelser = grupperteInntekter[Inntekt.Ytelse::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
+                                inntektEtterVirksomhet.value.map { inntekt ->
+                                    inntekt as Inntekt.Ytelse
+                                }
+                            }
+                            val pensjonEllerTrygd = grupperteInntekter[Inntekt.PensjonEllerTrygd::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
+                                inntektEtterVirksomhet.value.map { inntekt ->
+                                    inntekt as Inntekt.PensjonEllerTrygd
+                                }
+                            }
+                            val næringsinntekt = grupperteInntekter[Inntekt.Næring::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
+                                inntektEtterVirksomhet.value.map { inntekt ->
+                                    inntekt as Inntekt.Næring
+                                }
+                            }
+
+                            ArbeidInntektYtelse(arbeidsforhold, frilansArbeidsforhold, ytelser, pensjonEllerTrygd, næringsinntekt)
+                        }
                     }
                 }
             }

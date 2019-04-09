@@ -352,6 +352,7 @@ private val expectedJson_arbeidsforholdMedInntekter = """
       ]
     }
   ],
+  "frilansArbeidsforhold": [],
   "ytelser": [],
   "pensjonEllerTrygd": [],
   "næring": []

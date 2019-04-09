@@ -4,6 +4,8 @@ import io.prometheus.client.Counter
 import no.nav.helse.*
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
+import no.nav.helse.ws.inntekt.domain.Arbeidsgiver
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -25,6 +27,11 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                 .labelNames("type")
                 .help("antall inntekter fordelt på ulike virksomhetstyper (juridisk enhet eller virksomhet)")
                 .register()
+
+        private val frilansCounter = Counter.build()
+                .name("arbeidsforhold_frilans_totals")
+                .help("antall frilans arbeidsforhold")
+                .register()
     }
 
     fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
@@ -38,6 +45,41 @@ class InntektService(private val inntektClient: InntektClient, private val organ
     fun hentInntekter(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
         inntektClient.hentInntekter(aktørId, fom, tom)
     }
+
+    fun hentFrilansarbeidsforhold(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
+            inntektClient.hentInntekter(aktørId, fom, tom).mapLeft {
+                when (it) {
+                    is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
+                    is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
+                    else -> Feilårsak.UkjentFeil
+                }
+            }.flatMap { response ->
+                if (response.sikkerhetsavvikListe != null && !response.sikkerhetsavvikListe.isEmpty()) {
+                    log.error("Sikkerhetsavvik fra inntekt: ${response.sikkerhetsavvikListe.joinToString {
+                        it.tekst
+                    } }")
+                    Either.Left(Feilårsak.FeilFraTjeneste)
+                } else {
+                    Either.Right(response.arbeidsInntektIdentListe)
+                }
+            }.map {
+                it.flatMap {
+                    it.arbeidsInntektMaaned
+                }.flatMap {
+                    it.arbeidsInntektInformasjon.arbeidsforholdListe.map { arbeidsforholdFrilanser ->
+                        frilansCounter.inc()
+
+                        ArbeidsforholdFrilanser(
+                                arbeidsgiver = (arbeidsforholdFrilanser.arbeidsgiver as Organisasjon).let {
+                                    Arbeidsgiver.Organisasjon(it.orgnummer)
+                                },
+                                startdato = arbeidsforholdFrilanser.frilansPeriode?.fom?.toLocalDate(),
+                                sluttdato = arbeidsforholdFrilanser.frilansPeriode?.tom?.toLocalDate(),
+                                yrke = arbeidsforholdFrilanser.yrke.value
+                        )
+                    }
+                }
+            }
 
     private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =
             f().mapLeft {

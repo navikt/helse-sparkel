@@ -3,6 +3,8 @@ package no.nav.helse.ws.aiy
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.aiy.dto.*
 import no.nav.helse.ws.arbeidsforhold.ArbeidDtoMapper
+import no.nav.helse.ws.inntekt.domain.Arbeidsgiver
+import no.nav.helse.ws.inntekt.dto.ArbeidsgiverDTO
 
 object ArbeidsInntektYtelseDtoMapper {
 
@@ -17,22 +19,38 @@ object ArbeidsInntektYtelseDtoMapper {
                     )
                 }
             }.let { arbeidsforhold ->
-                arbeidInntektYtelse.ytelser.flatMap { ytelse ->
-                    ytelse.value.map {
-                        YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                arbeidInntektYtelse.frilans.map { frilansArbeidsforhold ->
+                    frilansArbeidsforhold.value.map { inntekt ->
+                        InntektUtenArbeidsgiverDTO(inntekt.utbetalingsperiode, inntekt.beløp)
+                    }.let {
+                        FrilansArbeidsforholdMedInntektDTO(
+                                arbeidsforhold = FrilansArbeidsforholdDTO(
+                                        arbeidsgiver = ArbeidsgiverDTO((frilansArbeidsforhold.key.arbeidsgiver as Arbeidsgiver.Organisasjon).orgnr),
+                                        yrke = frilansArbeidsforhold.key.yrke,
+                                        startdato = frilansArbeidsforhold.key.startdato,
+                                        sluttdato = frilansArbeidsforhold.key.sluttdato
+                                ),
+                                inntekter = it
+                        )
                     }
-                }.let { ytelser ->
-                    arbeidInntektYtelse.pensjonEllerTrygd.flatMap { pensjonEllerTrygd ->
-                        pensjonEllerTrygd.value.map {
-                            PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                }.let { frilansArbeidsforhold ->
+                    arbeidInntektYtelse.ytelser.flatMap { ytelse ->
+                        ytelse.value.map {
+                            YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
                         }
-                    }.let { pensjonEllerTrygd ->
-                        arbeidInntektYtelse.næringsinntekt.flatMap { næring ->
-                            næring.value.map {
-                                NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                    }.let { ytelser ->
+                        arbeidInntektYtelse.pensjonEllerTrygd.flatMap { pensjonEllerTrygd ->
+                            pensjonEllerTrygd.value.map {
+                                PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
                             }
-                        }.let { næring ->
-                            ArbeidInntektYtelseDTO(arbeidsforhold, ytelser, pensjonEllerTrygd, næring)
+                        }.let { pensjonEllerTrygd ->
+                            arbeidInntektYtelse.næringsinntekt.flatMap { næring ->
+                                næring.value.map {
+                                    NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                                }
+                            }.let { næring ->
+                                ArbeidInntektYtelseDTO(arbeidsforhold, frilansArbeidsforhold, ytelser, pensjonEllerTrygd, næring)
+                            }
                         }
                     }
                 }
