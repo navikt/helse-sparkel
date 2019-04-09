@@ -65,8 +65,11 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                 virksomhetsCounter.labels(organisasjon.type()).inc()
 
                                 when (organisasjon) {
-                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).map { virksomhetsnummer ->
-                                        when (inntekt) {
+                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).fold({
+                                        log.warn("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
+                                        Either.Right(inntekt)
+                                    }, { virksomhetsnummer ->
+                                        Either.Right(when (inntekt) {
                                             is Inntekt.Lønn -> inntekt.copy(
                                                     virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
                                             )
@@ -79,8 +82,8 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                             is Inntekt.PensjonEllerTrygd -> inntekt.copy(
                                                     virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
                                             )
-                                        }
-                                    }
+                                        })
+                                    })
                                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
                                     else -> {
                                         log.warn("unknown virksomhetstype: $organisasjon after lookup of virksomhetsnummer for ${inntekt.virksomhet} with inntektstype ${inntekt.type()}")

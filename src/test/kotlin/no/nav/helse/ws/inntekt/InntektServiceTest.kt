@@ -357,6 +357,81 @@ class InntektServiceTest {
     }
 
     @Test
+    fun `skal gi inntekt selv om oppslag for virksomhetsnr for juridisk enhet ender i feil`() {
+        val aktør = AktørId("11987654321")
+
+        val fom = YearMonth.parse("2019-01")
+        val tom = YearMonth.parse("2019-02")
+
+        val expected = listOf(
+                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                        fom, BigDecimal.valueOf(2500))
+        )
+
+        val inntektClient = mockk<InntektClient>()
+        every {
+            inntektClient.hentSammenligningsgrunnlag(aktør, fom, tom)
+        } returns HentInntektListeBolkResponse().apply {
+            with (arbeidsInntektIdentListe) {
+                add(ArbeidsInntektIdent().apply {
+                    ident = AktoerId().apply {
+                        aktoerId = aktør.aktor
+                    }
+                    with (arbeidsInntektMaaned) {
+                        add(ArbeidsInntektMaaned().apply {
+                            aarMaaned = fom.toXmlGregorianCalendar()
+                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
+                                with (inntektListe) {
+                                    add(Loennsinntekt().apply {
+                                        beloep = BigDecimal.valueOf(2500)
+                                        inntektsmottaker = AktoerId().apply {
+                                            aktoerId = aktør.aktor
+                                        }
+                                        virksomhet = Organisasjon().apply {
+                                            orgnummer = "889640782"
+                                        }
+                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
+                                    })
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+        }.let {
+            Either.Right(it)
+        }
+
+        val organisasjonService = mockk<OrganisasjonService>()
+
+        every {
+            organisasjonService.hentOrganisasjon(match {
+                it.value == "889640782"
+            })
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), null))
+
+        every {
+            organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(match {
+                it.value == "889640782"
+            }, match {
+                it == fom.atDay(1)
+            })
+        } returns Either.Left(Feilårsak.FeilFraTjeneste)
+
+        val actual = InntektService(inntektClient, organisasjonService).hentSammenligningsgrunnlag(aktør, fom, tom)
+
+        when (actual) {
+            is Either.Right -> {
+                assertEquals(expected.size, actual.right.size)
+                expected.forEachIndexed { index, inntekt ->
+                    assertEquals(inntekt, actual.right[index])
+                }
+            }
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
+    }
+
+    @Test
     fun `skal gi inntekter selv om virksomheten er et orgledd`() {
         val aktør = AktørId("11987654321")
 
