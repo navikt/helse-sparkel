@@ -330,9 +330,10 @@ private val expectedJson_arbeidsforholdMedInntekter = """
   "arbeidsforhold": [
     {
       "arbeidsforhold": {
+        "type": "Arbeidstaker",
         "arbeidsgiver": {
-          "orgnummer": "889640782",
-          "navn": "NAV"
+          "orgnr": "889640782",
+          "type": "Organisasjon"
         },
         "startdato": "2019-01-01"
       },
@@ -352,7 +353,6 @@ private val expectedJson_arbeidsforholdMedInntekter = """
       ]
     }
   ],
-  "frilansArbeidsforhold": [],
   "ytelser": [],
   "pensjonEllerTrygd": [],
   "næring": []
