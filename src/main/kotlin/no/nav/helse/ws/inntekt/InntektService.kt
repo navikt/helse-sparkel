@@ -31,6 +31,11 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                 .name("arbeidsforhold_frilans_totals")
                 .help("antall frilans arbeidsforhold")
                 .register()
+
+        private val juridiskTilVirksomhetsnummerCounter = Counter.build()
+                .name("juridisk_til_virksomhetsnummer_totals")
+                .help("antall ganger vi har funnet virksomhetsnummer fra juridisk nummer")
+                .register()
     }
 
     fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
@@ -115,6 +120,7 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                                         log.warn("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
                                         Either.Right(inntekt)
                                     }, { virksomhetsnummer ->
+                                        juridiskTilVirksomhetsnummerCounter.inc()
                                         Either.Right(when (inntekt) {
                                             is Inntekt.Lønn -> inntekt.copy(
                                                     virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
