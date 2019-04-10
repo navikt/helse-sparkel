@@ -20,8 +20,10 @@ object ArbeidsInntektYtelseDtoMapper {
 
     fun toDto(arbeidInntektYtelse: ArbeidInntektYtelse) =
             arbeidInntektYtelse.arbeidsforhold.map { arbeidsforhold ->
-                arbeidsforhold.value.map { inntekt ->
-                    InntektUtenArbeidsgiverDTO(inntekt.utbetalingsperiode, inntekt.beløp)
+                arbeidsforhold.value.mapValues { inntekt ->
+                    inntekt.value.map {
+                        InntektUtenArbeidsgiverDTO(it.utbetalingsperiode, it.beløp)
+                    }
                 }.let {
                     ArbeidsforholdMedInntektDTO(
                             arbeidsforhold = toDto(arbeidsforhold.key),

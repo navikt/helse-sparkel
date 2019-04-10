@@ -71,6 +71,10 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                                     kombinertArbeidsforholdliste.first { arbeidsforhold ->
                                         entry.key.identifikator == arbeidsforhold.arbeidsgiver.identifikator
                                     }
+                                }.mapValues {
+                                    it.value.groupBy {
+                                        it.utbetalingsperiode
+                                    }
                                 }.also { inntekter ->
                                     kombinertArbeidsforholdliste.forEach { arbeidsforhold ->
                                         if (!inntekter.containsKey(arbeidsforhold)) {

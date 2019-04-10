@@ -46,15 +46,27 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet2 = Organisasjonsnummer("995298775")
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), fom) to listOf(
-                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000)),
-                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
-                ),
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), LocalDate.parse("2018-01-01"), fom) to listOf(
-                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000)),
-                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000)),
-                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
-                ))
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), fom) to mapOf(
+                                YearMonth.of(2019, 1) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000))
+                                ),
+
+                                YearMonth.of(2019, 2) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
+                                )
+                        ),
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), LocalDate.parse("2018-01-01"), fom) to mapOf(
+                                YearMonth.of(2018, 10) to listOf(
+                                    Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000))
+                                ),
+                                YearMonth.of(2018, 11) to listOf(
+                                    Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000))
+                                ),
+                                YearMonth.of(2018, 12) to listOf(
+                                    Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
+                                )
+                        )
+                )
         )
 
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
@@ -115,10 +127,16 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet1 = Organisasjonsnummer("889640782")
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), fom) to listOf(
-                                Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000)),
-                                Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
-                        ))
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), fom) to mapOf(
+                                YearMonth.of(2019, 1) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000))
+                                ),
+
+                                YearMonth.of(2019, 2) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
+                                )
+                        )
+                )
         )
 
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
@@ -178,11 +196,18 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet2 = Organisasjonsnummer("995298775")
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), LocalDate.parse("2018-01-01"), fom) to listOf(
-                                Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000)),
-                                Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000)),
-                                Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
-                        ))
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), LocalDate.parse("2018-01-01"), fom) to mapOf(
+                                YearMonth.of(2018, 10) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000))
+                                ),
+                                YearMonth.of(2018, 11) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 11), BigDecimal(16000))
+                                ),
+                                YearMonth.of(2018, 12) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
+                                )
+                        )
+                )
         )
 
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
