@@ -332,7 +332,7 @@ private val expectedJson_arbeidsforholdMedInntekter = """
       "arbeidsforhold": {
         "type": "Arbeidstaker",
         "arbeidsgiver": {
-          "orgnr": "889640782",
+          "identifikator": "889640782",
           "type": "Organisasjon"
         },
         "startdato": "2019-01-01"
