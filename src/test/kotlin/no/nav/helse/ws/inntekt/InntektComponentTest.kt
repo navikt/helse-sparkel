@@ -603,11 +603,6 @@ private val expectedJson = """
         },
         "beløp": 2500,
         "utbetalingsperiode": "2019-01",
-        "opptjeningsperiode": {
-            "tom": "2019-01-31",
-            "fom": "2019-01-01",
-            "antattPeriode": false
-        },
         "ytelse": false
     }, {
         "arbeidsgiver": {
@@ -616,11 +611,6 @@ private val expectedJson = """
         },
         "beløp": 3500,
         "utbetalingsperiode": "2019-02",
-        "opptjeningsperiode": {
-            "tom": "2019-02-28",
-            "fom": "2019-02-01",
-            "antattPeriode": false
-        },
         "ytelse": false
     }, {
         "arbeidsgiver": {
@@ -629,11 +619,6 @@ private val expectedJson = """
         },
         "beløp": 2500,
         "utbetalingsperiode": "2019-03",
-        "opptjeningsperiode": {
-            "tom": "2019-03-31",
-            "fom": "2019-03-01",
-            "antattPeriode": false
-        },
         "ytelse": false
     }]
 }
