@@ -602,6 +602,7 @@ private val expectedJson = """
             "type": "Organisasjon"
         },
         "beløp": 2500,
+        "utbetalingsperiode": "2019-01",
         "opptjeningsperiode": {
             "tom": "2019-01-31",
             "fom": "2019-01-01",
@@ -614,6 +615,7 @@ private val expectedJson = """
             "type": "Organisasjon"
         },
         "beløp": 3500,
+        "utbetalingsperiode": "2019-02",
         "opptjeningsperiode": {
             "tom": "2019-02-28",
             "fom": "2019-02-01",
@@ -626,6 +628,7 @@ private val expectedJson = """
             "type": "Organisasjon"
         },
         "beløp": 2500,
+        "utbetalingsperiode": "2019-03",
         "opptjeningsperiode": {
             "tom": "2019-03-31",
             "fom": "2019-03-01",

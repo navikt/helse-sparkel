@@ -14,6 +14,7 @@ object InntektDtoMapper {
     fun toDto(inntekt: Inntekt) =
             InntektDTO(
                 arbeidsgiver = toDto(inntekt.virksomhet),
+                utbetalingsperiode = inntekt.utbetalingsperiode,
                 opptjeningsperiode = opptjeningsperiode(inntekt.utbetalingsperiode),
                 beløp = inntekt.beløp,
                 ytelse = inntekt.isYtelse(),
