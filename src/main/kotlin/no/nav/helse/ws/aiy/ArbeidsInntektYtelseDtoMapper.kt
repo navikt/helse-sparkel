@@ -22,7 +22,7 @@ object ArbeidsInntektYtelseDtoMapper {
             arbeidInntektYtelse.arbeidsforhold.map { arbeidsforhold ->
                 arbeidsforhold.value.mapValues { inntekt ->
                     inntekt.value.map {
-                        InntektUtenArbeidsgiverDTO(it.utbetalingsperiode, it.beløp)
+                        InntektDTO(it.beløp)
                     }
                 }.let {
                     ArbeidsforholdMedInntektDTO(

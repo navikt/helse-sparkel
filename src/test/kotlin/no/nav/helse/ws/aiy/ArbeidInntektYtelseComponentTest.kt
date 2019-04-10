@@ -340,20 +340,17 @@ private val expectedJson_arbeidsforholdMedInntekter = """
       "inntekter": {
         "2019-01": [
             {
-              "beløp": 2500,
-              "utbetalingsperiode": "2019-01"
+              "beløp": 2500
             }
         ],
         "2019-02": [
             {
-              "beløp": 3500,
-              "utbetalingsperiode": "2019-02"
+              "beløp": 3500
             }
         ],
         "2019-03": [
             {
-              "beløp": 2500,
-              "utbetalingsperiode": "2019-03"
+              "beløp": 2500
             }
         ]
       }
