@@ -21,6 +21,7 @@ import io.ktor.server.netty.Netty
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.http.aktør.AktørregisterService
+import no.nav.helse.http.aktør.fnrForAktør
 import no.nav.helse.nais.nais
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
@@ -97,22 +98,36 @@ fun main() {
 
         val sakOgBehandlingService = SakOgBehandlingService(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
 
+        val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
+
         val sykepengelisteService = SykepengelisteService(
                 sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
                 hentSykepengeperiodeClient = hentSykepengeperiodeClient,
-                aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
+                aktørregisterService = aktørregisterService
         )
 
         val meldekortServie = MeldekortService(wsClients.meldekort(env.meldekortEndpointUrl))
 
         val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(
                 infotrygdClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl),
-                aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
+                aktørregisterService = aktørregisterService
         )
 
-        sparkel(env.jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService,
-                arbeidsforholdMedInntektService, meldekortServie,
-                organisasjonService, personService, sakOgBehandlingService, sykepengelisteService, infotrygdBeregningsgrunnlagService)
+        sparkel(
+                env.jwtIssuer,
+                jwkProvider,
+                arbeidsfordelingService,
+                arbeidsforholdService,
+                inntektService,
+                arbeidsforholdMedInntektService,
+                meldekortServie,
+                organisasjonService,
+                personService,
+                sakOgBehandlingService,
+                sykepengelisteService,
+                infotrygdBeregningsgrunnlagService,
+                aktørregisterService
+        )
     }
 
     app.start(wait = false)
@@ -134,7 +149,8 @@ fun Application.sparkel(
         personService: PersonService,
         sakOgBehandlingService: SakOgBehandlingService,
         sykepengelisteService: SykepengelisteService,
-        infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService
+        infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService,
+        aktørregisterService: AktørregisterService
 ) {
     install(CallId) {
         header("Nav-Call-Id")
@@ -192,6 +208,8 @@ fun Application.sparkel(
             sykepengeListe(sykepengelisteService)
 
             meldekort(meldekortService)
+
+            fnrForAktør(aktørregisterService)
 
             infotrygdBeregningsgrunnlag(infotrygdBeregningsgrunnlagService)
         }
