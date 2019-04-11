@@ -27,9 +27,19 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .labelNames("type")
                 .help("antall arbeidsforhold som ikke har noen tilhørende inntekter")
                 .register()
+        private val foreløpigArbeidsforholdAvviksCounter = Counter.build()
+                .name("foreløpig_arbeidsforhold_avvik_totals")
+                .labelNames("type")
+                .help("antall arbeidsforhold som ikke har noen tilhørende inntekter, før vi slår opp virksomhetsnummer")
+                .register()
         private val inntektAvviksCounter = Counter.build()
                 .name("inntekt_avvik_totals")
                 .help("antall inntekter som ikke har noen tilhørende arbeidsforhold")
+                .register()
+
+        private val foreløpigInntektAvviksCounter = Counter.build()
+                .name("forelopig_inntekt_avvik_totals")
+                .help("antall inntekter som ikke har noen tilhørende arbeidsforhold, før vi slår opp virksomhetsnummer")
                 .register()
 
         private val virksomhetsCounter = Counter.build()
@@ -105,9 +115,13 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter, arbeidsforholdliste) { foreløpigArbeidsforholdUtenInntekt, foreløpigInntekterMedArbeidsforhold, foreløpigInntekterUtenArbeidsforhold ->
                 if (foreløpigArbeidsforholdUtenInntekt.isNotEmpty()) {
                     log.warn("fant foreløpig ${foreløpigArbeidsforholdUtenInntekt.size} arbeidsforhold hvor vi ikke finner inntekter: ${foreløpigArbeidsforholdUtenInntekt.joinToString { "${it.type()} - ${it.arbeidsgiver}" }}")
+                    foreløpigArbeidsforholdUtenInntekt.forEach { arbeidsforhold ->
+                        foreløpigArbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
+                    }
                 }
                 if (foreløpigInntekterUtenArbeidsforhold.isNotEmpty()) {
                     log.warn("fant foreløpig ${foreløpigInntekterUtenArbeidsforhold.size} inntekter hvor vi ikke finner arbeidsforhold: ${foreløpigInntekterUtenArbeidsforhold.joinToString { "${it.type()} - ${it.virksomhet}" }}")
+                    foreløpigInntektAvviksCounter.inc(foreløpigInntekterUtenArbeidsforhold.size.toDouble())
                 }
 
                 hentVirksomhetsnummerForInntekterRegistrertPåJuridiskNummer(foreløpigInntekterUtenArbeidsforhold)
