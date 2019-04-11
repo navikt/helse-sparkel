@@ -31,20 +31,14 @@ object ArbeidsInntektYtelseDtoMapper {
                     )
                 }
             }.let { arbeidsforhold ->
-                arbeidInntektYtelse.ytelser.flatMap { ytelse ->
-                    ytelse.value.map {
-                        YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
-                    }
+                arbeidInntektYtelse.ytelser.map {
+                    YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
                 }.let { ytelser ->
-                    arbeidInntektYtelse.pensjonEllerTrygd.flatMap { pensjonEllerTrygd ->
-                        pensjonEllerTrygd.value.map {
-                            PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
-                        }
+                    arbeidInntektYtelse.pensjonEllerTrygd.map {
+                        PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
                     }.let { pensjonEllerTrygd ->
-                        arbeidInntektYtelse.næringsinntekt.flatMap { næring ->
-                            næring.value.map {
-                                NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
-                            }
+                        arbeidInntektYtelse.næringsinntekt.map {
+                            NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
                         }.let { næring ->
                             ArbeidInntektYtelseDTO(arbeidsforhold, ytelser, pensjonEllerTrygd, næring)
                         }

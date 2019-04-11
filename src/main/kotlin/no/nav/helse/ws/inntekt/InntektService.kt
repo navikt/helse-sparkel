@@ -7,7 +7,6 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet
-import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
@@ -16,25 +15,14 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkRespo
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
-class InntektService(private val inntektClient: InntektClient, private val organisasjonService: OrganisasjonService) {
+class InntektService(private val inntektClient: InntektClient) {
 
     companion object {
         private val log = LoggerFactory.getLogger("InntektService")
 
-        private val virksomhetsCounter = Counter.build()
-                .name("inntekt_virksomheter_totals")
-                .labelNames("type")
-                .help("antall inntekter fordelt på ulike virksomhetstyper (juridisk enhet eller virksomhet)")
-                .register()
-
         private val frilansCounter = Counter.build()
                 .name("arbeidsforhold_frilans_totals")
                 .help("antall frilans arbeidsforhold")
-                .register()
-
-        private val juridiskTilVirksomhetsnummerCounter = Counter.build()
-                .name("juridisk_til_virksomhetsnummer_totals")
-                .help("antall ganger vi har funnet virksomhetsnummer fra juridisk nummer")
                 .register()
     }
 
@@ -108,48 +96,6 @@ class InntektService(private val inntektClient: InntektClient, private val organ
                 }
             }.map {
                 InntektMapper.mapToInntekt(aktørId, fom, tom, it)
-            }.flatMap { inntekter ->
-                inntekter.map {  inntekt ->
-                    when (inntekt.virksomhet) {
-                        is Virksomhet.Organisasjon -> {
-                            organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.virksomhet.identifikator)).flatMap { organisasjon ->
-                                virksomhetsCounter.labels(organisasjon.type()).inc()
-
-                                when (organisasjon) {
-                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).fold({
-                                        log.warn("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
-                                        Either.Right(inntekt)
-                                    }, { virksomhetsnummer ->
-                                        juridiskTilVirksomhetsnummerCounter.inc()
-                                        Either.Right(when (inntekt) {
-                                            is Inntekt.Lønn -> inntekt.copy(
-                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
-                                            )
-                                            is Inntekt.Næring -> inntekt.copy(
-                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
-                                            )
-                                            is Inntekt.Ytelse -> inntekt.copy(
-                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
-                                            )
-                                            is Inntekt.PensjonEllerTrygd -> inntekt.copy(
-                                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
-                                            )
-                                        })
-                                    })
-                                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> Either.Right(inntekt)
-                                    else -> {
-                                        log.warn("unknown virksomhetstype: $organisasjon after lookup of virksomhetsnummer for ${inntekt.virksomhet} with inntektstype ${inntekt.type()}")
-                                        Either.Right(inntekt)
-                                    }
-                                }
-                            }
-                        }
-                        else -> {
-                            log.error("unknown virksomhetstype: ${inntekt.virksomhet.type()} for ${inntekt.virksomhet} with inntektstype ${inntekt.type()}")
-                            Either.Left(Feilårsak.UkjentFeil)
-                        }
-                    }
-                }.sequenceU()
             }
 }
 

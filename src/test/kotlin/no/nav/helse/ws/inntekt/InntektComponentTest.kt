@@ -13,18 +13,9 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.organisasjon.OrganisasjonClient
-import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
-import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.JuridiskEnhet
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.OrgnrForOrganisasjon
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
-import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -145,7 +136,6 @@ class InntektComponentTest {
     @Test
     fun `skal svare med liste av inntekter`() {
         val inntektV3 = mockk<InntektV3>()
-        val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
@@ -161,72 +151,13 @@ class InntektComponentTest {
             })
         } returns expected
 
-        every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == virksomhet1
-            })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = JuridiskEnhet().apply {
-                orgnummer = virksomhet1
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("NAV")
-                    }
-                }
-            }
-        }
-
-        every {
-            organisasjonV5.hentVirksomhetsOrgnrForJuridiskOrgnrBolk(match {
-                it.organisasjonsfilterListe.size == 1
-                        && it.organisasjonsfilterListe[0].organisasjonsnummer == virksomhet1
-            })
-        } returns HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
-            with (orgnrForOrganisasjonListe) {
-                add(OrgnrForOrganisasjon().apply {
-                    juridiskOrganisasjonsnummer = virksomhet1
-                    organisasjonsnummer = "995277670"
-                })
-            }
-        }
-
-        every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == virksomhet2
-            })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = Virksomhet().apply {
-                orgnummer = virksomhet2
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("STORTINGET")
-                    }
-                }
-            }
-        }
-
-        every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == virksomhet3
-            })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet().apply {
-                orgnummer = virksomhet3
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("MATBUTIKKEN")
-                    }
-                }
-            }
-        }
-
         val jwkStub = JwtStub("test issuer")
         val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3), OrganisasjonService(OrganisasjonClient(organisasjonV5))))}) {
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -255,7 +186,7 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3), mockk()))}) {
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -472,7 +403,6 @@ class InntektComponentTest {
     @Test
     fun `skal svare med liste av inntekter for sammenligningsgrunnlag`() {
         val inntektV3 = mockk<InntektV3>()
-        val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val aktørId = AktørId("11987654321")
         val fom = YearMonth.parse("2019-01")
@@ -488,72 +418,13 @@ class InntektComponentTest {
             })
         } returns expected
 
-        every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == virksomhet1
-            })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = JuridiskEnhet().apply {
-                orgnummer = virksomhet1
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("NAV")
-                    }
-                }
-            }
-        }
-
-        every {
-            organisasjonV5.hentVirksomhetsOrgnrForJuridiskOrgnrBolk(match {
-                it.organisasjonsfilterListe.size == 1
-                        && it.organisasjonsfilterListe[0].organisasjonsnummer == virksomhet1
-            })
-        } returns HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
-            with (orgnrForOrganisasjonListe) {
-                add(OrgnrForOrganisasjon().apply {
-                    juridiskOrganisasjonsnummer = virksomhet1
-                    organisasjonsnummer = "995277670"
-                })
-            }
-        }
-
-        every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == virksomhet2
-            })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = Virksomhet().apply {
-                orgnummer = virksomhet2
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("STORTINGET")
-                    }
-                }
-            }
-        }
-
-        every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == virksomhet3
-            })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet().apply {
-                orgnummer = virksomhet3
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("MATBUTIKKEN")
-                    }
-                }
-            }
-        }
-
         val jwkStub = JwtStub("test issuer")
         val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3), OrganisasjonService(OrganisasjonClient(organisasjonV5))))}) {
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -582,7 +453,7 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3), mockk()))}) {
+                inntektService = InntektService(InntektClient(inntektV3)))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -598,7 +469,7 @@ private val expectedJson = """
 {
     "inntekter": [{
         "arbeidsgiver": {
-            "identifikator": "995277670",
+            "identifikator": "889640782",
             "type": "Organisasjon"
         },
         "beløp": 2500,

@@ -201,13 +201,16 @@ class ArbeidInntektYtelseComponentTest {
             }
         }
 
+        val organisasjonService = OrganisasjonService(
+                organisasjonsClient = OrganisasjonClient(organisasjonV5)
+        )
+
         val arbeidsforholdService = ArbeidsforholdService(
                 arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
-                organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
+                organisasjonService = organisasjonService
         )
         val inntektService = InntektService(
-                inntektClient = InntektClient(inntektV3),
-                organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
+                inntektClient = InntektClient(inntektV3)
         )
 
         val jwkStub = JwtStub("test issuer")
@@ -218,7 +221,8 @@ class ArbeidInntektYtelseComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 arbeidInntektYtelseService = ArbeidInntektYtelseService(
                         arbeidsforholdService = arbeidsforholdService,
-                        inntektService = inntektService
+                        inntektService = inntektService,
+                        organisasjonService = organisasjonService
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}/inntekter?fom=2017-01-01&tom=2019-03-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
