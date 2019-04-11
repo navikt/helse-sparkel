@@ -32,7 +32,7 @@ fun Route.arbeidInntektYtelse(
                 return@get
             }
 
-            arbeidInntektYtelseService.finnArbeidsforholdMedInntekter(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+            arbeidInntektYtelseService.finnArbeidInntekterOgYtelser(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
                 it.let(ArbeidsInntektYtelseDtoMapper::toDto)
             }.respond(call)
         }
