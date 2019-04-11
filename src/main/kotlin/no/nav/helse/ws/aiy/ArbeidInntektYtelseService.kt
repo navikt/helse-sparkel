@@ -146,21 +146,25 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             }.sequenceU()
 
     private fun hentVirksomhetsnummer(inntekt: Inntekt.Lønn) =
-            organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.virksomhet.identifikator)).flatMap { organisasjon ->
-                virksomhetsCounter.labels(organisasjon.type()).inc()
+            when (inntekt.virksomhet) {
+                is Virksomhet.Organisasjon -> organisasjonService.hentOrganisasjon(Organisasjonsnummer(inntekt.virksomhet.identifikator)).flatMap { organisasjon ->
+                    virksomhetsCounter.labels(organisasjon.type()).inc()
 
-                when (organisasjon) {
-                    is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).fold({
-                        log.warn("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
-                        Either.Right(inntekt)
-                    }, { virksomhetsnummer ->
-                        juridiskTilVirksomhetsnummerCounter.inc()
-                        Either.Right(inntekt.copy(
-                                virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
-                        ))
-                    })
-                    else -> Either.Right(inntekt)
+                    when (organisasjon) {
+                        is no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).fold({
+                            log.warn("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
+                            Either.Right(inntekt)
+                        }, { virksomhetsnummer ->
+                            log.info("slo opp virksomhetsnummer for ${organisasjon.orgnr}")
+                            juridiskTilVirksomhetsnummerCounter.inc()
+                            Either.Right(inntekt.copy(
+                                    virksomhet = Virksomhet.Organisasjon(virksomhetsnummer)
+                            ))
+                        })
+                        else -> Either.Right(inntekt)
+                    }
                 }
+                else -> Either.Right(inntekt)
             }
 
     private fun grupperInntekterEtterArbeidsforholdOgPeriode(inntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
