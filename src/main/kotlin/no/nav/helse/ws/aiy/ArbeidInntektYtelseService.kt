@@ -190,11 +190,4 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
         inntektAvviksCounter.inc(inntekter.size.toDouble())
         log.warn("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}" )
     }
-
-    private inline fun <reified T: Inntekt> grupperInntektPåType(inntekter: Map<Class<out Inntekt>, Map<Virksomhet, List<Inntekt>>>) =
-            inntekter[T::class.java].orEmpty().mapValues { inntektEtterVirksomhet ->
-                inntektEtterVirksomhet.value.map { inntekt ->
-                    inntekt as T
-                }
-            }
 }
