@@ -3,6 +3,7 @@ package no.nav.helse
 import com.auth0.jwk.JwkProvider
 import io.ktor.application.Application
 import io.mockk.mockk
+import no.nav.helse.http.aktør.AktørregisterService
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
@@ -23,9 +24,11 @@ fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, 
                               personService: PersonService = mockk(),
                               sakOgBehandlingService: SakOgBehandlingService = mockk(),
                               sykepengelisteService: SykepengelisteService = mockk(),
-                              infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService = mockk()
+                              infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService = mockk(),
+                              aktørregisterService: AktørregisterService = mockk()
                               ) {
     return sparkel(jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService,
             arbeidInntektYtelseService, meldekortService, organisasjonService,
-            personService, sakOgBehandlingService, sykepengelisteService, infotrygdBeregningsgrunnlagService)
+            personService, sakOgBehandlingService, sykepengelisteService, infotrygdBeregningsgrunnlagService,
+            aktørregisterService)
 }
