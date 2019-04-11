@@ -104,10 +104,10 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     private fun kombinerArbeidsforholdOgInntekt(lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
             splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter, arbeidsforholdliste) { foreløpigArbeidsforholdUtenInntekt, foreløpigInntekterMedArbeidsforhold, foreløpigInntekterUtenArbeidsforhold ->
                 if (foreløpigArbeidsforholdUtenInntekt.isNotEmpty()) {
-                    log.warn("fant foreløpig ${foreløpigArbeidsforholdUtenInntekt.size} arbeidsforhold hvor vi ikke finner inntekter")
+                    log.warn("fant foreløpig ${foreløpigArbeidsforholdUtenInntekt.size} arbeidsforhold hvor vi ikke finner inntekter: ${foreløpigArbeidsforholdUtenInntekt.joinToString { "${it.type()} - ${it.arbeidsgiver}" }}")
                 }
                 if (foreløpigInntekterUtenArbeidsforhold.isNotEmpty()) {
-                    log.warn("fant foreløpig ${foreløpigInntekterUtenArbeidsforhold.size} inntekter hvor vi ikke finner arbeidsforhold")
+                    log.warn("fant foreløpig ${foreløpigInntekterUtenArbeidsforhold.size} inntekter hvor vi ikke finner arbeidsforhold: ${foreløpigInntekterUtenArbeidsforhold.joinToString { "${it.type()} - ${it.virksomhet}" }}")
                 }
 
                 hentVirksomhetsnummerForInntekterRegistrertPåJuridiskNummer(foreløpigInntekterUtenArbeidsforhold)
