@@ -4,6 +4,7 @@ import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.aiy.domain.Arbeidsforhold
 import no.nav.helse.ws.aiy.dto.*
 import no.nav.helse.ws.inntekt.InntektDtoMapper
+import java.math.BigDecimal
 
 object ArbeidsInntektYtelseDtoMapper {
 
@@ -20,14 +21,23 @@ object ArbeidsInntektYtelseDtoMapper {
 
     fun toDto(arbeidInntektYtelse: ArbeidInntektYtelse) =
             arbeidInntektYtelse.arbeidsforhold.map { arbeidsforhold ->
-                arbeidsforhold.value.mapValues { inntekt ->
-                    inntekt.value.map {
+                arbeidsforhold.value.mapValues { periode ->
+                    periode.value.map {
                         InntektDTO(it.beløp)
+                    }.let { inntekter ->
+                        periode.value.fold(BigDecimal.ZERO) { acc, inntekt ->
+                            acc.add(inntekt.beløp)
+                        }.let { sumForPeriode ->
+                            InntektsperiodeDTO(
+                                    sum = sumForPeriode,
+                                    inntekter = inntekter
+                            )
+                        }
                     }
                 }.let {
                     ArbeidsforholdMedInntektDTO(
                             arbeidsforhold = toArbeidsforholdDto(arbeidsforhold.key),
-                            inntekter = it
+                            perioder = it
                     )
                 }
             }.let { arbeidsforhold ->

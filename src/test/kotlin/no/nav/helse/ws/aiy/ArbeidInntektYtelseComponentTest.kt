@@ -310,6 +310,14 @@ class ArbeidInntektYtelseComponentTest {
                                         periode = YearMonth.of(2019, 2),
                                         beløp = 3500
                                 ))
+                                add(inntektUtenOpptjeningsperiode(
+                                        aktørId = aktørId,
+                                        virksomhet = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
+                                            orgnummer = virksomhet
+                                        },
+                                        periode = YearMonth.of(2019, 2),
+                                        beløp = 2500
+                                ))
                                 add(inntektMedOpptjeningsperiode(
                                         aktørId = aktørId,
                                         virksomhet = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
@@ -319,6 +327,14 @@ class ArbeidInntektYtelseComponentTest {
                                         opptjeningsperiodeFom = LocalDate.parse("2019-03-01"),
                                         opptjeningsperiodeTom = LocalDate.parse("2019-03-31"),
                                         beløp = 2500
+                                ))
+                                add(inntektUtenOpptjeningsperiode(
+                                        aktørId = aktørId,
+                                        virksomhet = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
+                                            orgnummer = virksomhet
+                                        },
+                                        periode = YearMonth.of(2019, 3),
+                                        beløp = -500
                                 ))
                             }
                         }
@@ -341,22 +357,37 @@ private val expectedJson_arbeidsforholdMedInntekter = """
         },
         "startdato": "2019-01-01"
       },
-      "inntekter": {
-        "2019-01": [
-            {
-              "beløp": 2500
-            }
-        ],
-        "2019-02": [
-            {
-              "beløp": 3500
-            }
-        ],
-        "2019-03": [
-            {
-              "beløp": 2500
-            }
-        ]
+      "perioder": {
+        "2019-01": {
+            "sum": 2500,
+            "inntekter": [
+                {
+                  "beløp": 2500
+                }
+            ]
+        },
+        "2019-02": {
+            "sum": 6000,
+            "inntekter": [
+                {
+                  "beløp": 3500
+                },
+                {
+                  "beløp": 2500
+                }
+            ]
+        },
+        "2019-03": {
+            "sum": 2000,
+            "inntekter": [
+                {
+                  "beløp": 2500
+                },
+                {
+                  "beløp": -500
+                }
+            ]
+        }
       }
     }
   ],
