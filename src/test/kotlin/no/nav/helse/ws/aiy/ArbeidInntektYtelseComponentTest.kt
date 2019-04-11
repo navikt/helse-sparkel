@@ -360,6 +360,8 @@ private val expectedJson_arbeidsforholdMedInntekter = """
       }
     }
   ],
+  "arbeidsforholdUtenInntekter": [],
+  "inntekterUtenArbeidsforhold": [],
   "ytelser": [],
   "pensjonEllerTrygd": [],
   "næring": []

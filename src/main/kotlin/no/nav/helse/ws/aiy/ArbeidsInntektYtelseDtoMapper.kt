@@ -7,7 +7,7 @@ import no.nav.helse.ws.inntekt.InntektDtoMapper
 
 object ArbeidsInntektYtelseDtoMapper {
 
-    fun toDto(arbeidsforhold: Arbeidsforhold) = ArbeidsforholdDTO(
+    fun toArbeidsforholdDto(arbeidsforhold: Arbeidsforhold) = ArbeidsforholdDTO(
             type = arbeidsforhold.type(),
             arbeidsgiver = InntektDtoMapper.toDto(arbeidsforhold.arbeidsgiver),
             startdato = arbeidsforhold.startdato,
@@ -26,21 +26,30 @@ object ArbeidsInntektYtelseDtoMapper {
                     }
                 }.let {
                     ArbeidsforholdMedInntektDTO(
-                            arbeidsforhold = toDto(arbeidsforhold.key),
+                            arbeidsforhold = toArbeidsforholdDto(arbeidsforhold.key),
                             inntekter = it
                     )
                 }
             }.let { arbeidsforhold ->
-                arbeidInntektYtelse.ytelser.map {
-                    YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
-                }.let { ytelser ->
-                    arbeidInntektYtelse.pensjonEllerTrygd.map {
-                        PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
-                    }.let { pensjonEllerTrygd ->
-                        arbeidInntektYtelse.næringsinntekt.map {
-                            NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
-                        }.let { næring ->
-                            ArbeidInntektYtelseDTO(arbeidsforhold, ytelser, pensjonEllerTrygd, næring)
+                arbeidInntektYtelse.inntekterUtenArbeidsforhold.map { inntekt ->
+                    InntektMedArbeidsgiverDTO(
+                            arbeidsgiver = InntektDtoMapper.toDto(inntekt.virksomhet),
+                            beløp = inntekt.beløp
+                    )
+                }.let { inntekterUtenArbeidsforhold ->
+                    arbeidInntektYtelse.arbeidsforholdUtenInntekter.map(::toArbeidsforholdDto).let { arbeidsforholdUtenInntekter ->
+                        arbeidInntektYtelse.ytelser.map {
+                            YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                        }.let { ytelser ->
+                            arbeidInntektYtelse.pensjonEllerTrygd.map {
+                                PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                            }.let { pensjonEllerTrygd ->
+                                arbeidInntektYtelse.næringsinntekt.map {
+                                    NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                                }.let { næring ->
+                                    ArbeidInntektYtelseDTO(arbeidsforhold, inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekter, ytelser, pensjonEllerTrygd, næring)
+                                }
+                            }
                         }
                     }
                 }

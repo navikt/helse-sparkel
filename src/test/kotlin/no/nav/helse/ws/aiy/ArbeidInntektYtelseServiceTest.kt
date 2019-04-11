@@ -215,6 +215,11 @@ class ArbeidInntektYtelseServiceTest {
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
                                 )
                         )
+                ),
+                inntekterUtenArbeidsforhold = listOf(
+                        Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 10), BigDecimal(15000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 11), BigDecimal(16000)),
+                        Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
                 )
         )
 
@@ -309,6 +314,9 @@ class ArbeidInntektYtelseServiceTest {
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
                                 )
                         )
+                ),
+                arbeidsforholdUtenInntekter = listOf(
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), fom)
                 )
         )
 
@@ -483,7 +491,11 @@ class ArbeidInntektYtelseServiceTest {
         )
 
         val expected = ArbeidInntektYtelse(
-                arbeidsforhold = emptyMap()
+                arbeidsforhold = emptyMap(),
+                inntekterUtenArbeidsforhold = inntekter,
+                arbeidsforholdUtenInntekter = listOf(
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), fom)
+                )
         )
 
         val organisasjonService = mockk<OrganisasjonService>()

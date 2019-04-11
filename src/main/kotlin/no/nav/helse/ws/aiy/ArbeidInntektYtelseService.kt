@@ -57,8 +57,8 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             finnInntekterOgFordelEtterType(aktørId, YearMonth.from(fom), YearMonth.from(tom)) { lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter ->
                 finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId, fom, tom).flatMap { kombinertArbeidsforholdliste ->
-                    kombinerArbeidsforholdOgInntekt(lønnsinntekter, kombinertArbeidsforholdliste).map { inntekterEtterArbeidsforhold ->
-                        ArbeidInntektYtelse(inntekterEtterArbeidsforhold, ytelser, pensjonEllerTrygd, næringsinntekter)
+                    kombinerArbeidsforholdOgInntekt(lønnsinntekter, kombinertArbeidsforholdliste).map { (inntekterEtterArbeidsforhold, inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekter) ->
+                        ArbeidInntektYtelse(inntekterEtterArbeidsforhold, inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekter, ytelser, pensjonEllerTrygd, næringsinntekter)
                     }
                 }
             }
@@ -134,7 +134,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                                     tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
                                 }
 
-                                grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold, arbeidsforholdliste)
+                                Triple(grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold, arbeidsforholdliste), inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekt)
                             }
                         }
             }
