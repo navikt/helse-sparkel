@@ -28,7 +28,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .help("antall arbeidsforhold som ikke har noen tilhørende inntekter")
                 .register()
         private val foreløpigArbeidsforholdAvviksCounter = Counter.build()
-                .name("foreløpig_arbeidsforhold_avvik_totals")
+                .name("forelopig_arbeidsforhold_avvik_totals")
                 .labelNames("type")
                 .help("antall arbeidsforhold som ikke har noen tilhørende inntekter, før vi slår opp virksomhetsnummer")
                 .register()
