@@ -27,7 +27,7 @@ fun Route.person(personService: PersonService) {
             when (lookupResult) {
                 is Either.Right -> when {
                     lookupResult.right.erKode6() -> call.respondFeil(HttpFeil(HttpStatusCode.Forbidden, "Ikke tilgang til å se geografisk tilknytning til denne aktøren."))
-                    lookupResult.right.harGeografisOmraade() -> call.respond(lookupResult.right.geografiskOmraade!!)
+                    lookupResult.right.harGeografiskOmraade() -> call.respond(lookupResult.right.geografiskOmraade!!)
                     else -> call.respondFeil(HttpFeil(HttpStatusCode.NotFound, "Aktøren har ingen geografisk tilknytning."))
                 }
                 is Either.Left -> call.respondFeil(lookupResult.left.toHttpFeil())
@@ -40,6 +40,6 @@ private fun GeografiskTilknytning.erKode6(): Boolean {
     return diskresjonskode?.kode == 6
 }
 
-private fun GeografiskTilknytning.harGeografisOmraade() : Boolean {
+private fun GeografiskTilknytning.harGeografiskOmraade() : Boolean {
     return geografiskOmraade != null
 }
