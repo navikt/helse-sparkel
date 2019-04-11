@@ -89,7 +89,9 @@ class ArbeidInntektYtelseServiceTest {
 
         val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService)
 
+        val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         every {
@@ -106,10 +108,14 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
+        val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
+        assertEquals(0.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+        assertEquals(0.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
@@ -218,7 +224,9 @@ class ArbeidInntektYtelseServiceTest {
 
         val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService)
 
+        val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         every {
@@ -251,10 +259,14 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
+        val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
+        assertEquals(0.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+        assertEquals(3.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(3.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
@@ -267,7 +279,7 @@ class ArbeidInntektYtelseServiceTest {
     }
 
     @Test
-    fun `skal telle arbeidsforhold som ikke ha tilhørende inntekter`() {
+    fun `skal telle arbeidsforhold som ikke har tilhørende inntekter`() {
         val aktørId = AktørId("123456789")
         val fom = LocalDate.parse("2019-01-01")
         val tom = LocalDate.parse("2019-03-01")
@@ -306,7 +318,9 @@ class ArbeidInntektYtelseServiceTest {
 
         val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService)
 
+        val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         every {
@@ -323,10 +337,14 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
+        val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
+        assertEquals(1.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(1.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+        assertEquals(0.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
@@ -345,13 +363,15 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("995298775"), "ARBEIDS- OG VELFERDSDIREKTORATET AVD SANNERGATA")), fom)
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("995298775"), "ARBEIDS- OG VELFERDSDIREKTORATET AVD SANNERGATA")), fom),
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjon.Virksomhet(Organisasjonsnummer("874707112"), "STORTINGET")), fom)
         )
 
         val inntekter = listOf(
                 Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 10), BigDecimal(15000)),
                 Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2018, 11), BigDecimal(16000)),
-                Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2018, 12), BigDecimal(17000))
+                Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), YearMonth.of(2018, 12), BigDecimal(17000)),
+                Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("971524960")), YearMonth.of(2018, 12), BigDecimal(18000))
         )
 
         val expected = ArbeidInntektYtelse(
@@ -366,6 +386,11 @@ class ArbeidInntektYtelseServiceTest {
                                 YearMonth.of(2018, 12) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
                                 )
+                        ),
+                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("874707112")), fom) to mapOf(
+                                YearMonth.of(2018, 12) to listOf(
+                                        Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("874707112")), YearMonth.of(2018, 12), BigDecimal(18000))
+                                )
                         )
                 )
         )
@@ -379,6 +404,10 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), "ARBEIDS- OG VELFERDSETATEN"))
 
         every {
+            organisasjonService.hentOrganisasjon(Organisasjonsnummer("971524960"))
+        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("971524960"), "STORTINGET"))
+
+        every {
             organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(match {
                 it.value == "889640782"
             }, match {
@@ -387,12 +416,22 @@ class ArbeidInntektYtelseServiceTest {
             })
         } returns Either.Right(Organisasjonsnummer("995298775"))
 
+        every {
+            organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(match {
+                it.value == "971524960"
+            }, match {
+                it == LocalDate.of(2018, 12, 1)
+            })
+        } returns Either.Right(Organisasjonsnummer("874707112"))
+
         val arbeidsforholdService = mockk<ArbeidsforholdService>()
         val inntektService = mockk<InntektService>()
 
         val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService)
 
+        val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         every {
@@ -409,10 +448,14 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
+        val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
+        assertEquals(1.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+        assertEquals(3.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
@@ -466,7 +509,9 @@ class ArbeidInntektYtelseServiceTest {
 
         val aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService)
 
+        val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         every {
@@ -483,10 +528,14 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
+        val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
+        val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
+        assertEquals(1.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(1.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+        assertEquals(3.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(3.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
