@@ -1,6 +1,8 @@
 package no.nav.helse.ws.aiy
 
 import io.prometheus.client.Counter
+import no.nav.helse.Either
+import no.nav.helse.Feilårsak
 import no.nav.helse.flatMap
 import no.nav.helse.map
 import no.nav.helse.ws.AktørId
@@ -33,27 +35,29 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     }
 
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            finnInntekterGruppertPåTypeOgVirksomhet(aktørId, YearMonth.from(fom), YearMonth.from(tom)).flatMap { inntekter ->
+            finnInntekterOgFordelEtterType(aktørId, YearMonth.from(fom), YearMonth.from(tom)) { lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter ->
                 finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId, fom, tom).map { kombinertArbeidsforholdliste ->
-                    val arbeidsforhold = kombinerArbeidsforholdOgInntekt(inntekter, kombinertArbeidsforholdliste)
-
-                    val ytelser = grupperInntektPåType<Inntekt.Ytelse>(inntekter)
-                    val pensjonEllerTrygd = grupperInntektPåType<Inntekt.PensjonEllerTrygd>(inntekter)
-                    val næringsinntekt = grupperInntektPåType<Inntekt.Næring>(inntekter)
-
-                    ArbeidInntektYtelse(arbeidsforhold, ytelser, pensjonEllerTrygd, næringsinntekt)
+                    ArbeidInntektYtelse(kombinerArbeidsforholdOgInntekt(lønnsinntekter, kombinertArbeidsforholdliste), ytelser, pensjonEllerTrygd, næringsinntekter)
                 }
             }
 
-    private fun finnInntekterGruppertPåTypeOgVirksomhet(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
-            inntektService.hentInntekter(aktørId, fom, tom).map { inntekter ->
-                inntekter.groupBy { inntekt ->
-                    inntekt::class.java
-                }.mapValues { entry ->
-                    entry.value.groupBy {  inntekt ->
-                        inntekt.virksomhet
+    private fun <R> finnInntekterOgFordelEtterType(aktørId: AktørId, fom: YearMonth, tom: YearMonth, callback: ArbeidInntektYtelseService.(Map<Virksomhet, List<Inntekt.Lønn>>, Map<Virksomhet, List<Inntekt.Ytelse>>, Map<Virksomhet, List<Inntekt.PensjonEllerTrygd>>, Map<Virksomhet, List<Inntekt.Næring>>) -> Either<Feilårsak, R>) =
+            inntektService.hentInntekter(aktørId, fom, tom).flatMap { inntekter ->
+                val lønnsinntekter = mutableListOf<Inntekt.Lønn>()
+                val ytelser = mutableListOf<Inntekt.Ytelse>()
+                val pensjonEllerTrygd = mutableListOf<Inntekt.PensjonEllerTrygd>()
+                val næringsinntekter = mutableListOf<Inntekt.Næring>()
+
+                inntekter.forEach { inntekt ->
+                    when (inntekt) {
+                        is Inntekt.Lønn -> lønnsinntekter.add(inntekt)
+                        is Inntekt.Ytelse -> ytelser.add(inntekt)
+                        is Inntekt.PensjonEllerTrygd -> pensjonEllerTrygd.add(inntekt)
+                        is Inntekt.Næring -> næringsinntekter.add(inntekt)
                     }
                 }
+
+                this.callback(lønnsinntekter.groupBy { it.virksomhet }, ytelser.groupBy { it.virksomhet }, pensjonEllerTrygd.groupBy { it.virksomhet }, næringsinntekter.groupBy { it.virksomhet })
             }
 
     private fun finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -84,26 +88,23 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                     yrke = arbeidsforhold.yrke
             )
 
-
-    private fun kombinerArbeidsforholdOgInntekt(inntekter: Map<Class<out Inntekt>, Map<Virksomhet, List<Inntekt>>>, arbeidsforholdliste: List<Arbeidsforhold>) =
-            grupperInntektPåType<Inntekt.Lønn>(inntekter).let { lønnsinntekter ->
-                lønnsinntekter.filterKeys { virksomhet ->
-                    arbeidsforholdliste.any { arbeidsforhold ->
-                        virksomhet.identifikator == arbeidsforhold.arbeidsgiver.identifikator
-                    }
-                }.mapKeys { entry ->
-                    arbeidsforholdliste.first { arbeidsforhold ->
-                        entry.key.identifikator == arbeidsforhold.arbeidsgiver.identifikator
-                    }
-                }.mapValues { entry ->
-                    entry.value.groupBy { lønnsinntekt ->
-                        lønnsinntekt.utbetalingsperiode
-                    }
-                }.also { inntekter ->
-                    tellAvvikPåArbeidsforhold(arbeidsforholdliste, inntekter)
-                }.also { inntekter ->
-                    tellAvvikPåInntekter(lønnsinntekter, inntekter)
+    private fun kombinerArbeidsforholdOgInntekt(lønnsinntekter: Map<Virksomhet, List<Inntekt.Lønn>>, arbeidsforholdliste: List<Arbeidsforhold>) =
+            lønnsinntekter.filterKeys { virksomhet ->
+                arbeidsforholdliste.any { arbeidsforhold ->
+                    virksomhet.identifikator == arbeidsforhold.arbeidsgiver.identifikator
                 }
+            }.mapKeys { entry ->
+                arbeidsforholdliste.first { arbeidsforhold ->
+                    entry.key.identifikator == arbeidsforhold.arbeidsgiver.identifikator
+                }
+            }.mapValues { entry ->
+                entry.value.groupBy { lønnsinntekt ->
+                    lønnsinntekt.utbetalingsperiode
+                }
+            }.also { inntekter ->
+                tellAvvikPåArbeidsforhold(arbeidsforholdliste, inntekter)
+            }.also { inntekter ->
+                tellAvvikPåInntekter(lønnsinntekter, inntekter)
             }
 
     private fun tellAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>, inntekterFordeltPåArbeidsforhold: Map<Arbeidsforhold, Map<YearMonth, List<Inntekt.Lønn>>>) =
