@@ -6,4 +6,4 @@ import java.time.LocalDate
 data class PermisjonDTO(val fom: LocalDate,
                         val tom: LocalDate,
                         val permisjonsprosent: BigDecimal,
-                        val årsak: String)
+                        val arsak: String)

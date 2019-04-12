@@ -20,13 +20,13 @@ import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.AnsettelsesPeriode
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Gyldighetsperiode
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Yrker
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
@@ -173,6 +173,27 @@ class ArbeidInntektYtelseComponentTest {
                         periode = Gyldighetsperiode().apply {
                             this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                         }
+                    }
+                    with (arbeidsavtale) {
+                        add(Arbeidsavtale().apply {
+                            fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                            yrke = Yrker().apply {
+                                value = "Butikkmedarbeider"
+                            }
+                            stillingsprosent = BigDecimal.valueOf(100)
+                        })
+                    }
+                    with(permisjonOgPermittering) {
+                        add(PermisjonOgPermittering().apply {
+                            permisjonsPeriode = Gyldighetsperiode().apply {
+                                this.fom = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
+                                this.tom = LocalDate.parse("2019-02-28").toXmlGregorianCalendar()
+                                permisjonsprosent = BigDecimal.valueOf(100)
+                                permisjonOgPermittering = PermisjonsOgPermitteringsBeskrivelse().apply {
+                                    value = "velferdspermisjon"
+                                }
+                            }
+                        })
                     }
                 })
             }
@@ -356,8 +377,22 @@ private val expectedJson_arbeidsforholdMedInntekter = """
           "type": "Organisasjon"
         },
         "startdato": "2019-01-01",
-        "permisjon": [],
-        "arbeidsavtaler": []
+        "yrke": "Butikkmedarbeider",
+        "permisjon": [
+            {
+                "fom":"2019-02-01",
+                "tom":"2019-02-28",
+                "permisjonsprosent":100,
+                "arsak": "velferdspermisjon"
+            }
+        ],
+        "arbeidsavtaler": [
+            {
+                "fom":"2019-01-01",
+                "yrke":"Butikkmedarbeider",
+                "stillingsprosent":100
+            }
+        ]
       },
       "perioder": {
         "2019-01": {

@@ -41,7 +41,7 @@ object ArbeidDtoMapper {
                         fom = permisjon.fom,
                         tom = permisjon.tom,
                         permisjonsprosent = permisjon.permisjonsprosent,
-                        årsak = permisjon.årsak
+                        arsak = permisjon.årsak
                 )
             }
 }
