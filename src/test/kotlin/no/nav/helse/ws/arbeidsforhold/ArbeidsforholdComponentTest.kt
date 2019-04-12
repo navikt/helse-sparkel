@@ -489,13 +489,17 @@ private val expectedJson_arbeidsforhold = """
         "arbeidsgiver": {
             "orgnummer": "889640782"
         },
-        "startdato": "2019-01-01"
+        "startdato": "2019-01-01",
+        "arbeidsavtaler": [],
+        "permisjon": []
     },{
         "arbeidsgiver": {
             "orgnummer": "995298775"
         },
         "startdato": "2015-01-01",
-        "sluttdato": "2019-01-01"
+        "sluttdato": "2019-01-01",
+        "arbeidsavtaler": [],
+        "permisjon": []
     }]
 }
 """.trimIndent()

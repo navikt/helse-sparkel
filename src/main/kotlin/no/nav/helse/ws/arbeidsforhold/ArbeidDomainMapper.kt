@@ -1,8 +1,10 @@
 package no.nav.helse.ws.arbeidsforhold
 
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver.*
+import no.nav.helse.ws.arbeidsforhold.domain.Permisjon
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
@@ -21,9 +23,26 @@ object ArbeidDomainMapper {
                     null
                 }
             }?.let { arbeidsgiver ->
-                Arbeidsforhold(arbeidsgiver,
-                        arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
-                        arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate()
+                Arbeidsforhold(
+                        arbeidsgiver = arbeidsgiver,
+                        startdato = arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
+                        sluttdato = arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate(),
+                        arbeidsavtaler = arbeidsforhold.arbeidsavtale.map { arbeidsavtale ->
+                            Arbeidsavtale(
+                                    yrke = arbeidsavtale.yrke.value,
+                                    stillingsprosent = arbeidsavtale.stillingsprosent,
+                                    fom = arbeidsavtale.fomGyldighetsperiode.toLocalDate(),
+                                    tom = arbeidsavtale.tomGyldighetsperiode?.toLocalDate()
+                            )
+                        },
+                        permisjon = arbeidsforhold.permisjonOgPermittering.map { permisjonOgPermittering ->
+                            Permisjon(
+                                    fom = permisjonOgPermittering.permisjonsPeriode.fom.toLocalDate(),
+                                    tom = permisjonOgPermittering.permisjonsPeriode.tom.toLocalDate(),
+                                    permisjonsprosent = permisjonOgPermittering.permisjonsprosent,
+                                    årsak = permisjonOgPermittering.permisjonOgPermittering.value
+                            )
+                        }
                 )
             }
 }

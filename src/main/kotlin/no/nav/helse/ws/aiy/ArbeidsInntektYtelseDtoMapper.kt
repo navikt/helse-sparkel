@@ -3,6 +3,7 @@ package no.nav.helse.ws.aiy
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.aiy.domain.Arbeidsforhold
 import no.nav.helse.ws.aiy.dto.*
+import no.nav.helse.ws.arbeidsforhold.ArbeidDtoMapper
 import no.nav.helse.ws.inntekt.InntektDtoMapper
 import java.math.BigDecimal
 
@@ -15,7 +16,15 @@ object ArbeidsInntektYtelseDtoMapper {
             sluttdato = arbeidsforhold.sluttdato,
             yrke = when (arbeidsforhold) {
                 is Arbeidsforhold.Frilans -> arbeidsforhold.yrke
-                else -> null
+                is Arbeidsforhold.Arbeidstaker -> arbeidsforhold.arbeidsavtaler.firstOrNull()?.yrke
+            },
+            arbeidsavtaler = when (arbeidsforhold) {
+                is Arbeidsforhold.Arbeidstaker -> ArbeidDtoMapper.toArbeidsavtalerDto(arbeidsforhold.arbeidsavtaler)
+                else -> emptyList()
+            },
+            permisjon = when (arbeidsforhold) {
+                is Arbeidsforhold.Arbeidstaker -> ArbeidDtoMapper.toPermisjonDto(arbeidsforhold.permisjon)
+                else -> emptyList()
             }
     )
 

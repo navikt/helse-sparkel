@@ -355,7 +355,9 @@ private val expectedJson_arbeidsforholdMedInntekter = """
           "identifikator": "889640782",
           "type": "Organisasjon"
         },
-        "startdato": "2019-01-01"
+        "startdato": "2019-01-01",
+        "permisjon": [],
+        "arbeidsavtaler": []
       },
       "perioder": {
         "2019-01": {

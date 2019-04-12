@@ -7,6 +7,7 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
+import no.nav.helse.ws.arbeidsforhold.domain.Permisjon
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
@@ -16,6 +17,7 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class ArbeidsforholdServiceTest {
@@ -30,8 +32,28 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), LocalDate.parse("2019-01-01")),
-                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), LocalDate.parse("2015-01-01"), LocalDate.parse("2019-01-01"))
+                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(
+                        arbeidsgiver = Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")),
+                        startdato = LocalDate.parse("2019-01-01"),
+                        arbeidsavtaler = listOf(
+                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(100), LocalDate.parse("2019-01-01"), null)
+                        )),
+                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(
+                        arbeidsgiver = Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")),
+                        startdato = LocalDate.parse("2015-01-01"),
+                        sluttdato = LocalDate.parse("2019-01-01"),
+                        arbeidsavtaler = listOf(
+                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(100), LocalDate.parse("2015-01-01"), LocalDate.parse("2019-01-01"))
+                        ),
+                        permisjon = listOf(
+                                Permisjon(
+                                        fom = LocalDate.parse("2016-01-01"),
+                                        tom = LocalDate.parse("2016-01-02"),
+                                        permisjonsprosent = BigDecimal.valueOf(100),
+                                        årsak = "velferdspermisjon"
+                                )
+                        )
+                )
         )
 
         every {
@@ -46,6 +68,15 @@ class ArbeidsforholdServiceTest {
                     this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                 }
             }
+            with (arbeidsavtale) {
+                add(Arbeidsavtale().apply {
+                    fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                    yrke = Yrker().apply {
+                        value = "Butikkmedarbeider"
+                    }
+                    stillingsprosent = BigDecimal.valueOf(100)
+                })
+            }
         }, Arbeidsforhold().apply {
             arbeidsgiver = Organisasjon().apply {
                 orgnummer = "995298775"
@@ -56,6 +87,28 @@ class ArbeidsforholdServiceTest {
                     this.fom = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
                     this.tom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                 }
+            }
+            with (arbeidsavtale) {
+                add(Arbeidsavtale().apply {
+                    fomGyldighetsperiode = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
+                    tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                    yrke = Yrker().apply {
+                        value = "Butikkmedarbeider"
+                    }
+                    stillingsprosent = BigDecimal.valueOf(100)
+                })
+            }
+            with(permisjonOgPermittering) {
+                add(PermisjonOgPermittering().apply {
+                    permisjonsPeriode = Gyldighetsperiode().apply {
+                        this.fom = LocalDate.parse("2016-01-01").toXmlGregorianCalendar()
+                        this.tom = LocalDate.parse("2016-01-02").toXmlGregorianCalendar()
+                        permisjonsprosent = BigDecimal.valueOf(100)
+                        permisjonOgPermittering = PermisjonsOgPermitteringsBeskrivelse().apply {
+                            value = "velferdspermisjon"
+                        }
+                    }
+                })
             }
         }).let {
             Either.Right(it)

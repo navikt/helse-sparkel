@@ -109,7 +109,9 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         is Arbeidsgiver.Person -> Virksomhet.Person(arbeidsforhold.arbeidsgiver.personnummer)
                     },
                     startdato = arbeidsforhold.startdato,
-                    sluttdato = arbeidsforhold.sluttdato
+                    sluttdato = arbeidsforhold.sluttdato,
+                    arbeidsavtaler = arbeidsforhold.arbeidsavtaler,
+                    permisjon = arbeidsforhold.permisjon
             )
 
     private fun tilArbeidsforhold(arbeidsforhold: ArbeidsforholdFrilanser) =
