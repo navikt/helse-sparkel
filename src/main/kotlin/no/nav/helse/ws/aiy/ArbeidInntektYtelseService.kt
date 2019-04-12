@@ -1,6 +1,7 @@
 package no.nav.helse.ws.aiy
 
 import io.prometheus.client.Counter
+import io.prometheus.client.Histogram
 import no.nav.helse.*
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
@@ -52,6 +53,12 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .name("juridisk_til_virksomhetsnummer_totals")
                 .help("antall ganger vi har funnet virksomhetsnummer fra juridisk nummer")
                 .register()
+
+        private val arbeidsforholdHistogram = Histogram.build()
+                .buckets(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 40.0, 60.0, 80.0, 100.0)
+                .name("arbeidsforhold_sizes")
+                .help("fordeling over hvor mange arbeidsforhold en arbeidstaker har, både frilans og vanlig arbeidstaker")
+                .register()
     }
 
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -85,7 +92,9 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     private fun finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom)).flatMap { frilansArbeidsforholdliste ->
                 arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).map { arbeidsforholdliste ->
-                    kombinerArbeidsforhold(arbeidsforholdliste, frilansArbeidsforholdliste)
+                    kombinerArbeidsforhold(arbeidsforholdliste, frilansArbeidsforholdliste).also { kombinertListe ->
+                        arbeidsforholdHistogram.observe(kombinertListe.size.toDouble())
+                    }
                 }
             }
 
