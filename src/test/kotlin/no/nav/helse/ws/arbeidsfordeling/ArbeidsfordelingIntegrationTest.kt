@@ -11,7 +11,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.person.GeografiskTilknytning
+import no.nav.helse.ws.person.domain.GeografiskTilknytning
 import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.stsStub

@@ -1,7 +1,7 @@
 package no.nav.helse.ws.arbeidsfordeling
 
 import no.nav.helse.Either
-import no.nav.helse.ws.person.GeografiskTilknytning
+import no.nav.helse.ws.person.domain.GeografiskTilknytning
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.ArbeidsfordelingKriterier
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Diskresjonskoder

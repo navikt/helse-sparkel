@@ -4,9 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.helse.Either
-import no.nav.helse.ws.person.Diskresjonskode
-import no.nav.helse.ws.person.GeografiskOmraade
-import no.nav.helse.ws.person.GeografiskTilknytning
+import no.nav.helse.ws.person.domain.Diskresjonskode
+import no.nav.helse.ws.person.domain.GeografiskOmraade
+import no.nav.helse.ws.person.domain.GeografiskTilknytning
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetsstatus
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetstyper

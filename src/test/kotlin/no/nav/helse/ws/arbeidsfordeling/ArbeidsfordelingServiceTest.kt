@@ -6,9 +6,9 @@ import io.mockk.verify
 import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.person.Diskresjonskode
-import no.nav.helse.ws.person.GeografiskOmraade
-import no.nav.helse.ws.person.GeografiskTilknytning
+import no.nav.helse.ws.person.domain.Diskresjonskode
+import no.nav.helse.ws.person.domain.GeografiskOmraade
+import no.nav.helse.ws.person.domain.GeografiskTilknytning
 import no.nav.helse.ws.person.PersonService
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.feil.UgyldigInput

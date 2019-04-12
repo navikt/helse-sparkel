@@ -16,16 +16,7 @@ import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningPer
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.feil.PersonIkkeFunnet
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bostedsadresse
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bydel
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Gateadresse
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Landkoder
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningResponse
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.json.JSONObject
@@ -83,8 +74,68 @@ class PersonComponentTest {
             handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.OK.value, response.status()?.value)
+                assertEquals(HttpStatusCode.OK, response.status())
                 assertJsonEquals(JSONObject(expected_person_response), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med person uten bostedadresse`() {
+        val aktørId = AktørId("1234567891011")
+
+        val personV3 = mockk<PersonV3>()
+        every {
+            personV3.hentPerson(match {
+                (it.aktoer as AktoerId).aktoerId == aktørId.aktor
+            })
+        } returns HentPersonResponse().apply {
+            person = Person().apply {
+                aktoer = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                personnavn = Personnavn().apply {
+                    etternavn = "LOLNES"
+                    mellomnavn = "PIKENES"
+                    fornavn = "JENNY"
+                }
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "K"
+                    }
+                }
+                diskresjonskode = Diskresjonskoder().apply {
+                    value = "UFB"
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = LocalDate.parse("1984-07-08").toXmlGregorianCalendar()
+                }
+                statsborgerskap = Statsborgerskap().apply {
+                    land = Landkoder().apply {
+                        value = "SWE"
+                    }
+                }
+                personstatus = Personstatus().apply {
+                    personstatus = Personstatuser().apply {
+                        value = "UTVA"
+                    }
+                }
+            }
+        }
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                personService = PersonService(PersonClient(personV3))
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/person/${aktørId.aktor}") {
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertJsonEquals(JSONObject(expected_person_uten_fast_bopel_response), JSONObject(response.content))
             }
         }
     }
@@ -188,15 +239,27 @@ class PersonComponentTest {
 
 private val expected_person_response = """
 {
+    "aktørId": "1234567891011",
     "fdato": "1984-07-08",
     "etternavn": "LOLNES",
     "mellomnavn": "PIKENES",
-    "id": {
-        "aktor": "1234567891011"
-    },
     "fornavn": "JENNY",
     "kjønn": "KVINNE",
     "bostedsland": "NOR"
+}
+""".trimIndent()
+
+private val expected_person_uten_fast_bopel_response = """
+{
+    "aktørId": "1234567891011",
+    "fdato": "1984-07-08",
+    "etternavn": "LOLNES",
+    "mellomnavn": "PIKENES",
+    "fornavn": "JENNY",
+    "kjønn": "KVINNE",
+    "diskresjonskode": "UFB",
+    "statsborgerskap": "SWE",
+    "status": "UTVA"
 }
 """.trimIndent()
 

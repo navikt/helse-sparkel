@@ -1,5 +1,8 @@
 package no.nav.helse.ws.person
 
+import no.nav.helse.ws.person.domain.Diskresjonskode
+import no.nav.helse.ws.person.domain.GeografiskOmraade
+import no.nav.helse.ws.person.domain.GeografiskTilknytning
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bydel
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Diskresjonskoder
 import org.junit.jupiter.api.Assertions.assertEquals

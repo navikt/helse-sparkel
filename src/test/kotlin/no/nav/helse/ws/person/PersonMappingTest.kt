@@ -1,15 +1,8 @@
 package no.nav.helse.ws.person
 
 import no.nav.helse.ws.AktørId
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bostedsadresse
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Gateadresse
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Landkoder
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Person
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
+import no.nav.helse.ws.person.domain.Kjønn
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -21,7 +14,7 @@ class PersonMappingTest {
     fun personMappingMann() {
         val tpsMann = mannResponse()
         val id = AktørId("1234567891011")
-        val expected = no.nav.helse.ws.person.Person(
+        val expected = no.nav.helse.ws.person.domain.Person(
                 id = id,
                 fornavn = "Bjarne",
                 etternavn = "Betjent",
@@ -36,7 +29,7 @@ class PersonMappingTest {
     fun personMappingKvinne() {
         val tpsResponse = kvinneResponse()
         val id = AktørId("1234567891011")
-        val expected = no.nav.helse.ws.person.Person(
+        val expected = no.nav.helse.ws.person.domain.Person(
                 id = id,
                 fornavn = "Leonora",
                 mellomnavn = "Dorothea",
@@ -52,7 +45,7 @@ class PersonMappingTest {
     fun personMappingManglendeAdresse() {
         val tpsResponse = manglerAdresseResponse()
         val id = AktørId("1234567891011")
-        val expected = no.nav.helse.ws.person.Person(
+        val expected = no.nav.helse.ws.person.domain.Person(
                 id = id,
                 fornavn = "Leonora",
                 mellomnavn = "Dorothea",
@@ -60,6 +53,57 @@ class PersonMappingTest {
                 fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.KVINNE,
                 bostedsland = null)
+        val actual = PersonMapper.toPerson(tpsResponse)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun personMappingMedDiskresjonskode() {
+        val tpsResponse = medDiskresjonskodeResponse()
+        val id = AktørId("1234567891011")
+        val expected = no.nav.helse.ws.person.domain.Person(
+                id = id,
+                fornavn = "Leonora",
+                mellomnavn = "Dorothea",
+                etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
+                kjønn = Kjønn.KVINNE,
+                bostedsland = null,
+                diskresjonskode = "UFB")
+        val actual = PersonMapper.toPerson(tpsResponse)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun personMappingMedStatsborgerskap() {
+        val tpsResponse = medStatsborgerskapResponse()
+        val id = AktørId("1234567891011")
+        val expected = no.nav.helse.ws.person.domain.Person(
+                id = id,
+                fornavn = "Leonora",
+                mellomnavn = "Dorothea",
+                etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
+                kjønn = Kjønn.KVINNE,
+                bostedsland = null,
+                statsborgerskap = "NOR")
+        val actual = PersonMapper.toPerson(tpsResponse)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun personMappingMedPersonstatus() {
+        val tpsResponse = medPersonstatusResponse()
+        val id = AktørId("1234567891011")
+        val expected = no.nav.helse.ws.person.domain.Person(
+                id = id,
+                fornavn = "Leonora",
+                mellomnavn = "Dorothea",
+                etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
+                kjønn = Kjønn.KVINNE,
+                bostedsland = null,
+                status = "BOSA")
         val actual = PersonMapper.toPerson(tpsResponse)
         assertEquals(expected, actual)
     }
@@ -152,4 +196,91 @@ class PersonMappingTest {
         }
     }
 
+    private fun medDiskresjonskodeResponse(): Person {
+        return Person().apply {
+            personnavn = Personnavn().apply {
+                fornavn = "Leonora"
+                mellomnavn = "Dorothea"
+                etternavn = "Dahl"
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "K"
+                    }
+                }
+                aktoer = AktoerId().apply {
+                    aktoerId = "1234567891011"
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                        year = 2018
+                        month = 11
+                        day = 19
+                    }
+                }
+                diskresjonskode = Diskresjonskoder().apply {
+                    value = "UFB"
+                }
+            }
+        }
+    }
+
+    private fun medStatsborgerskapResponse(): Person {
+        return Person().apply {
+            personnavn = Personnavn().apply {
+                fornavn = "Leonora"
+                mellomnavn = "Dorothea"
+                etternavn = "Dahl"
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "K"
+                    }
+                }
+                aktoer = AktoerId().apply {
+                    aktoerId = "1234567891011"
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                        year = 2018
+                        month = 11
+                        day = 19
+                    }
+                }
+                statsborgerskap = Statsborgerskap().apply {
+                    land = Landkoder().apply {
+                        value = "NOR"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun medPersonstatusResponse(): Person {
+        return Person().apply {
+            personnavn = Personnavn().apply {
+                fornavn = "Leonora"
+                mellomnavn = "Dorothea"
+                etternavn = "Dahl"
+                kjoenn = Kjoenn().apply {
+                    kjoenn = Kjoennstyper().apply {
+                        value = "K"
+                    }
+                }
+                aktoer = AktoerId().apply {
+                    aktoerId = "1234567891011"
+                }
+                foedselsdato = Foedselsdato().apply {
+                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                        year = 2018
+                        month = 11
+                        day = 19
+                    }
+                }
+                personstatus = Personstatus().apply {
+                    personstatus = Personstatuser().apply {
+                        value = "BOSA"
+                    }
+                }
+            }
+        }
+    }
 }
