@@ -91,7 +91,7 @@ class OrganisasjonComponentTest {
 
 private val expectedJson = """
 {
-    "orgnr": "889640782",
+    "orgnummer": "889640782",
     "navn": "NAV, AVD SANNERGATA 2",
     "type": "Virksomhet"
 }

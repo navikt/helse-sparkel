@@ -13,11 +13,9 @@ fun Route.organisasjon(organisasjonService: OrganisasjonService) {
         call.parameters["orgnr"]?.let {
             Organisasjonsnummer(it)
         }?.let {
-            organisasjonService.hentOrganisasjon(it).map { organisasjon ->
-                OrganisasjonDTO(organisasjon.orgnr.value, organisasjon.navn, organisasjon.type())
-            }.respond(call)
+            organisasjonService.hentOrganisasjon(it)
+                    .map(OrganisasjonDtoMapper::toDto)
+                    .respond(call)
         }
     }
 }
-
-data class OrganisasjonDTO(val orgnr: String, val navn: String?, val type: String)

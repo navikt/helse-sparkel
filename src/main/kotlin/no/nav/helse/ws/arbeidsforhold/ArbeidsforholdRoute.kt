@@ -11,6 +11,7 @@ import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.arbeidsforhold.dto.ArbeidsforholdResponse
 import no.nav.helse.ws.arbeidsforhold.dto.ArbeidsgivereResponse
+import no.nav.helse.ws.organisasjon.OrganisasjonDtoMapper
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -60,7 +61,7 @@ fun Route.arbeidsforhold(
             }
 
             arbeidsforholdService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
-                it.map(ArbeidDtoMapper::toDto)
+                it.map(OrganisasjonDtoMapper::toDto)
             }.map {
                 ArbeidsgivereResponse(it)
             }.respond(call)

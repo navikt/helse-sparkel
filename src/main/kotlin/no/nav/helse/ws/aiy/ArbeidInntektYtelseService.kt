@@ -96,7 +96,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     private fun tilArbeidsforhold(arbeidsforhold: no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold) =
             Arbeidsforhold.Arbeidstaker(
                     arbeidsgiver = when (arbeidsforhold.arbeidsgiver) {
-                        is Arbeidsgiver.Virksomhet -> Virksomhet.Organisasjon(arbeidsforhold.arbeidsgiver.virksomhet.orgnr)
+                        is Arbeidsgiver.Virksomhet -> Virksomhet.Organisasjon(arbeidsforhold.arbeidsgiver.virksomhetsnummer)
                         is Arbeidsgiver.Person -> Virksomhet.Person(arbeidsforhold.arbeidsgiver.personnummer)
                     },
                     startdato = arbeidsforhold.startdato,

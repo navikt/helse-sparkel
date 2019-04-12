@@ -3,18 +3,14 @@ package no.nav.helse.ws.arbeidsforhold
 import io.prometheus.client.Histogram
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
-import no.nav.helse.common.toLocalDate
 import no.nav.helse.map
 import no.nav.helse.orElse
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -40,23 +36,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
             }, { liste ->
                 arbeidsforholdHistogram.observe(liste.size.toDouble())
 
-                liste.map { arbeidsforhold ->
-                    arbeidsforhold.arbeidsgiver.let { aktør ->
-                        when (aktør) {
-                            is Organisasjon -> no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver.Virksomhet(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(aktør.orgnummer), hentOrganisasjonsnavn(aktør)))
-                            is Person -> no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver.Person(aktør.ident.ident)
-                            else -> {
-                                log.error("unknown arbeidsgivertype: $aktør")
-                                null
-                            }
-                        }
-                    }?.let { arbeidsgiver ->
-                        Arbeidsforhold(arbeidsgiver,
-                                arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
-                                arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate()
-                        )
-                    }
-                }.filterNotNull()
+                liste.mapNotNull(ArbeidDomainMapper::toArbeidsforhold)
             })
 
     fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -76,7 +56,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 }.distinctBy { organisasjon ->
                     organisasjon.orgnummer
                 }.map { organisasjon ->
-                    Arbeidsgiver.Virksomhet(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(organisasjon.orgnummer), hentOrganisasjonsnavn(organisasjon)))
+                    no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(organisasjon.orgnummer), hentOrganisasjonsnavn(organisasjon))
                 }
             })
 

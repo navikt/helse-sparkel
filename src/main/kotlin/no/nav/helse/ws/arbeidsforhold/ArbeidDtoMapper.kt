@@ -14,10 +14,10 @@ object ArbeidDtoMapper {
                     sluttdato = arbeidsforhold.sluttdato)
 
     fun toDto(it: Arbeidsgiver.Virksomhet) =
-            ArbeidsgiverDTO(it.virksomhet.orgnr.value, it.virksomhet.navn)
+            ArbeidsgiverDTO(it.virksomhetsnummer.value, null)
 
     private fun arbeidsgiver(arbeidsgiver: Arbeidsgiver) = when (arbeidsgiver) {
-        is Arbeidsgiver.Virksomhet -> ArbeidsgiverDTO(arbeidsgiver.virksomhet.orgnr.value, arbeidsgiver.virksomhet.navn)
+        is Arbeidsgiver.Virksomhet -> ArbeidsgiverDTO(arbeidsgiver.virksomhetsnummer.value, null)
         is Arbeidsgiver.Person -> throw NotImplementedError("arbeidsgiver of type Person is not implemented")
     }
 }

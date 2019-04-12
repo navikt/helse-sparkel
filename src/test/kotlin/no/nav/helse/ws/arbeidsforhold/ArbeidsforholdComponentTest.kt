@@ -317,13 +317,13 @@ class ArbeidsforholdComponentTest {
         }
 
         every {
-            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+            organisasjonV5.hentOrganisasjon(match {
                 it.orgnummer == "913548221"
             })
         } throws(Exception("SOAP fault"))
 
         every {
-            organisasjonV5.hentNoekkelinfoOrganisasjon(match {
+            organisasjonV5.hentOrganisasjon(match {
                 it.orgnummer == "984054564"
             })
         } throws(Exception("SOAP fault"))
@@ -342,7 +342,7 @@ class ArbeidsforholdComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(200, response.status()?.value)
+                assertEquals(HttpStatusCode.OK, response.status())
                 assertJsonEquals(JSONObject(expectedJson_arbeidsgivere_uten_navn), JSONObject(response.content))
             }
         }
@@ -461,10 +461,12 @@ private val expectedJson_arbeidsgivere = """
 {
     "arbeidsgivere": [{
         "orgnummer": "913548221",
-        "navn": "EQUINOR AS, AVD STATOIL SOKKELVIRKSOMHET"
+        "navn": "EQUINOR AS, AVD STATOIL SOKKELVIRKSOMHET",
+        "type": "Virksomhet"
     },{
         "orgnummer": "984054564",
-        "navn": "NAV, AVD WALDEMAR THRANES GATE"
+        "navn": "NAV, AVD WALDEMAR THRANES GATE",
+        "type": "Virksomhet"
     }]
 }
 """.trimIndent()
@@ -472,9 +474,11 @@ private val expectedJson_arbeidsgivere = """
 private val expectedJson_arbeidsgivere_uten_navn = """
 {
     "arbeidsgivere": [{
-        "orgnummer": "913548221"
+        "orgnummer": "913548221",
+        "type": "Virksomhet"
     },{
-        "orgnummer": "984054564"
+        "orgnummer": "984054564",
+        "type": "Virksomhet"
     }]
 }
 """.trimIndent()
@@ -483,14 +487,12 @@ private val expectedJson_arbeidsforhold = """
 {
     "arbeidsforhold": [{
         "arbeidsgiver": {
-            "orgnummer": "889640782",
-            "navn": "MATBUTIKKEN AS"
+            "orgnummer": "889640782"
         },
         "startdato": "2019-01-01"
     },{
         "arbeidsgiver": {
-            "orgnummer": "995298775",
-            "navn": "S. VINDEL & SØNN"
+            "orgnummer": "995298775"
         },
         "startdato": "2015-01-01",
         "sluttdato": "2019-01-01"
