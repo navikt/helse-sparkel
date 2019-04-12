@@ -16,8 +16,8 @@ object PersonMapper {
                     person.personnavn.etternavn,
                     person.foedselsdato.foedselsdato.toLocalDate(),
                     if (person.kjoenn.kjoenn.value == "M") MANN else KVINNE,
-                    person.statsborgerskap?.land?.value,
-                    person.personstatus?.personstatus?.value,
+                    person.statsborgerskap.land.value,
+                    person.personstatus.personstatus.value,
                     person.bostedsadresse?.strukturertAdresse?.landkode?.value,
                     person.diskresjonskode?.value
             )

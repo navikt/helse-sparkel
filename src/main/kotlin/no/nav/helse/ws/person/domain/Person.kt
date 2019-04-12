@@ -10,8 +10,8 @@ data class Person(
         val etternavn: String,
         val fdato: LocalDate,
         val kjønn: Kjønn,
-        val statsborgerskap: String? = null,
-        val status: String? = null,
+        val statsborgerskap: String,
+        val status: String,
         val bostedsland: String? = null,
         val diskresjonskode: String? = null
 )

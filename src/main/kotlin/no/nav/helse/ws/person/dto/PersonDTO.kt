@@ -10,8 +10,8 @@ data class PersonDTO(
         val etternavn: String,
         val fdato: LocalDate,
         val kjønn: Kjønn,
-        val statsborgerskap: String?,
-        val status: String?,
+        val statsborgerskap: String,
+        val status: String,
         val bostedsland: String?,
         val diskresjonskode: String?
 )

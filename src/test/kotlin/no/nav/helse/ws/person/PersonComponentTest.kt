@@ -60,6 +60,16 @@ class PersonComponentTest {
                 foedselsdato = Foedselsdato().apply {
                     foedselsdato = LocalDate.parse("1984-07-08").toXmlGregorianCalendar()
                 }
+                statsborgerskap = Statsborgerskap().apply {
+                    land = Landkoder().apply {
+                        value = "NOR"
+                    }
+                }
+                personstatus = Personstatus().apply {
+                    personstatus = Personstatuser().apply {
+                        value = "BOSA"
+                    }
+                }
             }
         }
 
@@ -245,7 +255,9 @@ private val expected_person_response = """
     "mellomnavn": "PIKENES",
     "fornavn": "JENNY",
     "kjønn": "KVINNE",
-    "bostedsland": "NOR"
+    "bostedsland": "NOR",
+    "statsborgerskap": "NOR",
+    "status": "BOSA"
 }
 """.trimIndent()
 

@@ -20,7 +20,9 @@ class PersonMappingTest {
                 etternavn = "Betjent",
                 fdato = LocalDate.of(2018, 11, 20),
                 kjønn = Kjønn.MANN,
-                bostedsland = "NOR")
+                bostedsland = "NOR",
+                statsborgerskap = "NOR",
+                status = "BOSA")
         val actual = PersonMapper.toPerson(tpsMann)
         assertEquals(expected, actual)
     }
@@ -36,7 +38,9 @@ class PersonMappingTest {
                 etternavn = "Dahl",
                 fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.KVINNE,
-                bostedsland = "NOR")
+                bostedsland = "NOR",
+                statsborgerskap = "NOR",
+                status = "BOSA")
         val actual = PersonMapper.toPerson(tpsResponse)
         assertEquals(expected, actual)
     }
@@ -52,7 +56,9 @@ class PersonMappingTest {
                 etternavn = "Dahl",
                 fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.KVINNE,
-                bostedsland = null)
+                bostedsland = null,
+                statsborgerskap = "NOR",
+                status = "BOSA")
         val actual = PersonMapper.toPerson(tpsResponse)
         assertEquals(expected, actual)
     }
@@ -68,42 +74,10 @@ class PersonMappingTest {
                 etternavn = "Dahl",
                 fdato = LocalDate.of(2018, 11, 19),
                 kjønn = Kjønn.KVINNE,
+                statsborgerskap = "NOR",
+                status = "BOSA",
                 bostedsland = null,
                 diskresjonskode = "UFB")
-        val actual = PersonMapper.toPerson(tpsResponse)
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun personMappingMedStatsborgerskap() {
-        val tpsResponse = medStatsborgerskapResponse()
-        val id = AktørId("1234567891011")
-        val expected = no.nav.helse.ws.person.domain.Person(
-                id = id,
-                fornavn = "Leonora",
-                mellomnavn = "Dorothea",
-                etternavn = "Dahl",
-                fdato = LocalDate.of(2018, 11, 19),
-                kjønn = Kjønn.KVINNE,
-                bostedsland = null,
-                statsborgerskap = "NOR")
-        val actual = PersonMapper.toPerson(tpsResponse)
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun personMappingMedPersonstatus() {
-        val tpsResponse = medPersonstatusResponse()
-        val id = AktørId("1234567891011")
-        val expected = no.nav.helse.ws.person.domain.Person(
-                id = id,
-                fornavn = "Leonora",
-                mellomnavn = "Dorothea",
-                etternavn = "Dahl",
-                fdato = LocalDate.of(2018, 11, 19),
-                kjønn = Kjønn.KVINNE,
-                bostedsland = null,
-                status = "BOSA")
         val actual = PersonMapper.toPerson(tpsResponse)
         assertEquals(expected, actual)
     }
@@ -113,14 +87,14 @@ class PersonMappingTest {
             personnavn = Personnavn().apply {
                 fornavn = "Bjarne"
                 etternavn = "Betjent"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
-                        value = "M"
-                    }
+            }
+            kjoenn = Kjoenn().apply {
+                kjoenn = Kjoennstyper().apply {
+                    value = "M"
                 }
-                aktoer = AktoerId().apply {
-                    aktoerId = "1234567891011"
-                }
+            }
+            aktoer = AktoerId().apply {
+                aktoerId = "1234567891011"
             }
             foedselsdato = Foedselsdato().apply {
                 foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
@@ -136,6 +110,16 @@ class PersonMappingTest {
                     }
                 }
             }
+            statsborgerskap = Statsborgerskap().apply {
+                land = Landkoder().apply {
+                    value = "NOR"
+                }
+            }
+            personstatus = Personstatus().apply {
+                personstatus = Personstatuser().apply {
+                    value = "BOSA"
+                }
+            }
         }
     }
 
@@ -145,20 +129,20 @@ class PersonMappingTest {
                 fornavn = "Leonora"
                 mellomnavn = "Dorothea"
                 etternavn = "Dahl"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
-                        value = "K"
-                    }
+            }
+            kjoenn = Kjoenn().apply {
+                kjoenn = Kjoennstyper().apply {
+                    value = "K"
                 }
-                aktoer = AktoerId().apply {
-                    aktoerId = "1234567891011"
-                }
-                foedselsdato = Foedselsdato().apply {
-                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
-                        year = 2018
-                        month = 11
-                        day = 19
-                    }
+            }
+            aktoer = AktoerId().apply {
+                aktoerId = "1234567891011"
+            }
+            foedselsdato = Foedselsdato().apply {
+                foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                    year = 2018
+                    month = 11
+                    day = 19
                 }
             }
             bostedsadresse = Bostedsadresse().apply {
@@ -166,6 +150,16 @@ class PersonMappingTest {
                     landkode = Landkoder().apply {
                         value = "NOR"
                     }
+                }
+            }
+            statsborgerskap = Statsborgerskap().apply {
+                land = Landkoder().apply {
+                    value = "NOR"
+                }
+            }
+            personstatus = Personstatus().apply {
+                personstatus = Personstatuser().apply {
+                    value = "BOSA"
                 }
             }
         }
@@ -177,20 +171,30 @@ class PersonMappingTest {
                 fornavn = "Leonora"
                 mellomnavn = "Dorothea"
                 etternavn = "Dahl"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
-                        value = "K"
-                    }
+            }
+            kjoenn = Kjoenn().apply {
+                kjoenn = Kjoennstyper().apply {
+                    value = "K"
                 }
-                aktoer = AktoerId().apply {
-                    aktoerId = "1234567891011"
+            }
+            aktoer = AktoerId().apply {
+                aktoerId = "1234567891011"
+            }
+            foedselsdato = Foedselsdato().apply {
+                foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                    year = 2018
+                    month = 11
+                    day = 19
                 }
-                foedselsdato = Foedselsdato().apply {
-                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
-                        year = 2018
-                        month = 11
-                        day = 19
-                    }
+            }
+            statsborgerskap = Statsborgerskap().apply {
+                land = Landkoder().apply {
+                    value = "NOR"
+                }
+            }
+            personstatus = Personstatus().apply {
+                personstatus = Personstatuser().apply {
+                    value = "BOSA"
                 }
             }
         }
@@ -202,83 +206,33 @@ class PersonMappingTest {
                 fornavn = "Leonora"
                 mellomnavn = "Dorothea"
                 etternavn = "Dahl"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
-                        value = "K"
-                    }
-                }
-                aktoer = AktoerId().apply {
-                    aktoerId = "1234567891011"
-                }
-                foedselsdato = Foedselsdato().apply {
-                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
-                        year = 2018
-                        month = 11
-                        day = 19
-                    }
-                }
-                diskresjonskode = Diskresjonskoder().apply {
-                    value = "UFB"
+            }
+            kjoenn = Kjoenn().apply {
+                kjoenn = Kjoennstyper().apply {
+                    value = "K"
                 }
             }
-        }
-    }
-
-    private fun medStatsborgerskapResponse(): Person {
-        return Person().apply {
-            personnavn = Personnavn().apply {
-                fornavn = "Leonora"
-                mellomnavn = "Dorothea"
-                etternavn = "Dahl"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
-                        value = "K"
-                    }
-                }
-                aktoer = AktoerId().apply {
-                    aktoerId = "1234567891011"
-                }
-                foedselsdato = Foedselsdato().apply {
-                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
-                        year = 2018
-                        month = 11
-                        day = 19
-                    }
-                }
-                statsborgerskap = Statsborgerskap().apply {
-                    land = Landkoder().apply {
-                        value = "NOR"
-                    }
+            aktoer = AktoerId().apply {
+                aktoerId = "1234567891011"
+            }
+            foedselsdato = Foedselsdato().apply {
+                foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                    year = 2018
+                    month = 11
+                    day = 19
                 }
             }
-        }
-    }
-
-    private fun medPersonstatusResponse(): Person {
-        return Person().apply {
-            personnavn = Personnavn().apply {
-                fornavn = "Leonora"
-                mellomnavn = "Dorothea"
-                etternavn = "Dahl"
-                kjoenn = Kjoenn().apply {
-                    kjoenn = Kjoennstyper().apply {
-                        value = "K"
-                    }
+            diskresjonskode = Diskresjonskoder().apply {
+                value = "UFB"
+            }
+            statsborgerskap = Statsborgerskap().apply {
+                land = Landkoder().apply {
+                    value = "NOR"
                 }
-                aktoer = AktoerId().apply {
-                    aktoerId = "1234567891011"
-                }
-                foedselsdato = Foedselsdato().apply {
-                    foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
-                        year = 2018
-                        month = 11
-                        day = 19
-                    }
-                }
-                personstatus = Personstatus().apply {
-                    personstatus = Personstatuser().apply {
-                        value = "BOSA"
-                    }
+            }
+            personstatus = Personstatus().apply {
+                personstatus = Personstatuser().apply {
+                    value = "BOSA"
                 }
             }
         }
