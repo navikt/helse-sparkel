@@ -2,9 +2,7 @@ package no.nav.helse
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.application.log
+import io.ktor.application.*
 import io.ktor.auth.Authentication
 import io.ktor.auth.authenticate
 import io.ktor.auth.jwt.JWTPrincipal
@@ -14,7 +12,9 @@ import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.callIdMdc
 import io.ktor.http.ContentType
+import io.ktor.request.httpMethod
 import io.ktor.request.path
+import io.ktor.request.uri
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -159,6 +159,10 @@ fun Application.sparkel(
         generate { UUID.randomUUID().toString() }
     }
 
+    intercept(ApplicationCallPipeline.Monitoring) {
+        log.info("incoming ${call.request.httpMethod.value} ${call.request.uri}")
+    }
+
     install(CallLogging) {
         level = Level.INFO
         callIdMdc("call_id")
@@ -218,3 +222,4 @@ fun Application.sparkel(
         nais(collectorRegistry)
     }
 }
+
