@@ -8,22 +8,15 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.Either
+import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.*
 import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.*
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -117,9 +110,49 @@ class ArbeidsforholdIntegrationTest {
             }
         }
     }
+
+    @Test
+    fun `skal hente historiske arbeidsavtaler`() {
+
+        val aktørId = AktørId("08088806280")
+        val fom = LocalDate.parse("2017-01-01")
+        val tom = LocalDate.parse("2019-01-01")
+
+        val arbeidsforholdId = 123456789L
+
+        val expected = listOf(
+            Arbeidsavtale().apply {
+                fomGyldighetsperiode = LocalDate.parse("2017-01-01").toXmlGregorianCalendar()
+            },
+            Arbeidsavtale().apply {
+                fomGyldighetsperiode = LocalDate.parse("2016-01-01").toXmlGregorianCalendar()
+                tomGyldighetsperiode = LocalDate.parse("2016-12-31").toXmlGregorianCalendar()
+            }
+        )
+
+        arbeidsforholdHistorikkStub(
+                server = server,
+                scenario = "arbeidsforhold_hent_arbeidsavtaler",
+                request = hentArbeidsforholdHistorikkStub(arbeidsforholdId.toString()),
+                response = WireMock.ok(finnHistorikkForArbeidsforhold_response_1)
+        ) { arbeidsforholdClient ->
+            val actual = arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdId)
+
+            when (actual) {
+                is Either.Right -> {
+                    assertEquals(expected.size, actual.right.size)
+                    expected.forEachIndexed { index, expectedAvtale ->
+                        assertEquals(expectedAvtale.fomGyldighetsperiode.toLocalDate(), actual.right[index].fomGyldighetsperiode.toLocalDate())
+                        assertEquals(expectedAvtale.tomGyldighetsperiode?.toLocalDate(), actual.right[index].tomGyldighetsperiode?.toLocalDate())
+                    }
+                }
+                is Either.Left -> fail { "Expected Either.Right to be returned" }
+            }
+        }
+    }
 }
 
-fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: MappingBuilder, response: ResponseDefinitionBuilder, historikk: List<Pair<MappingBuilder, ResponseDefinitionBuilder>> = emptyList(), test: (ArbeidsforholdClient) -> Unit) {
+fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: MappingBuilder, response: ResponseDefinitionBuilder, test: (ArbeidsforholdClient) -> Unit) {
     val stsUsername = "stsUsername"
     val stsPassword = "stsPassword"
 
@@ -145,6 +178,45 @@ fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: Mappin
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsforhold_stub_called"))
+
+    val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
+    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
+
+    val wsClients = WsClients(stsClientWs, stsClientRest, true)
+
+    test(wsClients.arbeidsforhold(server.baseUrl().plus("/aareg")))
+
+    WireMock.listAllStubMappings().mappings.forEach {
+        WireMock.verify(RequestPatternBuilder.like(it.request))
+    }
+}
+
+fun arbeidsforholdHistorikkStub(server: WireMockServer, scenario: String, request: MappingBuilder, response: ResponseDefinitionBuilder, test: (ArbeidsforholdClient) -> Unit) {
+    val stsUsername = "stsUsername"
+    val stsPassword = "stsPassword"
+
+    val tokenSubject = "srvtestapp"
+    val tokenIssuer = "Certificate Authority Inc"
+    val tokenIssuerName = "CN=Certificate Authority Inc, DC=example, DC=com"
+    val tokenDigest = "a random string"
+    val tokenSignature = "yet another random string"
+    val tokenCertificate = "one last random string"
+
+    WireMock.stubFor(stsStub(stsUsername, stsPassword)
+            .willReturn(samlAssertionResponse(tokenSubject, tokenIssuer, tokenIssuerName,
+                    tokenDigest, tokenSignature, tokenCertificate))
+            .inScenario(scenario)
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willSetStateTo("security_token_service_called"))
+
+    WireMock.stubFor(request
+            .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
+                    tokenDigest, tokenSignature, tokenCertificate)
+            .withCallId("Sett inn call id her")
+            .willReturn(response)
+            .inScenario(scenario)
+            .whenScenarioStateIs("security_token_service_called")
+            .willSetStateTo("arbeidsforhold_historikk_stub_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
     val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
@@ -255,6 +327,55 @@ private val finnArbeidsforholdPrArbeidstaker_response = """
          </parameters>
       </ns2:finnArbeidsforholdPrArbeidstakerResponse>
    </soap:Body>
+</soap:Envelope>
+""".trimIndent()
+
+private val finnHistorikkForArbeidsforhold_response_1 = """
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <ns2:hentArbeidsforholdHistorikkResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3">
+            <parameters>
+                <arbeidsforhold applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" opphavREF="0475917" opprettelsestidspunkt="2019-01-21T10:36:17.129+01:00" opprettetAv="Z990603" sistBekreftet="2019-01-21T10:36:17.000+01:00">
+                    <arbeidsforholdID>7132068136</arbeidsforholdID>
+                    <arbeidsforholdIDnav>46590219</arbeidsforholdIDnav>
+                    <ansettelsesPeriode applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" opphavREF="0475917">
+                        <periode>
+                            <fom>2016-01-01T00:00:00.000+01:00</fom>
+                        </periode>
+                    </ansettelsesPeriode>
+                    <arbeidsforholdstype kodeRef="ordinaertArbeidsforhold">Ordinært arbeidsforhold</arbeidsforholdstype>
+                    <arbeidsavtale applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" fomGyldighetsperiode="2017-01-01T00:00:00.000+01:00" opphavREF="0475917">
+                        <arbeidstidsordning kodeRef="ikkeSkift">Ikke skift</arbeidstidsordning>
+                        <avloenningstype kodeRef="fast">Fastlønn</avloenningstype>
+                        <yrke kodeRef="0017561">KINOMASKINIST</yrke>
+                        <avtaltArbeidstimerPerUke>40.0</avtaltArbeidstimerPerUke>
+                        <stillingsprosent>100.0</stillingsprosent>
+                        <beregnetAntallTimerPrUke>40.0</beregnetAntallTimerPrUke>
+                    </arbeidsavtale>
+                    <arbeidsavtale applikasjonsID="AAREG" endretAv="Z990603" endringstidspunkt="2019-01-21T10:36:17.129+01:00" fomBruksperiode="2019-01-21+01:00" fomGyldighetsperiode="2016-01-01T00:00:00.000+01:00" tomGyldighetsperiode="2016-12-31T00:00:00.000+01:00" opphavREF="0475917">
+                        <arbeidstidsordning kodeRef="ikkeSkift">Ikke skift</arbeidstidsordning>
+                        <avloenningstype kodeRef="fast">Fastlønn</avloenningstype>
+                        <yrke kodeRef="0017561">KINOMASKINIST</yrke>
+                        <avtaltArbeidstimerPerUke>40.0</avtaltArbeidstimerPerUke>
+                        <stillingsprosent>100.0</stillingsprosent>
+                        <beregnetAntallTimerPrUke>40.0</beregnetAntallTimerPrUke>
+                    </arbeidsavtale>
+                    <arbeidsgiver xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns4:Organisasjon">
+                        <orgnummer>995298775</orgnummer>
+                    </arbeidsgiver>
+                    <arbeidstaker>
+                        <ident>
+                            <ident>08088806280</ident>
+                        </ident>
+                    </arbeidstaker>
+                    <opplysningspliktig xmlns:ns4="http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/informasjon/arbeidsforhold" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns4:Organisasjon">
+                        <orgnummer>889640782</orgnummer>
+                    </opplysningspliktig>
+                    <arbeidsforholdInnrapportertEtterAOrdningen>true</arbeidsforholdInnrapportertEtterAOrdningen>
+                </arbeidsforhold>
+            </parameters>
+        </ns2:hentArbeidsforholdHistorikkResponse>
+    </soap:Body>
 </soap:Envelope>
 """.trimIndent()
 

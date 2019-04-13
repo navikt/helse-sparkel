@@ -1,14 +1,14 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.Feilårsak
-import no.nav.helse.bimap
-import no.nav.helse.map
-import no.nav.helse.orElse
+import no.nav.helse.*
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.HentArbeidsforholdHistorikkArbeidsforholdIkkeFunnet
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.HentArbeidsforholdHistorikkSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import java.time.LocalDate
 
@@ -23,6 +23,25 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 }
             }, { liste ->
                 liste.mapNotNull(ArbeidDomainMapper::toArbeidsforhold)
+            }).flatMap { liste ->
+                liste.map { arbeidsforhold ->
+                    finnHistoriskeAvtaler(arbeidsforhold).map { avtaler ->
+                        arbeidsforhold.copy(
+                                arbeidsavtaler = avtaler
+                        )
+                    }
+                }.sequenceU()
+            }
+
+    private fun finnHistoriskeAvtaler(arbeidsforhold: Arbeidsforhold) =
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforhold.arbeidsforholdId).bimap({
+                when (it) {
+                    is HentArbeidsforholdHistorikkSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
+                    is HentArbeidsforholdHistorikkArbeidsforholdIkkeFunnet -> Feilårsak.IkkeFunnet
+                    else -> Feilårsak.UkjentFeil
+                }
+            }, { avtaler ->
+                avtaler.map(ArbeidDomainMapper::toArbeidsavtale)
             })
 
     fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =

@@ -35,8 +35,8 @@ object ArbeidDtoMapper {
                 )
             }
 
-    fun toPermisjonDto(permisjon: List<Permisjon>) =
-            permisjon.map { permisjon ->
+    fun toPermisjonDto(permisjonsliste: List<Permisjon>) =
+            permisjonsliste.map { permisjon ->
                 PermisjonDTO(
                         fom = permisjon.fom,
                         tom = permisjon.tom,

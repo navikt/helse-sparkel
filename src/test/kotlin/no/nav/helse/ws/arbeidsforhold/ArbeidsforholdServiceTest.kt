@@ -35,6 +35,7 @@ class ArbeidsforholdServiceTest {
                 no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(
                         arbeidsgiver = Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")),
                         startdato = LocalDate.parse("2019-01-01"),
+                        arbeidsforholdId = 1234L,
                         arbeidsavtaler = listOf(
                                 no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(100), LocalDate.parse("2019-01-01"), null)
                         )),
@@ -42,8 +43,11 @@ class ArbeidsforholdServiceTest {
                         arbeidsgiver = Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")),
                         startdato = LocalDate.parse("2015-01-01"),
                         sluttdato = LocalDate.parse("2019-01-01"),
+                        arbeidsforholdId = 5678L,
                         arbeidsavtaler = listOf(
-                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(100), LocalDate.parse("2015-01-01"), LocalDate.parse("2019-01-01"))
+                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(100), LocalDate.parse("2017-01-01"), LocalDate.parse("2019-01-01")),
+                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(80), LocalDate.parse("2016-01-01"), LocalDate.parse("2016-12-31")),
+                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale("Butikkmedarbeider", BigDecimal.valueOf(60), LocalDate.parse("2015-01-01"), LocalDate.parse("2015-12-31"))
                         ),
                         permisjon = listOf(
                                 Permisjon(
@@ -63,6 +67,7 @@ class ArbeidsforholdServiceTest {
                 orgnummer = "889640782"
                 navn = "S. VINDEL & SØNN"
             }
+            arbeidsforholdIDnav = 1234L
             ansettelsesPeriode = AnsettelsesPeriode().apply {
                 periode = Gyldighetsperiode().apply {
                     this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
@@ -82,6 +87,7 @@ class ArbeidsforholdServiceTest {
                 orgnummer = "995298775"
                 navn = "MATBUTIKKEN AS"
             }
+            arbeidsforholdIDnav = 5678L
             ansettelsesPeriode = AnsettelsesPeriode().apply {
                 periode = Gyldighetsperiode().apply {
                     this.fom = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
@@ -114,95 +120,40 @@ class ArbeidsforholdServiceTest {
             Either.Right(it)
         }
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
-                expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
-                }
+        every {
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(1234L)
+        } returns Either.Right(listOf(Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
             }
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal hente navn på arbeidsgiver når navn er tomt`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), LocalDate.parse("2019-01-01"))
-        )
+            stillingsprosent = BigDecimal.valueOf(100)
+        }))
 
         every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns listOf(Arbeidsforhold().apply {
-            arbeidsgiver = Organisasjon().apply {
-                orgnummer = "889640782"
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(5678L)
+        } returns Either.Right(listOf(Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2017-01-01").toXmlGregorianCalendar()
+            tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
             }
-            ansettelsesPeriode = AnsettelsesPeriode().apply {
-                periode = Gyldighetsperiode().apply {
-                    this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
-                }
+            stillingsprosent = BigDecimal.valueOf(100)
+        }, Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2016-01-01").toXmlGregorianCalendar()
+            tomGyldighetsperiode = LocalDate.parse("2016-12-31").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
             }
-        }).let {
-            Either.Right(it)
-        }
-
-        every {
-            organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), "MATBUTIKKEN AS"))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
-                expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
-                }
+            stillingsprosent = BigDecimal.valueOf(80)
+        }, Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
+            tomGyldighetsperiode = LocalDate.parse("2015-12-31").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
             }
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `feil ved henting av navn skal ikke medføre feil`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), LocalDate.parse("2019-01-01"))
-        )
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns listOf(Arbeidsforhold().apply {
-            arbeidsgiver = Organisasjon().apply {
-                orgnummer = "889640782"
-            }
-            ansettelsesPeriode = AnsettelsesPeriode().apply {
-                periode = Gyldighetsperiode().apply {
-                    this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
-                }
-            }
-        }).let {
-            Either.Right(it)
-        }
-
-        every {
-            organisasjonService.hentOrganisasjon(Organisasjonsnummer("889640782"))
-        } returns Either.Left(Feilårsak.FeilFraTjeneste)
+            stillingsprosent = BigDecimal.valueOf(60)
+        }))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 
@@ -216,7 +167,6 @@ class ArbeidsforholdServiceTest {
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
-
 
     @Test
     fun `ukjent arbeidsgivertype skal merkes som ukjent`() {
@@ -228,7 +178,18 @@ class ArbeidsforholdServiceTest {
         val tom = LocalDate.parse("2019-02-01")
 
         val expected = listOf(
-                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(Arbeidsgiver.Person("12345678911"), LocalDate.parse("2019-02-01"))
+                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold(
+                        arbeidsgiver = Arbeidsgiver.Person("12345678911"),
+                        startdato = LocalDate.parse("2019-02-01"),
+                        arbeidsforholdId = 1234L,
+                        arbeidsavtaler = listOf(
+                                no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale(
+                                        yrke = "Butikkmedarbeider",
+                                        stillingsprosent = BigDecimal.valueOf(100),
+                                        fom = LocalDate.parse("2019-02-01"),
+                                        tom = null
+                                )
+                        ))
         )
 
         every {
@@ -239,6 +200,7 @@ class ArbeidsforholdServiceTest {
                     ident = "12345678911"
                 }
             }
+            arbeidsforholdIDnav = 1234L
             ansettelsesPeriode = AnsettelsesPeriode().apply {
                 periode = Gyldighetsperiode().apply {
                     this.fom = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
@@ -249,6 +211,7 @@ class ArbeidsforholdServiceTest {
                 arbeidsgivernummer = "12345"
                 navn = "S. VINDEL & SØNN"
             }
+            arbeidsforholdIDnav = 5678L
             ansettelsesPeriode = AnsettelsesPeriode().apply {
                 periode = Gyldighetsperiode().apply {
                     this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
@@ -257,6 +220,16 @@ class ArbeidsforholdServiceTest {
         }).let {
             Either.Right(it)
         }
+
+        every {
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(1234L)
+        } returns Either.Right(listOf(Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
+            }
+            stillingsprosent = BigDecimal.valueOf(100)
+        }))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsforhold(aktørId, fom, tom)
 

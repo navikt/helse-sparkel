@@ -24,6 +24,7 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Yrker
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkResponse
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Periode
@@ -169,6 +170,7 @@ class ArbeidInntektYtelseComponentTest {
                     arbeidsgiver = Organisasjon().apply {
                         orgnummer = virksomhet
                     }
+                    arbeidsforholdIDnav = 1234L
                     ansettelsesPeriode = AnsettelsesPeriode().apply {
                         periode = Gyldighetsperiode().apply {
                             this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
@@ -196,6 +198,32 @@ class ArbeidInntektYtelseComponentTest {
                         })
                     }
                 })
+            }
+        }
+
+        every {
+            arbeidsforholdV3.hentArbeidsforholdHistorikk(match { request ->
+                request.arbeidsforholdId == 1234L
+            })
+        } returns HentArbeidsforholdHistorikkResponse().apply {
+            arbeidsforhold = Arbeidsforhold().apply {
+                with(arbeidsavtale) {
+                    add(Arbeidsavtale().apply {
+                        fomGyldighetsperiode = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
+                        yrke = Yrker().apply {
+                            value = "Butikkmedarbeider"
+                        }
+                        stillingsprosent = BigDecimal.valueOf(100)
+                    })
+                    add(Arbeidsavtale().apply {
+                        fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                        tomGyldighetsperiode = LocalDate.parse("2019-01-31").toXmlGregorianCalendar()
+                        yrke = Yrker().apply {
+                            value = "Butikkmedarbeider"
+                        }
+                        stillingsprosent = BigDecimal.valueOf(50)
+                    })
+                }
             }
         }
 
@@ -388,9 +416,15 @@ private val expectedJson_arbeidsforholdMedInntekter = """
         ],
         "arbeidsavtaler": [
             {
-                "fom":"2019-01-01",
+                "fom":"2019-02-01",
                 "yrke":"Butikkmedarbeider",
                 "stillingsprosent":100
+            },
+            {
+                "fom":"2019-01-01",
+                "tom":"2019-01-31",
+                "yrke":"Butikkmedarbeider",
+                "stillingsprosent":50
             }
         ]
       },

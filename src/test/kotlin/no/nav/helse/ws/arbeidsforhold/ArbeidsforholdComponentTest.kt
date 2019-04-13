@@ -16,16 +16,15 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.organisasjon.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.AnsettelsesPeriode
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Gyldighetsperiode
-import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkResponse
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -156,6 +155,7 @@ class ArbeidsforholdComponentTest {
                     arbeidsgiver = Organisasjon().apply {
                         orgnummer = "889640782"
                     }
+                    arbeidsforholdIDnav = 1234L
                     ansettelsesPeriode = AnsettelsesPeriode().apply {
                         periode = Gyldighetsperiode().apply {
                             this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
@@ -167,6 +167,7 @@ class ArbeidsforholdComponentTest {
                         orgnummer = "995298775"
                         navn = "S. VINDEL & SØNN"
                     }
+                    arbeidsforholdIDnav = 5678L
                     ansettelsesPeriode = AnsettelsesPeriode().apply {
                         periode = Gyldighetsperiode().apply {
                             this.fom = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
@@ -178,16 +179,54 @@ class ArbeidsforholdComponentTest {
         }
 
         every {
-            organisasjonV5.hentOrganisasjon(match {
-                it.orgnummer == "889640782"
+            arbeidsforholdV3.hentArbeidsforholdHistorikk(match { request ->
+                request.arbeidsforholdId == 1234L
             })
-        } returns HentOrganisasjonResponse().apply {
-            organisasjon = no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet().apply {
-                orgnummer = "889640782"
-                navn = UstrukturertNavn().apply {
-                    with (navnelinje) {
-                        add("MATBUTIKKEN AS")
-                    }
+        } returns HentArbeidsforholdHistorikkResponse().apply {
+            arbeidsforhold = Arbeidsforhold().apply {
+                with(arbeidsavtale) {
+                    add(Arbeidsavtale().apply {
+                        fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                        yrke = Yrker().apply {
+                            value = "Butikkmedarbeider"
+                        }
+                        stillingsprosent = BigDecimal.valueOf(100)
+                    })
+                }
+            }
+        }
+
+        every {
+            arbeidsforholdV3.hentArbeidsforholdHistorikk(match { request ->
+                request.arbeidsforholdId == 5678L
+            })
+        } returns HentArbeidsforholdHistorikkResponse().apply {
+            arbeidsforhold = Arbeidsforhold().apply {
+                with (arbeidsavtale) {
+                    add(Arbeidsavtale().apply {
+                        fomGyldighetsperiode = LocalDate.parse("2017-01-01").toXmlGregorianCalendar()
+                        tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                        yrke = Yrker().apply {
+                            value = "Butikkmedarbeider"
+                        }
+                        stillingsprosent = BigDecimal.valueOf(100)
+                    })
+                    add(Arbeidsavtale().apply {
+                        fomGyldighetsperiode = LocalDate.parse("2016-01-01").toXmlGregorianCalendar()
+                        tomGyldighetsperiode = LocalDate.parse("2016-12-31").toXmlGregorianCalendar()
+                        yrke = Yrker().apply {
+                            value = "Butikkmedarbeider"
+                        }
+                        stillingsprosent = BigDecimal.valueOf(80)
+                    })
+                    add(Arbeidsavtale().apply {
+                        fomGyldighetsperiode = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
+                        tomGyldighetsperiode = LocalDate.parse("2015-12-31").toXmlGregorianCalendar()
+                        yrke = Yrker().apply {
+                            value = "Butikkmedarbeider"
+                        }
+                        stillingsprosent = BigDecimal.valueOf(60)
+                    })
                 }
             }
         }
@@ -284,7 +323,7 @@ class ArbeidsforholdComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(200, response.status()?.value)
+                assertEquals(HttpStatusCode.OK, response.status())
                 assertJsonEquals(JSONObject(expectedJson_arbeidsgivere), JSONObject(response.content))
             }
         }
@@ -490,7 +529,13 @@ private val expectedJson_arbeidsforhold = """
             "orgnummer": "889640782"
         },
         "startdato": "2019-01-01",
-        "arbeidsavtaler": [],
+        "arbeidsavtaler": [
+            {
+                "fom":"2019-01-01",
+                "yrke":"Butikkmedarbeider",
+                "stillingsprosent":100
+            }
+        ],
         "permisjon": []
     },{
         "arbeidsgiver": {
@@ -498,7 +543,26 @@ private val expectedJson_arbeidsforhold = """
         },
         "startdato": "2015-01-01",
         "sluttdato": "2019-01-01",
-        "arbeidsavtaler": [],
+        "arbeidsavtaler": [
+            {
+                "fom":"2017-01-01",
+                "tom":"2019-01-01",
+                "yrke":"Butikkmedarbeider",
+                "stillingsprosent":100
+            },
+            {
+                "fom":"2016-01-01",
+                "tom":"2016-12-31",
+                "yrke":"Butikkmedarbeider",
+                "stillingsprosent":80
+            },
+            {
+                "fom":"2015-01-01",
+                "tom":"2015-12-31",
+                "yrke":"Butikkmedarbeider",
+                "stillingsprosent":60
+            }
+        ],
         "permisjon": []
     }]
 }

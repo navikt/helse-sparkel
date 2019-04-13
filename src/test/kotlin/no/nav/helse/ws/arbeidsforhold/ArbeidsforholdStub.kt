@@ -18,6 +18,13 @@ fun finnArbeidsforholdPrArbeidstakerStub(ident: String, fom: String, tom: String
                     aaregNamespace, WireMock.equalTo("A_ORDNINGEN")))
 }
 
+fun hentArbeidsforholdHistorikkStub(arbeidsforholdIDnav: String): MappingBuilder {
+    return WireMock.post(WireMock.urlPathEqualTo("/aareg"))
+            .withSoapAction("http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3/Arbeidsforhold_v3/hentArbeidsforholdHistorikkRequest")
+            .withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Body/ns2:hentArbeidsforholdHistorikk/parameters/arbeidsforholdId/text()",
+                    aaregNamespace, WireMock.equalTo(arbeidsforholdIDnav)))
+}
+
 private val aaregNamespace = mapOf(
         "soap" to "http://schemas.xmlsoap.org/soap/envelope/",
         "ns2" to "http://nav.no/tjeneste/virksomhet/arbeidsforhold/v3"

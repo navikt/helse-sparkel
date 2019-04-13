@@ -37,8 +37,8 @@ class ArbeidInntektYtelseServiceTest {
         val frilansVirksomhet1 = Organisasjonsnummer("971524960")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet1), fom),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet2), LocalDate.parse("2018-01-01"), fom)
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet1), fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet2), LocalDate.parse("2018-01-01"), fom, arbeidsforholdId = 5678L)
         )
         val frilansArbeidsforhold = listOf(
                 ArbeidsforholdFrilanser(Virksomhet.Organisasjon(frilansVirksomhet1), LocalDate.parse("2019-01-01"), null, null)
@@ -192,7 +192,7 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), fom)
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), fom, arbeidsforholdId = 1234L)
         )
 
         val inntekter = listOf(
@@ -290,8 +290,8 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), fom),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), LocalDate.parse("2018-01-01"), fom)
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), LocalDate.parse("2018-01-01"), fom, arbeidsforholdId = 5678L)
         )
 
         val inntekter = listOf(
@@ -371,8 +371,8 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), fom),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("874707112")), fom)
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("874707112")), fom, arbeidsforholdId = 1234L)
         )
 
         val inntekter = listOf(
@@ -481,7 +481,7 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), fom)
+                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), fom, arbeidsforholdId = 1234L)
         )
 
         val inntekter = listOf(

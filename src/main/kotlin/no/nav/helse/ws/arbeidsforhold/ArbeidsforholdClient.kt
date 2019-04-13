@@ -9,12 +9,15 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.N
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Periode
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Regelverker
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerRequest
+import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.HentArbeidsforholdHistorikkRequest
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
 
-    private val log = LoggerFactory.getLogger("ArbeidsforholdClient")
+    companion object {
+        private val log = LoggerFactory.getLogger(ArbeidsforholdClient::class.java)
+    }
 
     fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate): Either<Exception, List<Arbeidsforhold>> {
         val request = FinnArbeidsforholdPrArbeidstakerRequest()
@@ -38,6 +41,18 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
             Either.Left(ex)
         }
     }
+
+    fun finnHistoriskeArbeidsavtaler(arbeidsforholdIDnav: Long) =
+        HentArbeidsforholdHistorikkRequest().apply {
+            arbeidsforholdId = arbeidsforholdIDnav
+        }.let { request ->
+            try {
+                Either.Right(arbeidsforholdV3.hentArbeidsforholdHistorikk(request).arbeidsforhold.arbeidsavtale)
+            } catch (ex: Exception) {
+                log.error("Error while doing arbeidsforhold historikk lookup", ex)
+                Either.Left(ex)
+            }
+        }
 }
 
 enum class RegelverkerValues {

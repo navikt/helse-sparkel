@@ -27,14 +27,8 @@ object ArbeidDomainMapper {
                         arbeidsgiver = arbeidsgiver,
                         startdato = arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
                         sluttdato = arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate(),
-                        arbeidsavtaler = arbeidsforhold.arbeidsavtale.map { arbeidsavtale ->
-                            Arbeidsavtale(
-                                    yrke = arbeidsavtale.yrke.value,
-                                    stillingsprosent = arbeidsavtale.stillingsprosent,
-                                    fom = arbeidsavtale.fomGyldighetsperiode.toLocalDate(),
-                                    tom = arbeidsavtale.tomGyldighetsperiode?.toLocalDate()
-                            )
-                        },
+                        arbeidsforholdId = arbeidsforhold.arbeidsforholdIDnav,
+                        arbeidsavtaler = arbeidsforhold.arbeidsavtale.map(::toArbeidsavtale),
                         permisjon = arbeidsforhold.permisjonOgPermittering.map { permisjonOgPermittering ->
                             Permisjon(
                                     fom = permisjonOgPermittering.permisjonsPeriode.fom.toLocalDate(),
@@ -45,4 +39,12 @@ object ArbeidDomainMapper {
                         }
                 )
             }
+
+    fun toArbeidsavtale(arbeidsavtale: no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale) =
+            Arbeidsavtale(
+                    yrke = arbeidsavtale.yrke.value,
+                    stillingsprosent = arbeidsavtale.stillingsprosent,
+                    fom = arbeidsavtale.fomGyldighetsperiode.toLocalDate(),
+                    tom = arbeidsavtale.tomGyldighetsperiode?.toLocalDate()
+            )
 }
