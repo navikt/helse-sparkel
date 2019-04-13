@@ -160,7 +160,11 @@ fun Application.sparkel(
     }
 
     intercept(ApplicationCallPipeline.Monitoring) {
-        log.info("incoming ${call.request.httpMethod.value} ${call.request.uri}")
+        if (call.request.path() != "/isready"
+                && call.request.path() != "/isalive"
+                && call.request.path() != "/metrics") {
+            log.info("incoming ${call.request.httpMethod.value} ${call.request.uri}")
+        }
     }
 
     install(CallLogging) {
