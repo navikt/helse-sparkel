@@ -1,4 +1,4 @@
-package no.nav.helse.ws.inntekt
+package no.nav.helse.ws.inntekt.client
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder

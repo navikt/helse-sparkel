@@ -2,10 +2,9 @@ package no.nav.helse.ws.organisasjon
 
 import no.nav.helse.Either
 import no.nav.helse.Feilårsak
-import no.nav.helse.bimap
 import no.nav.helse.flatMap
-import no.nav.helse.map
 import no.nav.helse.mapLeft
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonOrganisasjonIkkeFunnet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonUgyldigInput

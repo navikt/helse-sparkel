@@ -1,4 +1,4 @@
-package no.nav.helse.ws.organisasjon
+package no.nav.helse.ws.organisasjon.client
 
 import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar

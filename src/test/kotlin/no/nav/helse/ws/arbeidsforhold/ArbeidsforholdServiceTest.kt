@@ -6,6 +6,7 @@ import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.domain.Permisjon
 import no.nav.helse.ws.organisasjon.OrganisasjonService

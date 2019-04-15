@@ -1,4 +1,4 @@
-package no.nav.helse.ws.arbeidsforhold
+package no.nav.helse.ws.arbeidsforhold.client
 
 import io.mockk.every
 import io.mockk.mockk

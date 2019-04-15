@@ -1,4 +1,4 @@
-package no.nav.helse.ws.inntekt
+package no.nav.helse.ws.inntekt.client
 
 import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar

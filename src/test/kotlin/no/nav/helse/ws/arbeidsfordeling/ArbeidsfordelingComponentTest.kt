@@ -11,7 +11,7 @@ import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.mockedSparkel
-import no.nav.helse.ws.person.PersonClient
+import no.nav.helse.ws.person.client.PersonClient
 import no.nav.helse.ws.person.PersonService
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetsstatus

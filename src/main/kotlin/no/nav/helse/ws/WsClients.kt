@@ -3,12 +3,12 @@ package no.nav.helse.ws
 import no.nav.helse.http.aktør.AktørregisterClient
 import no.nav.helse.sts.StsRestClient
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingClient
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
-import no.nav.helse.ws.inntekt.InntektClient
+import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.meldekort.MeldekortClient
-import no.nav.helse.ws.organisasjon.OrganisasjonClient
-import no.nav.helse.ws.person.PersonClient
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
+import no.nav.helse.ws.person.client.PersonClient
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingClient
 import no.nav.helse.ws.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.ws.sts.configureFor

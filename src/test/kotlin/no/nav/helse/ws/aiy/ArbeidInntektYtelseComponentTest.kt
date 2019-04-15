@@ -13,11 +13,11 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
-import no.nav.helse.ws.inntekt.InntektClient
+import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.organisasjon.OrganisasjonClient
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*

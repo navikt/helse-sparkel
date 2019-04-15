@@ -6,6 +6,7 @@ import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer

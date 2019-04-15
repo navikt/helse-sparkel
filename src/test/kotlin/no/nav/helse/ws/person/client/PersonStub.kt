@@ -1,4 +1,4 @@
-package no.nav.helse.ws.person
+package no.nav.helse.ws.person.client
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.WireMock

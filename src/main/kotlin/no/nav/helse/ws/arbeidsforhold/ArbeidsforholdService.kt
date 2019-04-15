@@ -2,6 +2,7 @@ package no.nav.helse.ws.arbeidsforhold
 
 import no.nav.helse.*
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer

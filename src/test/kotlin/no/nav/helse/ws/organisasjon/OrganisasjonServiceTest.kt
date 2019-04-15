@@ -4,13 +4,13 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.Either
 import no.nav.helse.Feilårsak
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonOrganisasjonIkkeFunnet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonUgyldigInput
 import no.nav.tjeneste.virksomhet.organisasjon.v5.feil.OrganisasjonIkkeFunnet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.JuridiskEnhet
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.OrgnrForOrganisasjon
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UnntakForOrgnr
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn

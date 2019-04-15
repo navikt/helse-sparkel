@@ -1,4 +1,4 @@
-package no.nav.helse.ws.arbeidsforhold
+package no.nav.helse.ws.arbeidsforhold.client
 
 import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
@@ -53,8 +53,4 @@ class ArbeidsforholdClient(private val arbeidsforholdV3: ArbeidsforholdV3) {
                 Either.Left(ex)
             }
         }
-}
-
-enum class RegelverkerValues {
-    FOER_A_ORDNINGEN, A_ORDNINGEN, ALLE
 }

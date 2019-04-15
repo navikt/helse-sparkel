@@ -1,4 +1,4 @@
-package no.nav.helse.ws.inntekt
+package no.nav.helse.ws.inntekt.client
 
 import com.github.kittinunf.fuel.httpPost
 import no.nav.helse.sts.StsRestClient

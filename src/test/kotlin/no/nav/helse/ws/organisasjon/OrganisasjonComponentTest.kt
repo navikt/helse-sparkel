@@ -11,6 +11,7 @@ import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.mockedSparkel
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet

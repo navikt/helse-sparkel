@@ -1,4 +1,4 @@
-package no.nav.helse.ws.organisasjon
+package no.nav.helse.ws.organisasjon.client
 
 import io.mockk.every
 import io.mockk.mockk

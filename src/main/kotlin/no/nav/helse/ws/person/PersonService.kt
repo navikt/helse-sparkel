@@ -3,6 +3,7 @@ package no.nav.helse.ws.person
 import no.nav.helse.Feilårsak
 import no.nav.helse.bimap
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.person.client.PersonClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningSikkerhetsbegrensing
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet

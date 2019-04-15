@@ -1,4 +1,4 @@
-package no.nav.helse.ws.inntekt
+package no.nav.helse.ws.inntekt.client
 
 import io.mockk.every
 import io.mockk.mockk

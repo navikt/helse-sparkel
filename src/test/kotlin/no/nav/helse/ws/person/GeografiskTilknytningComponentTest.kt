@@ -11,6 +11,7 @@ import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.person.client.PersonClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bydel

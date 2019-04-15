@@ -4,6 +4,7 @@ import io.prometheus.client.Counter
 import no.nav.helse.*
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet

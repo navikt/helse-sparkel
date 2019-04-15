@@ -1,4 +1,4 @@
-package no.nav.helse.ws.arbeidsforhold
+package no.nav.helse.ws.arbeidsforhold.client
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder

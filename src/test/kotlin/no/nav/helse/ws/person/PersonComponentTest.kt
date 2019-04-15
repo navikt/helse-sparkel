@@ -12,6 +12,7 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.person.client.PersonClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3

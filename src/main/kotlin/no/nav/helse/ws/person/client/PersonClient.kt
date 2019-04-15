@@ -1,4 +1,4 @@
-package no.nav.helse.ws.person
+package no.nav.helse.ws.person.client
 
 import no.nav.helse.Either
 import no.nav.helse.ws.AktørId
