@@ -1,10 +1,12 @@
 package no.nav.helse.ws.sakogbehandling
 
-import io.mockk.*
-import no.nav.helse.*
-import no.nav.helse.ws.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import arrow.core.Either
+import arrow.core.Try
+import io.mockk.every
+import io.mockk.mockk
+import no.nav.helse.ws.AktørId
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class SakOgBehandlingServiceTest {
 
@@ -14,7 +16,7 @@ class SakOgBehandlingServiceTest {
         val service = SakOgBehandlingService(client)
         every {
             client.finnSakOgBehandling("1234")
-        } returns Either.Left(Exception("well that didn't work now, did it?"))
+        } returns Try.Failure(Exception("well that didn't work now, did it?"))
 
         val result = service.finnSakOgBehandling(AktørId("1234"))
         assertTrue(result is Either.Left)
@@ -26,7 +28,7 @@ class SakOgBehandlingServiceTest {
         val service = SakOgBehandlingService(client)
         every {
             client.finnSakOgBehandling("1234")
-        } returns Either.Right(emptyList())
+        } returns Try.Success(emptyList())
 
         val result = service.finnSakOgBehandling(AktørId("1234"))
         assertTrue(result is Either.Right)

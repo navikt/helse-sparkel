@@ -1,8 +1,11 @@
 package no.nav.helse.ws.aiy
 
+import arrow.core.Either
+import arrow.core.flatMap
 import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
-import no.nav.helse.*
+import no.nav.helse.Feilårsak
+import no.nav.helse.arrow.sequenceU
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.aiy.domain.Arbeidsforhold

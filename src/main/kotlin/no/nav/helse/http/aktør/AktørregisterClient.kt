@@ -1,13 +1,13 @@
 package no.nav.helse.http.aktør
 
+import arrow.core.Either
+import arrow.core.flatMap
 import com.github.kittinunf.fuel.httpGet
-import no.nav.helse.Either
-import no.nav.helse.flatMap
 import no.nav.helse.sts.StsRestClient
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger("AktørregisterClient")
+private val log = LoggerFactory.getLogger(AktørregisterClient::class.java)
 
 class AktørregisterClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 

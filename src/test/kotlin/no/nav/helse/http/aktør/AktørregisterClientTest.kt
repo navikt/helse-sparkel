@@ -1,18 +1,14 @@
 package no.nav.helse.http.aktør
 
+import arrow.core.Either
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 
 class AktørregisterClientTest {
 
@@ -56,7 +52,7 @@ class AktørregisterClientTest {
         val lookupResult = aktørregisterClient.gjeldendeIdenter("12345678911")
 
         assertTrue(lookupResult is Either.Right)
-        val gjeldendeIdenter = (lookupResult as Either.Right).right
+        val gjeldendeIdenter = (lookupResult as Either.Right).b
 
         Assertions.assertEquals(2, gjeldendeIdenter.size)
         Assertions.assertEquals("1573082186699", gjeldendeIdenter.first { it.type == IdentType.AktoerId }.ident)
@@ -72,7 +68,7 @@ class AktørregisterClientTest {
         val lookupResult = aktørregisterClient.gjeldendeIdenter("1573082186699")
 
         assertTrue(lookupResult is Either.Right)
-        val gjeldendeIdenter = (lookupResult as Either.Right).right
+        val gjeldendeIdenter = (lookupResult as Either.Right).b
 
         Assertions.assertEquals(2, gjeldendeIdenter.size)
         Assertions.assertEquals("1573082186699", gjeldendeIdenter.first { it.type == IdentType.AktoerId }.ident)
@@ -88,7 +84,7 @@ class AktørregisterClientTest {
         val lookupResult = aktørregisterClient.gjeldendeAktørId("12345678911")
 
         assertTrue(lookupResult is Either.Right)
-        val gjeldendeIdent = (lookupResult as Either.Right).right
+        val gjeldendeIdent = (lookupResult as Either.Right).b
 
         Assertions.assertEquals("1573082186699", gjeldendeIdent)
     }
@@ -102,7 +98,7 @@ class AktørregisterClientTest {
         val lookupResult = aktørregisterClient.gjeldendeNorskIdent("1573082186699")
 
         assertTrue(lookupResult is Either.Right)
-        val gjeldendeIdent = (lookupResult as Either.Right).right
+        val gjeldendeIdent = (lookupResult as Either.Right).b
 
         Assertions.assertEquals("12345678911", gjeldendeIdent)
     }

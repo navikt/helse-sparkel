@@ -1,8 +1,9 @@
 package no.nav.helse.ws.organisasjon
 
+import arrow.core.Either
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
@@ -29,7 +30,7 @@ class OrganisasjonServiceTest {
             organisasjon.hentOrganisasjon(match {
                 it.value == orgNr
             })
-        } returns Either.Right(JuridiskEnhet().apply {
+        } returns Try.Success(JuridiskEnhet().apply {
             orgnummer = orgNr
             navn = UstrukturertNavn().apply {
                 with (navnelinje) {
@@ -41,7 +42,7 @@ class OrganisasjonServiceTest {
         val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer(orgNr))
 
         when (actual) {
-            is Either.Right -> assertEquals("NAV", actual.right.navn)
+            is Either.Right -> assertEquals("NAV", actual.b.navn)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -51,12 +52,12 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentOrganisasjon(any())
-        } returns Either.Left(HentOrganisasjonOrganisasjonIkkeFunnet("SOAP fault", OrganisasjonIkkeFunnet()))
+        } returns Try.Failure(HentOrganisasjonOrganisasjonIkkeFunnet("SOAP fault", OrganisasjonIkkeFunnet()))
 
         val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer("889640782"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -66,12 +67,12 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentOrganisasjon(any())
-        } returns Either.Left(HentOrganisasjonUgyldigInput("SOAP fault", UgyldigInput()))
+        } returns Try.Failure(HentOrganisasjonUgyldigInput("SOAP fault", UgyldigInput()))
 
         val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer("889640782"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraBruker, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraBruker, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -81,12 +82,12 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentOrganisasjon(any())
-        } returns Either.Left(Exception())
+        } returns Try.Failure(Exception())
 
         val actual = OrganisasjonService(organisasjon).hentOrganisasjon(Organisasjonsnummer("889640782"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -96,13 +97,13 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
-        } returns Either.Left(Exception())
+        } returns Try.Failure(Exception())
 
         val actual = OrganisasjonService(organisasjon).hentVirksomhetForJuridiskOrganisasjonsnummer(
                 Organisasjonsnummer("889640782"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -114,7 +115,7 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
-        } returns Either.Right(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
+        } returns Try.Success(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
             with(unntakForOrgnrListe) {
                 add(UnntakForOrgnr().apply {
                     organisasjonsnummer = juridiskOrgNr
@@ -126,7 +127,7 @@ class OrganisasjonServiceTest {
                 Organisasjonsnummer(juridiskOrgNr))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -139,7 +140,7 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
-        } returns Either.Right(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
+        } returns Try.Success(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
             with(orgnrForOrganisasjonListe) {
                 add(OrgnrForOrganisasjon().apply {
                     juridiskOrganisasjonsnummer = juridiskOrgNr
@@ -152,7 +153,7 @@ class OrganisasjonServiceTest {
                 Organisasjonsnummer(juridiskOrgNr))
 
         when (actual) {
-            is Either.Right -> assertEquals(virksomhetOrgNr, actual.right.value)
+            is Either.Right -> assertEquals(virksomhetOrgNr, actual.b.value)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -166,7 +167,7 @@ class OrganisasjonServiceTest {
         val organisasjon = mockk<OrganisasjonClient>()
         every {
             organisasjon.hentVirksomhetForJuridiskOrganisasjonsnummer(any())
-        } returns Either.Right(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
+        } returns Try.Success(HentVirksomhetsOrgnrForJuridiskOrgnrBolkResponse().apply {
             with(orgnrForOrganisasjonListe) {
                 add(OrgnrForOrganisasjon().apply {
                     juridiskOrganisasjonsnummer = enAnnenJuridiskOrgNr
@@ -179,7 +180,7 @@ class OrganisasjonServiceTest {
                 Organisasjonsnummer(juridiskOrgNr))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }

@@ -1,9 +1,9 @@
 package no.nav.helse.ws.arbeidsfordeling
 
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Either
 import no.nav.helse.ws.person.domain.Diskresjonskode
 import no.nav.helse.ws.person.domain.GeografiskOmraade
 import no.nav.helse.ws.person.domain.GeografiskTilknytning
@@ -57,14 +57,14 @@ class ArbeidsfordelingClientTest {
         })
 
         when (actual) {
-            is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+            is Try.Success -> {
+                assertEquals(expected.size, actual.value.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value.enhetId, actual.right[index].enhetId)
-                    assertEquals(value.enhetNavn, actual.right[index].enhetNavn)
+                    assertEquals(value.enhetId, actual.value[index].enhetId)
+                    assertEquals(value.enhetNavn, actual.value[index].enhetNavn)
                 }
             }
-            else -> fail { "Expected Either.Right to be returned" }
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -107,14 +107,14 @@ class ArbeidsfordelingClientTest {
         })
 
         when (actual) {
-            is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+            is Try.Success -> {
+                assertEquals(expected.size, actual.value.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value.enhetId, actual.right[index].enhetId)
-                    assertEquals(value.enhetNavn, actual.right[index].enhetNavn)
+                    assertEquals(value.enhetId, actual.value[index].enhetId)
+                    assertEquals(value.enhetNavn, actual.value[index].enhetNavn)
                 }
             }
-            else -> fail { "Expected Either.Right to be returned" }
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -157,14 +157,14 @@ class ArbeidsfordelingClientTest {
         })
 
         when (actual) {
-            is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+            is Try.Success -> {
+                assertEquals(expected.size, actual.value.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value.enhetId, actual.right[index].enhetId)
-                    assertEquals(value.enhetNavn, actual.right[index].enhetNavn)
+                    assertEquals(value.enhetId, actual.value[index].enhetId)
+                    assertEquals(value.enhetNavn, actual.value[index].enhetNavn)
                 }
             }
-            else -> fail { "Expected Either.Right to be returned" }
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -187,8 +187,8 @@ class ArbeidsfordelingClientTest {
         }
 
         when (actual) {
-            is Either.Right -> assertEquals(emptyList<Organisasjonsenhet>(), actual.right)
-            else -> fail { "Expected Either.Right to be returned" }
+            is Try.Success -> assertEquals(emptyList<Organisasjonsenhet>(), actual.value)
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -211,8 +211,8 @@ class ArbeidsfordelingClientTest {
         }
 
         when (actual) {
-            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-            else -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+            else -> fail { "Expected Try.Failure to be returned" }
         }
     }
 }

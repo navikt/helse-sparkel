@@ -1,9 +1,8 @@
 package no.nav.helse.ws.organisasjon
 
-import no.nav.helse.Either
+import arrow.core.Either
+import arrow.core.flatMap
 import no.nav.helse.Feilårsak
-import no.nav.helse.flatMap
-import no.nav.helse.mapLeft
 import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.HentOrganisasjonOrganisasjonIkkeFunnet
@@ -14,12 +13,14 @@ import java.time.LocalDate
 class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
 
     companion object {
-        private val log = LoggerFactory.getLogger("OrganisasjonService")
+        private val log = LoggerFactory.getLogger(OrganisasjonService::class.java)
     }
 
     fun hentOrganisasjon(orgnr: Organisasjonsnummer) =
-            organisasjonsClient.hentOrganisasjon(orgnr).mapLeft {
-                when (it) {
+            organisasjonsClient.hentOrganisasjon(orgnr).toEither { err ->
+                log.error("Error during organisasjon lookup", err)
+
+                when (err) {
                     is HentOrganisasjonOrganisasjonIkkeFunnet -> Feilårsak.IkkeFunnet
                     is HentOrganisasjonUgyldigInput -> Feilårsak.FeilFraBruker
                     else -> Feilårsak.UkjentFeil
@@ -31,7 +32,8 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
             }
 
     fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
-            organisasjonsClient.hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr, dato).mapLeft {
+            organisasjonsClient.hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr, dato).toEither { err ->
+                log.error("Error during organisasjon lookup", err)
                 Feilårsak.UkjentFeil
             }.flatMap {
                 it.unntakForOrgnrListe.firstOrNull()?.let {

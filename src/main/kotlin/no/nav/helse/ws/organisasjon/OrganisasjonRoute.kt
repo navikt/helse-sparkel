@@ -3,7 +3,6 @@ package no.nav.helse.ws.organisasjon
 import io.ktor.application.call
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import no.nav.helse.map
 import no.nav.helse.respond
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 

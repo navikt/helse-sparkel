@@ -1,8 +1,8 @@
 package no.nav.helse.ws.organisasjon.client
 
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
@@ -43,8 +43,8 @@ class OrganisasjonClientTest {
         val actual = client.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
         when (actual) {
-            is Either.Right -> assertEquals("STORTINGET", (actual.right.navn as UstrukturertNavn).navnelinje[0])
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
+            is Try.Success -> assertEquals("STORTINGET", (actual.value.navn as UstrukturertNavn).navnelinje[0])
+            is Try.Failure -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -61,8 +61,8 @@ class OrganisasjonClientTest {
         val actual = client.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
         when (actual) {
-            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+            is Try.Success -> fail { "Expected Try.Failure to be returned" }
         }
     }
 
@@ -91,12 +91,12 @@ class OrganisasjonClientTest {
         val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(juridiskOrgnr))
 
         when (actual) {
-            is Either.Right -> {
-                assertEquals(0, actual.right.unntakForOrgnrListe.size)
-                assertEquals(1, actual.right.orgnrForOrganisasjonListe.size)
-                assertEquals(virksomhetOrgnr, actual.right.orgnrForOrganisasjonListe[0].organisasjonsnummer)
+            is Try.Success -> {
+                assertEquals(0, actual.value.unntakForOrgnrListe.size)
+                assertEquals(1, actual.value.orgnrForOrganisasjonListe.size)
+                assertEquals(virksomhetOrgnr, actual.value.orgnrForOrganisasjonListe[0].organisasjonsnummer)
             }
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
+            is Try.Failure -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -124,13 +124,13 @@ class OrganisasjonClientTest {
         val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(juridiskOrgnr))
 
         when (actual) {
-            is Either.Right -> {
-                assertEquals(1, actual.right.unntakForOrgnrListe.size)
-                assertEquals(0, actual.right.orgnrForOrganisasjonListe.size)
-                assertEquals(juridiskOrgnr, actual.right.unntakForOrgnrListe[0].organisasjonsnummer)
-                assertEquals("$juridiskOrgnr er opphørt eller eksisterer ikke på dato ${LocalDate.now()}", actual.right.unntakForOrgnrListe[0].unntaksmelding)
+            is Try.Success -> {
+                assertEquals(1, actual.value.unntakForOrgnrListe.size)
+                assertEquals(0, actual.value.orgnrForOrganisasjonListe.size)
+                assertEquals(juridiskOrgnr, actual.value.unntakForOrgnrListe[0].organisasjonsnummer)
+                assertEquals("$juridiskOrgnr er opphørt eller eksisterer ikke på dato ${LocalDate.now()}", actual.value.unntakForOrgnrListe[0].unntaksmelding)
             }
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
+            is Try.Failure -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -147,8 +147,8 @@ class OrganisasjonClientTest {
         val actual = client.hentVirksomhetForJuridiskOrganisasjonsnummer(Organisasjonsnummer(orgNr), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+            is Try.Success -> fail { "Expected Try.Failure to be returned" }
         }
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.helse.ws.organisasjon.client
 
+import arrow.core.Try
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -8,23 +9,13 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.WsClients
+import no.nav.helse.ws.*
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
-import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
-import no.nav.helse.ws.withSoapAction
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
@@ -70,8 +61,8 @@ class OrganisasjonIntegrationTest {
             val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
             when (actual) {
-                is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }
@@ -97,12 +88,12 @@ class OrganisasjonIntegrationTest {
             val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(orgNr, actual.right.orgnummer)
-                    assertEquals("NAV", (actual.right.navn as UstrukturertNavn).navnelinje[0])
-                    assertEquals("AVD SANNERGATA 2", (actual.right.navn as UstrukturertNavn).navnelinje[1])
+                is Try.Success -> {
+                    assertEquals(orgNr, actual.value.orgnummer)
+                    assertEquals("NAV", (actual.value.navn as UstrukturertNavn).navnelinje[0])
+                    assertEquals("AVD SANNERGATA 2", (actual.value.navn as UstrukturertNavn).navnelinje[1])
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -126,12 +117,12 @@ class OrganisasjonIntegrationTest {
             val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(orgNr, actual.right.orgnummer)
-                    assertEquals(5, (actual.right.navn as UstrukturertNavn).navnelinje.size)
-                    assertNull((actual.right.navn as UstrukturertNavn).navnelinje.firstOrNull { it.isNotBlank() })
+                is Try.Success -> {
+                    assertEquals(orgNr, actual.value.orgnummer)
+                    assertEquals(5, (actual.value.navn as UstrukturertNavn).navnelinje.size)
+                    assertNull((actual.value.navn as UstrukturertNavn).navnelinje.firstOrNull { it.isNotBlank() })
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -155,8 +146,8 @@ class OrganisasjonIntegrationTest {
                     LocalDate.parse("2019-01-01"))
 
             when (actual) {
-                is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }
@@ -181,8 +172,8 @@ class OrganisasjonIntegrationTest {
                     LocalDate.parse("2019-01-01"))
 
             when (actual) {
-                is Either.Right -> assertEquals("$juridiskOrgnr er opphørt eller eksisterer ikke på dato 2019-01-01", actual.right.unntakForOrgnrListe[0].unntaksmelding)
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Success -> assertEquals("$juridiskOrgnr er opphørt eller eksisterer ikke på dato 2019-01-01", actual.value.unntakForOrgnrListe[0].unntaksmelding)
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }

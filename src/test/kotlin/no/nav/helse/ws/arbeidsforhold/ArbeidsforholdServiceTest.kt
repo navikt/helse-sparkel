@@ -1,8 +1,9 @@
 package no.nav.helse.ws.arbeidsforhold
 
+import arrow.core.Either
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -118,12 +119,12 @@ class ArbeidsforholdServiceTest {
                 })
             }
         }).let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         every {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(1234L)
-        } returns Either.Right(listOf(Arbeidsavtale().apply {
+        } returns Try.Success(listOf(Arbeidsavtale().apply {
             fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
             yrke = Yrker().apply {
                 value = "Butikkmedarbeider"
@@ -133,7 +134,7 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(5678L)
-        } returns Either.Right(listOf(Arbeidsavtale().apply {
+        } returns Try.Success(listOf(Arbeidsavtale().apply {
             fomGyldighetsperiode = LocalDate.parse("2017-01-01").toXmlGregorianCalendar()
             tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
             yrke = Yrker().apply {
@@ -160,9 +161,9 @@ class ArbeidsforholdServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
+                    assertEquals(value, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -219,12 +220,12 @@ class ArbeidsforholdServiceTest {
                 }
             }
         }).let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         every {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(1234L)
-        } returns Either.Right(listOf(Arbeidsavtale().apply {
+        } returns Try.Success(listOf(Arbeidsavtale().apply {
             fomGyldighetsperiode = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
             yrke = Yrker().apply {
                 value = "Butikkmedarbeider"
@@ -236,9 +237,9 @@ class ArbeidsforholdServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
+                    assertEquals(value, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -250,13 +251,13 @@ class ArbeidsforholdServiceTest {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         every {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
+        } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -266,13 +267,13 @@ class ArbeidsforholdServiceTest {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         every {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
+        } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -282,13 +283,13 @@ class ArbeidsforholdServiceTest {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         every {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Either.Left(Exception("Fault"))
+        } returns Try.Failure(Exception("Fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -304,12 +305,12 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Either.Left(Exception("SOAP fault"))
+        } returns Try.Failure(Exception("SOAP fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -341,16 +342,16 @@ class ArbeidsforholdServiceTest {
                 navn = "MATBUTIKKEN AS"
             }
         }).let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
+                    assertEquals(value, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -384,7 +385,7 @@ class ArbeidsforholdServiceTest {
                 navn = null
             }
         }).let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         every {
@@ -397,9 +398,9 @@ class ArbeidsforholdServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
+                    assertEquals(value, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -417,12 +418,12 @@ class ArbeidsforholdServiceTest {
 
         every {
             arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Either.Left(Exception("SOAP fault"))
+        } returns Try.Failure(Exception("SOAP fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
-            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -448,7 +449,7 @@ class ArbeidsforholdServiceTest {
                 navn = null
             }
         }).let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         every {
@@ -459,8 +460,8 @@ class ArbeidsforholdServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
-                assertEquals(expected[0], actual.right[0])
+                assertEquals(expected.size, actual.b.size)
+                assertEquals(expected[0], actual.b[0])
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
@@ -492,16 +493,16 @@ class ArbeidsforholdServiceTest {
                 navn = "S. VINDEL & SØNN"
             }
         }).let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService).finnArbeidsgivere(aktørId, fom, tom)
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, value ->
-                    assertEquals(value, actual.right[index])
+                    assertEquals(value, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -513,14 +514,14 @@ class ArbeidsforholdServiceTest {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         every {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
+        } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
 
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -530,13 +531,13 @@ class ArbeidsforholdServiceTest {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         every {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Either.Left(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
+        } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -546,13 +547,13 @@ class ArbeidsforholdServiceTest {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
         every {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Either.Left(Exception("Fault"))
+        } returns Try.Failure(Exception("Fault"))
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }

@@ -1,5 +1,6 @@
 package no.nav.helse.ws.arbeidsfordeling
 
+import arrow.core.Try
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -8,25 +9,14 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.WsClients
+import no.nav.helse.ws.*
 import no.nav.helse.ws.person.domain.GeografiskTilknytning
-import no.nav.helse.ws.samlAssertionResponse
 import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
-import no.nav.helse.ws.withSoapAction
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 
 class ArbeidsfordelingIntegrationTest {
 
@@ -77,14 +67,14 @@ class ArbeidsfordelingIntegrationTest {
             val actual = arbeidsfordelingClient.getBehandlendeEnhet(GeografiskTilknytning(null, null), Tema(tema))
 
             when (actual) {
-                is Either.Right -> {
-                    Assertions.assertEquals(expected.size, actual.right.size)
+                is Try.Success -> {
+                    assertEquals(expected.size, actual.value.size)
                     expected.forEachIndexed { key, value ->
-                        assertEquals(value.enhetId, actual.right[key].enhetId)
-                        assertEquals(value.enhetNavn, actual.right[key].enhetNavn)
+                        assertEquals(value.enhetId, actual.value[key].enhetId)
+                        assertEquals(value.enhetNavn, actual.value[key].enhetNavn)
                     }
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                else -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -106,13 +96,13 @@ class ArbeidsfordelingIntegrationTest {
             val actual = arbeidsfordelingClient.getBehandlendeEnhet(GeografiskTilknytning(null, null), Tema(tema))
 
             when (actual) {
-                is Either.Left -> {
-                    when (actual.left) {
-                        is FinnBehandlendeEnhetListeUgyldigInput -> assertEquals("'$tema' er en ugyldig kode for kodeverket: 'Tema'", actual.left.message)
+                is Try.Failure -> {
+                    when (actual.exception) {
+                        is FinnBehandlendeEnhetListeUgyldigInput -> assertEquals("'$tema' er en ugyldig kode for kodeverket: 'Tema'", actual.exception.message)
                         else -> fail { "Expected FinnBehandlendeEnhetListeUgyldigInput to be returned" }
                     }
                 }
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                else -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }

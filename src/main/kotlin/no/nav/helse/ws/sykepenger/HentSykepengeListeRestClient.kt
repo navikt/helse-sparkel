@@ -1,10 +1,8 @@
 package no.nav.helse.ws.sykepenger
 
+import arrow.core.Try
 import com.github.kittinunf.fuel.httpGet
-import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
-import no.nav.tjeneste.virksomhet.sykepenger.v2.informasjon.Sykmeldingsperiode
-import org.json.JSONArray
 import org.json.JSONObject
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -12,7 +10,7 @@ import java.time.format.DateTimeFormatter
 
 class HentSykepengeListeRestClient(val baseUrl: String, val stsRestClient: StsRestClient) {
 
-    fun hentSykepengeListe(fnr: String): Either<Exception, List<SykepengerPeriode>> {
+    fun hentSykepengeListe(fnr: String): Try<List<SykepengerPeriode>> {
         val bearer = stsRestClient.token()
 
         val (_, _, result) = "$baseUrl/hentSykepengerListe?fnr=$fnr".httpGet()
@@ -23,10 +21,8 @@ class HentSykepengeListeRestClient(val baseUrl: String, val stsRestClient: StsRe
                         "Nav-Consumer-Id" to "sparkel"
                 ))
                 .responseString()
-        return try {
-            Either.Right(JSONObject(result.get()).toListOfSykepengerPeriode())
-        } catch(e: Exception) {
-            Either.Left(e)
+        return Try {
+            JSONObject(result.get()).toListOfSykepengerPeriode()
         }
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.helse.ws.inntekt.client
 
+import arrow.core.Try
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -7,20 +8,10 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.Either
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.*
 import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.*
 import java.time.YearMonth
 import javax.xml.ws.soap.SOAPFaultException
 import kotlin.test.assertEquals
@@ -68,13 +59,13 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is Either.Left -> {
-                    when (actual.left) {
-                        is SOAPFaultException -> assertEquals("SOAP fault", actual.left.message)
+                is Try.Failure -> {
+                    when (actual.exception) {
+                        is SOAPFaultException -> assertEquals("SOAP fault", actual.exception.message)
                         else -> fail { "Expected SOAPFaultException to be returned" }
                     }
                 }
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }
@@ -97,11 +88,11 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(1, actual.right.arbeidsInntektIdentListe.size)
-                    assertEquals(2, actual.right.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
+                is Try.Success -> {
+                    assertEquals(1, actual.value.arbeidsInntektIdentListe.size)
+                    assertEquals(2, actual.value.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -124,13 +115,13 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is Either.Left -> {
-                    when (actual.left) {
-                        is SOAPFaultException -> assertEquals("SOAP fault", actual.left.message)
+                is Try.Failure -> {
+                    when (actual.exception) {
+                        is SOAPFaultException -> assertEquals("SOAP fault", actual.exception.message)
                         else -> fail { "Expected SOAPFaultException to be returned" }
                     }
                 }
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }
@@ -153,11 +144,11 @@ class InntektIntegrationTest {
             val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(1, actual.right.arbeidsInntektIdentListe.size)
-                    assertEquals(2, actual.right.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
+                is Try.Success -> {
+                    assertEquals(1, actual.value.arbeidsInntektIdentListe.size)
+                    assertEquals(2, actual.value.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }

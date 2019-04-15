@@ -1,8 +1,8 @@
 package no.nav.helse.ws.arbeidsforhold.client
 
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
@@ -30,8 +30,8 @@ class ArbeidsforholdClientTest {
         val actual = arbeidsforholdClient.finnArbeidsforhold(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when (actual) {
-            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-            else -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+            else -> fail { "Expected Try.Failure to be returned" }
         }
     }
 
@@ -51,8 +51,8 @@ class ArbeidsforholdClientTest {
         val actual = arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdIDnav)
 
         when (actual) {
-            is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-            else -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+            else -> fail { "Expected Try.Failure to be returned" }
         }
     }
 
@@ -87,8 +87,8 @@ class ArbeidsforholdClientTest {
         val result = arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdId)
 
         when(result) {
-            is Either.Right -> {
-                val avtaler = result.right
+            is Try.Success -> {
+                val avtaler = result.value
 
                 assertEquals(2, avtaler.size)
 
@@ -98,7 +98,7 @@ class ArbeidsforholdClientTest {
                 assertEquals(arbeidsavtale2.fomGyldighetsperiode, avtaler[1].fomGyldighetsperiode)
                 assertEquals(arbeidsavtale2.tomGyldighetsperiode, avtaler[1].tomGyldighetsperiode)
             }
-            else -> fail { "Expected Either.Right to be returned" }
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -145,8 +145,8 @@ class ArbeidsforholdClientTest {
         val result = arbeidsforholdClient.finnArbeidsforhold(AktørId("08078422069"), LocalDate.of(2018, 1, 1), LocalDate.of(2018, 12, 1))
 
         when(result) {
-            is Either.Right -> {
-                val arbeidsforhold = result.right
+            is Try.Success -> {
+                val arbeidsforhold = result.value
 
                 assertEquals(2, arbeidsforhold.size)
 
@@ -156,7 +156,7 @@ class ArbeidsforholdClientTest {
                 assertEquals(5678, arbeidsforhold[1].arbeidsforholdIDnav)
                 assertEquals(1, arbeidsforhold[1].arbeidsavtale.size)
             }
-            is Either.Left -> Assertions.fail("was not expecting a Failure: ${result.left}")
+            is Try.Failure -> Assertions.fail("was not expecting a Failure: ${result.exception}")
         }
     }
 }

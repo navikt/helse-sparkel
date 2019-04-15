@@ -1,20 +1,20 @@
 package no.nav.helse.ws.arbeidsfordeling
 
+import arrow.core.Either
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.person.PersonService
 import no.nav.helse.ws.person.domain.Diskresjonskode
 import no.nav.helse.ws.person.domain.GeografiskOmraade
 import no.nav.helse.ws.person.domain.GeografiskTilknytning
-import no.nav.helse.ws.person.PersonService
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Enhetsstatus
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -45,7 +45,7 @@ class ArbeidsfordelingServiceTest {
 
         when (actual) {
             is Either.Left -> {
-                Assertions.assertEquals(expected, actual)
+                assertEquals(expected, actual)
             }
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
@@ -83,7 +83,7 @@ class ArbeidsfordelingServiceTest {
 
         when (actual) {
             is Either.Left -> {
-                Assertions.assertEquals(expected, actual)
+                assertEquals(expected, actual)
             }
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
@@ -102,14 +102,14 @@ class ArbeidsfordelingServiceTest {
 
         every {
             arbeidsfordelingClient.getBehandlendeEnhet(any(), any())
-        } returns Either.Left(FinnBehandlendeEnhetListeUgyldigInput("SOAP fault", UgyldigInput()))
+        } returns Try.Failure(FinnBehandlendeEnhetListeUgyldigInput("SOAP fault", UgyldigInput()))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(AktørId("123456789"), emptyList(), Tema("SYK"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -127,14 +127,14 @@ class ArbeidsfordelingServiceTest {
 
         every {
             arbeidsfordelingClient.getBehandlendeEnhet(any(), any())
-        } returns Either.Left(Exception("SOAP fault"))
+        } returns Try.Failure(Exception("SOAP fault"))
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(AktørId("123456789"), emptyList(), Tema("SYK"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -152,14 +152,14 @@ class ArbeidsfordelingServiceTest {
 
         every {
             arbeidsfordelingClient.getBehandlendeEnhet(any(), any())
-        } returns Either.Right(emptyList())
+        } returns Try.Success(emptyList())
 
         val arbeidsfordelingService = ArbeidsfordelingService(arbeidsfordelingClient, personService)
 
         val actual = arbeidsfordelingService.getBehandlendeEnhet(AktørId("123456789"), emptyList(), Tema("SYK"))
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.IkkeFunnet, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -189,7 +189,7 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+        } returns Try.Success(listOf(Organisasjonsenhet().apply {
             enhetId = expected.id
             enhetNavn = expected.navn
             status = Enhetsstatus.AKTIV
@@ -200,9 +200,7 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is Either.Right -> {
-                Assertions.assertEquals(expected, actual.right)
-            }
+            is Either.Right -> assertEquals(expected, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -234,7 +232,7 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+        } returns Try.Success(listOf(Organisasjonsenhet().apply {
             enhetId = expected.id
             enhetNavn = expected.navn
             status = Enhetsstatus.AKTIV
@@ -245,9 +243,7 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is Either.Right -> {
-                Assertions.assertEquals(expected, actual.right)
-            }
+            is Either.Right -> assertEquals(expected, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -279,7 +275,7 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+        } returns Try.Success(listOf(Organisasjonsenhet().apply {
             enhetId = expected.id
             enhetNavn = expected.navn
             status = Enhetsstatus.AKTIV
@@ -290,9 +286,7 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is Either.Right -> {
-                Assertions.assertEquals(expected, actual.right)
-            }
+            is Either.Right -> assertEquals(expected, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -343,7 +337,7 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+        } returns Try.Success(listOf(Organisasjonsenhet().apply {
             enhetId = expected.id
             enhetNavn = expected.navn
             status = Enhetsstatus.AKTIV
@@ -356,9 +350,7 @@ class ArbeidsfordelingServiceTest {
         ), tema)
 
         when (actual) {
-            is Either.Right -> {
-                Assertions.assertEquals(expected, actual.right)
-            }
+            is Either.Right -> assertEquals(expected, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -399,7 +391,7 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+        } returns Try.Success(listOf(Organisasjonsenhet().apply {
             enhetId = expected.id
             enhetNavn = expected.navn
             status = Enhetsstatus.AKTIV
@@ -412,9 +404,7 @@ class ArbeidsfordelingServiceTest {
         ), tema)
 
         when (actual) {
-            is Either.Right -> {
-                Assertions.assertEquals(expected, actual.right)
-            }
+            is Either.Right -> assertEquals(expected, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -444,7 +434,7 @@ class ArbeidsfordelingServiceTest {
             }, match {
                 it == tema
             })
-        } returns Either.Right(listOf(Organisasjonsenhet().apply {
+        } returns Try.Success(listOf(Organisasjonsenhet().apply {
             enhetId = expected.id
             enhetNavn = expected.navn
             status = Enhetsstatus.AKTIV
@@ -455,9 +445,7 @@ class ArbeidsfordelingServiceTest {
         val actual = arbeidsfordelingService.getBehandlendeEnhet(aktørId, emptyList(), tema)
 
         when (actual) {
-            is Either.Right -> {
-                Assertions.assertEquals(expected, actual.right)
-            }
+            is Either.Right -> assertEquals(expected, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }

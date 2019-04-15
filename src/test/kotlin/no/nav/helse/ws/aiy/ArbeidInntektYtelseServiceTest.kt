@@ -1,9 +1,9 @@
 package no.nav.helse.ws.aiy
 
+import arrow.core.Either
 import io.mockk.every
 import io.mockk.mockk
 import io.prometheus.client.CollectorRegistry
-import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
@@ -120,8 +120,8 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(3, actual.right.arbeidsforhold.size)
-                assertEquals(expected, actual.right)
+                assertEquals(3, actual.b.arbeidsforhold.size)
+                assertEquals(expected, actual.b)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
@@ -179,7 +179,7 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected, actual.right)
+                assertEquals(expected, actual.b)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
@@ -276,8 +276,8 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(1, actual.right.arbeidsforhold.size)
-                assertEquals(expected, actual.right)
+                assertEquals(1, actual.b.arbeidsforhold.size)
+                assertEquals(expected, actual.b)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
@@ -357,8 +357,8 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(1, actual.right.arbeidsforhold.size)
-                assertEquals(expected, actual.right)
+                assertEquals(1, actual.b.arbeidsforhold.size)
+                assertEquals(expected, actual.b)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
@@ -468,7 +468,7 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected, actual.right)
+                assertEquals(expected, actual.b)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
@@ -552,7 +552,7 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected, actual.right)
+                assertEquals(expected, actual.b)
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }

@@ -1,44 +1,39 @@
 package no.nav.helse.ws.organisasjon.client
 
-import no.nav.helse.Either
+import arrow.core.Try
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
-import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjonsfilter
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonRequest
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentVirksomhetsOrgnrForJuridiskOrgnrBolkRequest
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class OrganisasjonClient(private val organisasjonV5: OrganisasjonV5) {
 
-    private val log = LoggerFactory.getLogger("OrganisasjonClient")
-
-    fun hentOrganisasjon(orgnr: Organisasjonsnummer) : Either<Exception, Organisasjon> {
-        val request = HentOrganisasjonRequest().apply { orgnummer = orgnr.value }
-        return try {
-            Either.Right(organisasjonV5.hentOrganisasjon(request).organisasjon)
-        } catch (err : Exception) {
-            log.error("Error during organisasjon lookup", err)
-            Either.Left(err)
-        }
-    }
+    fun hentOrganisasjon(orgnr: Organisasjonsnummer) =
+            Try {
+                organisasjonV5.hentOrganisasjon(hentOrganisasjonRequst(orgnr)).organisasjon
+            }
 
     fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
-            try {
-                val request = HentVirksomhetsOrgnrForJuridiskOrgnrBolkRequest().apply {
-                    with(organisasjonsfilterListe) {
-                        add(Organisasjonsfilter().apply {
-                            organisasjonsnummer = orgnr.value
-                            hentingsdato = dato.toXmlGregorianCalendar()
-                        })
-                    }
+            Try {
+                organisasjonV5.hentVirksomhetsOrgnrForJuridiskOrgnrBolk(hentVirksomhetsOrgnrForJuridiskOrgnrBolkRequest(orgnr, dato))
+            }
+
+    private fun hentOrganisasjonRequst(orgnr: Organisasjonsnummer) =
+            HentOrganisasjonRequest().apply {
+                orgnummer = orgnr.value
+            }
+
+    private fun hentVirksomhetsOrgnrForJuridiskOrgnrBolkRequest(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
+            HentVirksomhetsOrgnrForJuridiskOrgnrBolkRequest().apply {
+                with(organisasjonsfilterListe) {
+                    add(Organisasjonsfilter().apply {
+                        organisasjonsnummer = orgnr.value
+                        hentingsdato = dato.toXmlGregorianCalendar()
+                    })
                 }
-                Either.Right(organisasjonV5.hentVirksomhetsOrgnrForJuridiskOrgnrBolk(request))
-            } catch (err: Exception) {
-                log.error("Error during organisasjon lookup", err)
-                Either.Left(err)
             }
 }
 

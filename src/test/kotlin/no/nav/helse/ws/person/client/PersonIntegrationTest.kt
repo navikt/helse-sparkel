@@ -1,5 +1,6 @@
 package no.nav.helse.ws.person.client
 
+import arrow.core.Try
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -7,25 +8,15 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder.like
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.*
 import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
-import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import java.time.LocalDate
 
 class PersonIntegrationTest {
@@ -66,17 +57,17 @@ class PersonIntegrationTest {
             val actual = personClient.personInfo(AktørId(aktørId))
 
             when (actual) {
-                is Either.Right -> {
-                    assertTrue(actual.right.aktoer is AktoerId)
-                    assertEquals(aktørId, (actual.right.aktoer as AktoerId).aktoerId)
-                    assertEquals("JENNY", actual.right.personnavn.fornavn)
-                    assertEquals("PIKENES", actual.right.personnavn.mellomnavn)
-                    assertEquals("LOLNES", actual.right.personnavn.etternavn)
-                    assertEquals(LocalDate.of(1984, 7, 8), actual.right.foedselsdato.foedselsdato.toLocalDate())
-                    assertEquals("K", actual.right.kjoenn.kjoenn.value)
-                    assertEquals("NOR", actual.right.bostedsadresse.strukturertAdresse.landkode.value)
+                is Try.Success -> {
+                    assertTrue(actual.value.aktoer is AktoerId)
+                    assertEquals(aktørId, (actual.value.aktoer as AktoerId).aktoerId)
+                    assertEquals("JENNY", actual.value.personnavn.fornavn)
+                    assertEquals("PIKENES", actual.value.personnavn.mellomnavn)
+                    assertEquals("LOLNES", actual.value.personnavn.etternavn)
+                    assertEquals(LocalDate.of(1984, 7, 8), actual.value.foedselsdato.foedselsdato.toLocalDate())
+                    assertEquals("K", actual.value.kjoenn.kjoenn.value)
+                    assertEquals("NOR", actual.value.bostedsadresse.strukturertAdresse.landkode.value)
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -94,13 +85,13 @@ class PersonIntegrationTest {
             val actual = personClient.personInfo(AktørId(aktørId))
 
             when (actual) {
-                is Either.Left -> {
-                    when (actual.left) {
-                        is HentPersonPersonIkkeFunnet -> assertEquals("Ingen forekomster funnet", actual.left.message)
+                is Try.Failure -> {
+                    when (actual.exception) {
+                        is HentPersonPersonIkkeFunnet -> assertEquals("Ingen forekomster funnet", actual.exception.message)
                         else -> fail { "Expected HentPersonPersonIkkeFunnet to be returned" }
                     }
                 }
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }

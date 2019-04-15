@@ -1,8 +1,9 @@
 package no.nav.helse.ws.inntekt
 
+import arrow.core.Either
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
@@ -31,12 +32,12 @@ class InntektServiceTest {
         val inntektClient = mockk<InntektClient>()
         every {
             inntektClient.hentBeregningsgrunnlag(aktør, fom, tom)
-        } returns Either.Left(Exception("SOAP fault"))
+        } returns Try.Failure(Exception("SOAP fault"))
 
         val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
             else -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -129,7 +130,7 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         val organisasjonService = mockk<OrganisasjonService>()
@@ -150,9 +151,9 @@ class InntektServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, inntekt ->
-                    assertEquals(inntekt, actual.right[index])
+                    assertEquals(inntekt, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -180,7 +181,7 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         val organisasjonService = mockk<OrganisasjonService>()
@@ -188,7 +189,7 @@ class InntektServiceTest {
         val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.left)
+            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
         }
 
@@ -204,12 +205,12 @@ class InntektServiceTest {
         val inntektClient = mockk<InntektClient>()
         every {
             inntektClient.hentSammenligningsgrunnlag(aktør, fom, tom)
-        } returns Either.Left(Exception("SOAP fault"))
+        } returns Try.Failure(Exception("SOAP fault"))
 
         val actual = InntektService(inntektClient).hentSammenligningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
-            is Either.Left -> assertTrue(actual.left is Feilårsak.UkjentFeil)
+            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
             else -> fail { "Expected Either.Left to be returned" }
         }
     }
@@ -257,7 +258,7 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            Either.Right(it)
+            Try.Success(it)
         }
 
         val organisasjonService = mockk<OrganisasjonService>()
@@ -272,9 +273,9 @@ class InntektServiceTest {
 
         when (actual) {
             is Either.Right -> {
-                assertEquals(expected.size, actual.right.size)
+                assertEquals(expected.size, actual.b.size)
                 expected.forEachIndexed { index, inntekt ->
-                    assertEquals(inntekt, actual.right[index])
+                    assertEquals(inntekt, actual.b[index])
                 }
             }
             is Either.Left -> fail { "Expected Either.Right to be returned" }

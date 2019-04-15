@@ -1,7 +1,10 @@
 package no.nav.helse.ws.inntekt
 
+import arrow.core.Either
+import arrow.core.Try
+import arrow.core.flatMap
 import io.prometheus.client.Counter
-import no.nav.helse.*
+import no.nav.helse.Feilårsak
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.client.InntektClient
@@ -19,7 +22,7 @@ import java.time.YearMonth
 class InntektService(private val inntektClient: InntektClient) {
 
     companion object {
-        private val log = LoggerFactory.getLogger("InntektService")
+        private val log = LoggerFactory.getLogger(InntektService::class.java)
 
         private val frilansCounter = Counter.build()
                 .name("arbeidsforhold_frilans_totals")
@@ -40,8 +43,10 @@ class InntektService(private val inntektClient: InntektClient) {
     }
 
     fun hentFrilansarbeidsforhold(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
-            inntektClient.hentInntekter(aktørId, fom, tom).mapLeft {
-                when (it) {
+            inntektClient.hentInntekter(aktørId, fom, tom).toEither { err ->
+                log.error("Error during inntekt lookup", err)
+
+                when (err) {
                     is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
                     is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
@@ -79,15 +84,17 @@ class InntektService(private val inntektClient: InntektClient) {
                 }.filterNotNull()
             }
 
-    private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Either<Exception, HentInntektListeBolkResponse>) =
-            f().mapLeft {
-                when (it) {
+    private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Try<HentInntektListeBolkResponse>) =
+            f(this).toEither { err ->
+                log.error("Error during inntekt lookup", err)
+
+                when (err) {
                     is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
                     is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
             }.flatMap { response ->
-                if (response.sikkerhetsavvikListe != null && !response.sikkerhetsavvikListe.isEmpty()) {
+                if (response.sikkerhetsavvikListe != null && response.sikkerhetsavvikListe.isNotEmpty()) {
                     log.error("Sikkerhetsavvik fra inntekt: ${response.sikkerhetsavvikListe.joinToString {
                         it.tekst
                     } }")

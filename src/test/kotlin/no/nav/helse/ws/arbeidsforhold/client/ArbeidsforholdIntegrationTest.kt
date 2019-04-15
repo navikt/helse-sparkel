@@ -1,5 +1,6 @@
 package no.nav.helse.ws.arbeidsforhold.client
 
+import arrow.core.Try
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -7,7 +8,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
@@ -72,14 +72,14 @@ class ArbeidsforholdIntegrationTest {
             val actual = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(expected.size, actual.right.size)
+                is Try.Success -> {
+                    assertEquals(expected.size, actual.value.size)
                     expected.forEachIndexed { index, expectedArbeidsforhold ->
-                        assertEquals(expectedArbeidsforhold.arbeidsforholdID, actual.right[index].arbeidsforholdID)
-                        assertEquals(expectedArbeidsforhold.arbeidsforholdIDnav, actual.right[index].arbeidsforholdIDnav)
+                        assertEquals(expectedArbeidsforhold.arbeidsforholdID, actual.value[index].arbeidsforholdID)
+                        assertEquals(expectedArbeidsforhold.arbeidsforholdIDnav, actual.value[index].arbeidsforholdIDnav)
                     }
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -100,13 +100,13 @@ class ArbeidsforholdIntegrationTest {
             val actual = arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
 
             when (actual) {
-                is Either.Left -> {
-                    when (actual.left) {
-                        is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> assertEquals("Person med ident: 08088806280 ble ikke funnet i kall mot AktørId", actual.left.message)
+                is Try.Failure -> {
+                    when (actual.exception) {
+                        is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> assertEquals("Person med ident: 08088806280 ble ikke funnet i kall mot AktørId", actual.exception.message)
                         else -> fail { "Expected FinnArbeidsforholdPrArbeidstakerUgyldigInput to be returned" }
                     }
                 }
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }
@@ -139,14 +139,14 @@ class ArbeidsforholdIntegrationTest {
             val actual = arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdId)
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(expected.size, actual.right.size)
+                is Try.Success -> {
+                    assertEquals(expected.size, actual.value.size)
                     expected.forEachIndexed { index, expectedAvtale ->
-                        assertEquals(expectedAvtale.fomGyldighetsperiode.toLocalDate(), actual.right[index].fomGyldighetsperiode.toLocalDate())
-                        assertEquals(expectedAvtale.tomGyldighetsperiode?.toLocalDate(), actual.right[index].tomGyldighetsperiode?.toLocalDate())
+                        assertEquals(expectedAvtale.fomGyldighetsperiode.toLocalDate(), actual.value[index].fomGyldighetsperiode.toLocalDate())
+                        assertEquals(expectedAvtale.tomGyldighetsperiode?.toLocalDate(), actual.value[index].tomGyldighetsperiode?.toLocalDate())
                     }
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }

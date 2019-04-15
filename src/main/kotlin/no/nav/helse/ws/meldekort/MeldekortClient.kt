@@ -1,6 +1,6 @@
 package no.nav.helse.ws.meldekort
 
-import no.nav.helse.Either
+import arrow.core.Either
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.AktoerId

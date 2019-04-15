@@ -1,7 +1,6 @@
 package no.nav.helse.ws.meldekort
 
 import no.nav.helse.Feilårsak
-import no.nav.helse.bimap
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.FinnMeldekortUtbetalingsgrunnlagListeAktoerIkkeFunnet

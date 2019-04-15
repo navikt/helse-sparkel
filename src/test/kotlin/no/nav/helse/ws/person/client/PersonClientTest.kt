@@ -1,24 +1,14 @@
 package no.nav.helse.ws.person.client
 
+import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.tjeneste.virksomhet.person.v3.binding.PersonV3
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bostedsadresse
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Bydel
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Foedselsdato
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Gateadresse
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Informasjonsbehov
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoenn
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Kjoennstyper
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Landkoder
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personnavn
-import no.nav.tjeneste.virksomhet.person.v3.informasjon.Postnummer
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.*
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentGeografiskTilknytningResponse
 import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -45,8 +35,8 @@ class PersonClientTest {
         }
 
         when (result) {
-            is Either.Left -> assertEquals("SOAP fault", result.left.message)
-            else -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", result.exception.message)
+            else -> fail { "Expected Try.Failure to be returned" }
         }
     }
 
@@ -106,15 +96,15 @@ class PersonClientTest {
         }
 
         when (result) {
-            is Either.Right -> {
-                assertEquals(aktørId.aktor, (result.right.aktoer as AktoerId).aktoerId)
-                assertEquals("Bjarne", result.right.personnavn.fornavn)
-                assertEquals("Betjent", result.right.personnavn.etternavn)
-                assertEquals(LocalDate.of(2018, 11, 19), result.right.foedselsdato.foedselsdato.toLocalDate())
-                assertEquals("M", result.right.kjoenn.kjoenn.value)
-                assertEquals("NOR", result.right.bostedsadresse.strukturertAdresse.landkode.value)
+            is Try.Success -> {
+                assertEquals(aktørId.aktor, (result.value.aktoer as AktoerId).aktoerId)
+                assertEquals("Bjarne", result.value.personnavn.fornavn)
+                assertEquals("Betjent", result.value.personnavn.etternavn)
+                assertEquals(LocalDate.of(2018, 11, 19), result.value.foedselsdato.foedselsdato.toLocalDate())
+                assertEquals("M", result.value.kjoenn.kjoenn.value)
+                assertEquals("NOR", result.value.bostedsadresse.strukturertAdresse.landkode.value)
             }
-            else -> fail { "Expected Either.Right to be returned" }
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 
@@ -134,8 +124,8 @@ class PersonClientTest {
         }
 
         when (result) {
-            is Either.Left -> assertEquals("SOAP fault", result.left.message)
-            else -> fail { "Expected Either.Left to be returned" }
+            is Try.Failure -> assertEquals("SOAP fault", result.exception.message)
+            else -> fail { "Expected Try.Failure to be returned" }
         }
     }
 
@@ -172,15 +162,15 @@ class PersonClientTest {
         }
 
         when (result) {
-            is Either.Right -> {
-                assertEquals(aktørId.aktor, (result.right.aktoer as AktoerId).aktoerId)
-                assertEquals("SMEKKER", result.right.navn.mellomnavn)
-                assertEquals("BLYANT", result.right.navn.etternavn)
-                assertEquals("BLYANT SMEKKER", result.right.navn.sammensattNavn)
-                assertTrue(result.right.geografiskTilknytning is Bydel)
-                assertEquals("030103", result.right.geografiskTilknytning.geografiskTilknytning)
+            is Try.Success -> {
+                assertEquals(aktørId.aktor, (result.value.aktoer as AktoerId).aktoerId)
+                assertEquals("SMEKKER", result.value.navn.mellomnavn)
+                assertEquals("BLYANT", result.value.navn.etternavn)
+                assertEquals("BLYANT SMEKKER", result.value.navn.sammensattNavn)
+                assertTrue(result.value.geografiskTilknytning is Bydel)
+                assertEquals("030103", result.value.geografiskTilknytning.geografiskTilknytning)
             }
-            else -> fail { "Expected Either.Right to be returned" }
+            else -> fail { "Expected Try.Success to be returned" }
         }
     }
 }

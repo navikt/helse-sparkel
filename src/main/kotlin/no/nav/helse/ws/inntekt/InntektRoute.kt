@@ -1,12 +1,16 @@
 package no.nav.helse.ws.inntekt
 
+import arrow.core.Either
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.pipeline.PipelineContext
-import no.nav.helse.*
+import no.nav.helse.Feilårsak
+import no.nav.helse.HttpFeil
+import no.nav.helse.respond
+import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.dto.InntektResponse

@@ -1,5 +1,6 @@
 package no.nav.helse.ws.sakogbehandling
 
+import arrow.core.Try
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.MappingBuilder
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -7,16 +8,11 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.Either
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.samlAssertionResponse
+import no.nav.helse.ws.*
 import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.stsStub
-import no.nav.helse.ws.withCallId
-import no.nav.helse.ws.withSamlAssertion
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.finnsakogbehandlingskjedeliste.Behandlingskjede
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.sakogbehandling.Behandlingsstatuser
 import no.nav.tjeneste.virksomhet.sakogbehandling.v1.informasjon.sakogbehandling.Sakstemaer
@@ -104,20 +100,20 @@ class SakOgBehandlingIntegrationTest {
             val actual = sakOgBehandlingClient.finnSakOgBehandling(aktørId)
 
             when (actual) {
-                is Either.Right -> {
-                    assertEquals(expected.size, actual.right.size)
+                is Try.Success -> {
+                    assertEquals(expected.size, actual.value.size)
                     expected.forEachIndexed { key, value ->
-                        assertEquals(value.saksId, actual.right[key].saksId)
-                        assertEquals(value.sakstema.value, actual.right[key].sakstema.value)
-                        assertEquals(value.opprettet.toLocalDate(), actual.right[key].opprettet.toLocalDate())
-                        assertEquals(value.behandlingskjede.size, actual.right[key].behandlingskjede.size)
+                        assertEquals(value.saksId, actual.value[key].saksId)
+                        assertEquals(value.sakstema.value, actual.value[key].sakstema.value)
+                        assertEquals(value.opprettet.toLocalDate(), actual.value[key].opprettet.toLocalDate())
+                        assertEquals(value.behandlingskjede.size, actual.value[key].behandlingskjede.size)
                         value.behandlingskjede.forEachIndexed { index, behandlingskjede ->
-                            assertEquals(behandlingskjede.slutt.toLocalDate(), actual.right[key].behandlingskjede[index].slutt.toLocalDate())
-                            assertEquals(behandlingskjede.sisteBehandlingsstatus.value, actual.right[key].behandlingskjede[index].sisteBehandlingsstatus.value)
+                            assertEquals(behandlingskjede.slutt.toLocalDate(), actual.value[key].behandlingskjede[index].slutt.toLocalDate())
+                            assertEquals(behandlingskjede.sisteBehandlingsstatus.value, actual.value[key].behandlingskjede[index].sisteBehandlingsstatus.value)
                         }
                     }
                 }
-                is Either.Left -> fail { "Expected Either.Right to be returned" }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
         }
     }
@@ -135,8 +131,8 @@ class SakOgBehandlingIntegrationTest {
             val actual = sakOgBehandlingClient.finnSakOgBehandling(aktørId)
 
             when (actual) {
-                is Either.Left -> assertEquals("SOAP fault", actual.left.message)
-                is Either.Right -> fail { "Expected Either.Left to be returned" }
+                is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
+                is Try.Success -> fail { "Expected Try.Failure to be returned" }
             }
         }
     }

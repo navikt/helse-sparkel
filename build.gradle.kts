@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val slf4jVersion = "1.7.25"
 val ktorVersion = "1.1.2"
+val arrowVersion = "0.9.0"
 val prometheusVersion = "0.6.0"
 val cxfVersion = "3.3.1"
 val orgJsonVersion = "20180813"
@@ -47,6 +48,7 @@ dependencies {
     compile("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
     compile("javax.activation:activation:1.1.1")
 
+    compile("io.arrow-kt:arrow-core-data:$arrowVersion")
 
     compile("no.nav.helse:cxf-prometheus-metrics:dd7d125")
 

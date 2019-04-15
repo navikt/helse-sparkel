@@ -1,5 +1,6 @@
 package no.nav.helse
 
+import arrow.core.Either
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
@@ -10,8 +11,8 @@ data class HttpFeil(val status: HttpStatusCode, val feilmelding: String)
 suspend fun ApplicationCall.respondFeil(feil: HttpFeil) = respond(feil.status, FeilResponse(feil.feilmelding))
 
 suspend fun <B: Any> Either<Feilårsak, B>.respond(call: ApplicationCall) = when (this) {
-    is Either.Right -> call.respond(right)
-    is Either.Left -> call.respondFeil(left.toHttpFeil())
+    is Either.Right -> call.respond(b)
+    is Either.Left -> call.respondFeil(a.toHttpFeil())
 }
 
 sealed class Feilårsak {

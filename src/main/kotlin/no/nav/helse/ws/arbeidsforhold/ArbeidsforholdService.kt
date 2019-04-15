@@ -1,6 +1,9 @@
 package no.nav.helse.ws.arbeidsforhold
 
-import no.nav.helse.*
+import arrow.core.flatMap
+import arrow.core.orNull
+import no.nav.helse.Feilårsak
+import no.nav.helse.arrow.sequenceU
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
@@ -11,20 +14,27 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPr
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.HentArbeidsforholdHistorikkArbeidsforholdIkkeFunnet
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.HentArbeidsforholdHistorikkSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClient, private val organisasjonService: OrganisasjonService) {
 
+    companion object {
+        private val log = LoggerFactory.getLogger(ArbeidsforholdService::class.java)
+    }
+
     fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).bimap({
-                when (it) {
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).toEither { err ->
+                log.error("Error while doing arbeidsforhold lookup", err)
+
+                when (err) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
-            }, { liste ->
+            }.map { liste ->
                 liste.mapNotNull(ArbeidDomainMapper::toArbeidsforhold)
-            }).flatMap { liste ->
+            }.flatMap { liste ->
                 liste.map { arbeidsforhold ->
                     finnHistoriskeAvtaler(arbeidsforhold).map { avtaler ->
                         arbeidsforhold.copy(
@@ -35,24 +45,28 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
             }
 
     private fun finnHistoriskeAvtaler(arbeidsforhold: Arbeidsforhold) =
-            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforhold.arbeidsforholdId).bimap({
-                when (it) {
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforhold.arbeidsforholdId).toEither { err ->
+                log.error("Error while doing arbeidsforhold historikk lookup", err)
+
+                when (err) {
                     is HentArbeidsforholdHistorikkSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is HentArbeidsforholdHistorikkArbeidsforholdIkkeFunnet -> Feilårsak.IkkeFunnet
                     else -> Feilårsak.UkjentFeil
                 }
-            }, { avtaler ->
+            }.map { avtaler ->
                 avtaler.map(ArbeidDomainMapper::toArbeidsavtale)
-            })
+            }
 
     fun finnArbeidsgivere(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).bimap({ exception ->
-                when (exception) {
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom).toEither{ err ->
+                log.error("Error while doing arbeidsgivere lookup", err)
+
+                when (err) {
                     is FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
-            }, { liste ->
+            }.map { liste ->
                 liste.map { arbeidsforhold ->
                     arbeidsforhold.arbeidsgiver
                 }.filter { aktør ->
@@ -64,10 +78,10 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 }.map { organisasjon ->
                     no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(organisasjon.orgnummer), hentOrganisasjonsnavn(organisasjon))
                 }
-            })
+            }
 
     private fun hentOrganisasjonsnavn(organisasjon: Organisasjon) =
             organisasjon.navn ?: organisasjonService.hentOrganisasjon(Organisasjonsnummer(organisasjon.orgnummer)).map {
                 it.navn
-            }.orElse { null }
+            }.orNull()
 }
