@@ -11,14 +11,14 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.domain.Permisjon
-import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -28,7 +28,6 @@ class ArbeidsforholdServiceTest {
     @Test
     fun `skal returnere liste over arbeidsforhold`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
 
         val aktørId = AktørId("123456789")
         val fom = LocalDate.parse("2019-01-01")
@@ -51,7 +50,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_2)
         } returns Try.Success(avsluttet_arbeidsforhold_med_permittering_avtaler)
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
+        val actual = ArbeidsforholdService(arbeidsforholdClient)
                 .finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
@@ -63,7 +62,6 @@ class ArbeidsforholdServiceTest {
     @Test
     fun `ukjent arbeidsgivertype skal merkes som ukjent`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
 
         val aktørId = AktørId("123456789")
         val fom = LocalDate.parse("2019-01-01")
@@ -82,7 +80,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
         } returns Try.Success(arbeidsforhold_med_person_som_arbeidsgiver_avtaler)
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
+        val actual = ArbeidsforholdService(arbeidsforholdClient)
                 .finnArbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
@@ -98,7 +96,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
         } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
+        val actual = ArbeidsforholdService(arbeidsforholdClient).finnArbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
@@ -114,7 +112,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
         } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
+        val actual = ArbeidsforholdService(arbeidsforholdClient).finnArbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
@@ -130,218 +128,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
         } returns Try.Failure(Exception("Fault"))
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsforhold(
-                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
-
-        when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.UkjentFeil, actual.a)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal returnere feil når arbeidsforholdoppslag gir feil`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Failure(Exception("SOAP fault"))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
-                .finnArbeidsgivere(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal returnere en liste over organisasjoner`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(arbeidsgiver_organisasjon_1.orgnummer),
-                        arbeidsgiver_organisasjon_1.navn),
-                no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(arbeidsgiver_organisasjon_2.orgnummer),
-                        arbeidsgiver_organisasjon_2.navn)
-        )
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Success(listOf(arbeidsforhold_uten_sluttdato, avsluttet_arbeidsforhold_med_permittering))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
-                .finnArbeidsgivere(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Right -> assertEquals(expected, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal slå opp navn på organisasjon`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(arbeidsgiver_organisasjon_3.orgnummer),
-                        arbeidsgiver_organisasjon_3_navn)
-        )
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Success(listOf(arbeidsforhold_med_arbeidsgiver_uten_navn))
-
-        every {
-            organisasjonService.hentOrganisasjon(Organisasjonsnummer(arbeidsgiver_organisasjon_3.orgnummer))
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(arbeidsgiver_organisasjon_3.orgnummer),
-                arbeidsgiver_organisasjon_3_navn))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
-                .finnArbeidsgivere(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Right -> assertEquals(expected, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal returnere feil når oppslag av arbeidsforhold feiler`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Failure(Exception("SOAP fault"))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
-                .finnArbeidsgivere(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal returnere tomt organisasjonnavn når oppslag av organisasjonnavn feiler`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(arbeidsgiver_organisasjon_3.orgnummer), null)
-        )
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Success(listOf(arbeidsforhold_med_arbeidsgiver_uten_navn))
-
-        every {
-            organisasjonService.hentOrganisasjon(any())
-        } returns Either.Left(Feilårsak.FeilFraTjeneste)
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
-                .finnArbeidsgivere(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Right -> assertEquals(expected, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal fjerne duplikater ved flere arbeidsforhold i samme virksomhet`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer(arbeidsgiver_organisasjon_1.orgnummer),
-                        arbeidsgiver_organisasjon_1.navn)
-        )
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Success(listOf(arbeidsforhold_uten_sluttdato, arbeidsforhold_uten_sluttdato))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, organisasjonService)
-                .finnArbeidsgivere(aktørId, fom, tom)
-
-        when (actual) {
-            is Either.Right -> assertEquals(expected, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal mappe sikkerhetsbegrensning til feilårsak for arbeidsgiveroppslag`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
-
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
-                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
-
-        when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal mappe ugyldig input til feilårsak for arbeidsgiveroppslag`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
-                AktørId("11987654321"), LocalDate.now(), LocalDate.now())
-
-        when (actual) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal mappe exceptions til feilårsak for arbeidsgiveroppslag`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
-        } returns Try.Failure(Exception("Fault"))
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidsgivere(
+        val actual = ArbeidsforholdService(arbeidsforholdClient).finnArbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
@@ -361,16 +148,8 @@ private val arbeidsgiver_organisasjon_2 = Organisasjon().apply {
     navn = "MATBUTIKKEN AS"
 }
 
-private val arbeidsgiver_organisasjon_3 = Organisasjon().apply {
-    orgnummer = "912998827"
-    navn = null
-}
-
-private val arbeidsgiver_organisasjon_3_navn = "MATBUTIKKEN AS"
-
 private val arbeidsforholdID_for_arbeidsforhold_1 = 1234L
 private val arbeidsforholdID_for_arbeidsforhold_2 = 5678L
-private val arbeidsforholdID_for_arbeidsforhold_3 = 9123L
 
 private val arbeidsforhold_uten_sluttdato get() = Arbeidsforhold().apply {
     arbeidsgiver = arbeidsgiver_organisasjon_1
@@ -450,19 +229,6 @@ private val avsluttet_arbeidsforhold_med_permittering_avtaler = listOf(
             stillingsprosent = BigDecimal.valueOf(60)
         }
 )
-
-private val arbeidsforhold_med_arbeidsgiver_uten_navn get() = Arbeidsforhold().apply {
-    arbeidsgiver = arbeidsgiver_organisasjon_3
-    arbeidsforholdIDnav = arbeidsforholdID_for_arbeidsforhold_3
-    ansettelsesPeriode = AnsettelsesPeriode().apply {
-        periode = Gyldighetsperiode().apply {
-            this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
-        }
-    }
-    with(arbeidsavtale) {
-        add(arbeidsforhold_uten_sluttdato_avtale)
-    }
-}
 
 private val arbeidsforhold_med_person_som_arbeidsgiver get() = Arbeidsforhold().apply {
     arbeidsgiver = Person().apply {

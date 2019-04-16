@@ -4,9 +4,10 @@ import com.auth0.jwk.JwkProvider
 import io.ktor.application.Application
 import io.mockk.mockk
 import no.nav.helse.http.aktør.AktørregisterService
-import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
+import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
+import no.nav.helse.ws.arbeidsforhold.ArbeidsgiverService
 import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.meldekort.MeldekortService
@@ -17,6 +18,7 @@ import no.nav.helse.ws.sykepenger.SykepengelisteService
 
 fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, arbeidsfordelingService: ArbeidsfordelingService = mockk(),
                               arbeidsforholdService: ArbeidsforholdService = mockk(),
+                              arbeidsgiverService: ArbeidsgiverService = mockk(),
                               inntektService: InntektService = mockk(),
                               arbeidInntektYtelseService: ArbeidInntektYtelseService = mockk(),
                               meldekortService: MeldekortService = mockk(),
@@ -27,8 +29,8 @@ fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, 
                               infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService = mockk(),
                               aktørregisterService: AktørregisterService = mockk()
                               ) {
-    return sparkel(jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, inntektService,
-            arbeidInntektYtelseService, meldekortService, organisasjonService,
+    return sparkel(jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, arbeidsgiverService,
+            inntektService, arbeidInntektYtelseService, meldekortService, organisasjonService,
             personService, sakOgBehandlingService, sykepengelisteService, infotrygdBeregningsgrunnlagService,
             aktørregisterService)
 }

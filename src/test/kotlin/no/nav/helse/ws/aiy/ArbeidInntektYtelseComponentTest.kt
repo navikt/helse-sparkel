@@ -13,12 +13,12 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
-import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
-import no.nav.helse.ws.inntekt.client.InntektClient
+import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
 import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
+import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
@@ -255,8 +255,7 @@ class ArbeidInntektYtelseComponentTest {
         )
 
         val arbeidsforholdService = ArbeidsforholdService(
-                arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
-                organisasjonService = organisasjonService
+                arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
         )
         val inntektService = InntektService(
                 inntektClient = InntektClient(inntektV3)

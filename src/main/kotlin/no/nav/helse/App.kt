@@ -30,6 +30,7 @@ import no.nav.helse.ws.aiy.arbeidInntektYtelse
 import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
+import no.nav.helse.ws.arbeidsforhold.ArbeidsgiverService
 import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.ws.infotrygdberegningsgrunnlag.infotrygdBeregningsgrunnlag
@@ -86,8 +87,14 @@ fun main() {
                 arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
                 personService = personService)
 
+        val arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl)
+
         val arbeidsforholdService = ArbeidsforholdService(
-                arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl),
+                arbeidsforholdClient = arbeidsforholdClient
+        )
+
+        val arbeidsgiverService = ArbeidsgiverService(
+                arbeidsforholdClient = arbeidsforholdClient,
                 organisasjonService = organisasjonService
         )
 
@@ -119,6 +126,7 @@ fun main() {
                 jwkProvider,
                 arbeidsfordelingService,
                 arbeidsforholdService,
+                arbeidsgiverService,
                 inntektService,
                 arbeidsforholdMedInntektService,
                 meldekortServie,
@@ -143,6 +151,7 @@ fun Application.sparkel(
         jwkProvider: JwkProvider,
         arbeidsfordelingService: ArbeidsfordelingService,
         arbeidsforholdService: ArbeidsforholdService,
+        arbeidsgiverService: ArbeidsgiverService,
         inntektService: InntektService,
         arbeidInntektYtelseService: ArbeidInntektYtelseService,
         meldekortService: MeldekortService,
@@ -208,7 +217,7 @@ fun Application.sparkel(
 
             arbeidInntektYtelse(arbeidInntektYtelseService)
 
-            arbeidsforhold(arbeidsforholdService)
+            arbeidsforhold(arbeidsforholdService, arbeidsgiverService)
 
             organisasjon(organisasjonService)
 

@@ -15,7 +15,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 fun Route.arbeidsforhold(
-        arbeidsforholdService: ArbeidsforholdService
+        arbeidsforholdService: ArbeidsforholdService,
+        arbeidsgiverService: ArbeidsgiverService
 ) {
     get("api/arbeidsforhold/{aktorId}") {
         if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
@@ -59,7 +60,7 @@ fun Route.arbeidsforhold(
                 return@get
             }
 
-            arbeidsforholdService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+            arbeidsgiverService.finnArbeidsgivere(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
                 it.map(OrganisasjonDtoMapper::toDto)
             }.map {
                 ArbeidsgivereResponse(it)

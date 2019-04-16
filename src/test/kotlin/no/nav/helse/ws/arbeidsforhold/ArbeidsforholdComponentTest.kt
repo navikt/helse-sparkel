@@ -14,8 +14,8 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
-import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.meldinger.FinnArbeidsforholdPrArbeidstakerResponse
@@ -239,8 +239,7 @@ class ArbeidsforholdComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 arbeidsforholdService = ArbeidsforholdService(
-                        arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
-                        organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
+                        arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
@@ -316,7 +315,7 @@ class ArbeidsforholdComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                arbeidsforholdService = ArbeidsforholdService(
+                arbeidsgiverService = ArbeidsgiverService(
                         arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
@@ -374,7 +373,7 @@ class ArbeidsforholdComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                arbeidsforholdService = ArbeidsforholdService(
+                arbeidsgiverService = ArbeidsgiverService(
                         arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
