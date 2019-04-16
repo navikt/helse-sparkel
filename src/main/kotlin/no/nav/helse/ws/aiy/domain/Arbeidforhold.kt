@@ -13,6 +13,7 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
     }
 
     data class Arbeidstaker(override val arbeidsgiver: Virksomhet,
+                            val arbeidsforholdId: Long,
                             override val startdato: LocalDate,
                             override val sluttdato: LocalDate? = null,
                             val permisjon: List<Permisjon> = emptyList(),

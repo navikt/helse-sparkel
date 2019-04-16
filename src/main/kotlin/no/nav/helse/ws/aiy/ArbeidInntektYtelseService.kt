@@ -31,6 +31,17 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .labelNames("type")
                 .help("antall arbeidsforhold som ikke har noen tilhørende inntekter")
                 .register()
+
+        private val arbeidsforholdISammeVirksomhetCounter = Counter.build()
+                .name("arbeidsforhold_i_samme_virksomhet_totals")
+                .help("antall arbeidsforhold i samme virksomhet")
+                .register()
+
+        private val arbeidsforholdISammeVirksomhetAvviksCounter = Counter.build()
+                .name("arbeidsforhold_i_samme_virksomhet_avvik_totals")
+                .help("antall arbeidsforhold som ikke har noen tilhørende inntekter fordi personen har flere arbeidsforhold i samme virksomhet")
+                .register()
+
         private val foreløpigArbeidsforholdAvviksCounter = Counter.build()
                 .name("forelopig_arbeidsforhold_avvik_totals")
                 .labelNames("type")
@@ -113,6 +124,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                     },
                     startdato = arbeidsforhold.startdato,
                     sluttdato = arbeidsforhold.sluttdato,
+                    arbeidsforholdId = arbeidsforhold.arbeidsforholdId,
                     arbeidsavtaler = arbeidsforhold.arbeidsavtaler,
                     permisjon = arbeidsforhold.permisjon
             )
@@ -148,7 +160,17 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                                     tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
                                 }
 
-                                Triple(grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold, arbeidsforholdliste), inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekt)
+                                grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold, arbeidsforholdliste).let { arbeidsforholdMedOgUtenInntekter ->
+                                    arbeidsforholdMedOgUtenInntekter.second.filterNot { arbeidsforhold ->
+                                        arbeidsforholdUtenInntekt.contains(arbeidsforhold)
+                                    }.let { arbeidsforholdUtenInntekterIVirksomhetMedFlereArbeidsforhold ->
+                                        if (arbeidsforholdUtenInntekterIVirksomhetMedFlereArbeidsforhold.isNotEmpty()) {
+                                            tellAvvikPåArbeidsforholdIVirksomhetMedFlereArbeidsforhold(arbeidsforholdUtenInntekterIVirksomhetMedFlereArbeidsforhold)
+                                        }
+                                    }
+
+                                    Triple(arbeidsforholdMedOgUtenInntekter.first, inntekterUtenArbeidsforhold, arbeidsforholdMedOgUtenInntekter.second)
+                                }
                             }
                         }
             }
@@ -198,20 +220,56 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     private fun grupperInntekterEtterArbeidsforholdOgPeriode(inntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
             inntekter.groupBy { inntekt ->
                 inntekt.virksomhet
-            }.mapKeys { entry ->
-                arbeidsforholdliste.first { arbeidsforhold ->
-                    entry.key.identifikator == arbeidsforhold.arbeidsgiver.identifikator
+            }.let { inntekterEtterVirksomhet ->
+                val arbeidsforholdEtterVirksomhet = arbeidsforholdliste.groupBy { it.arbeidsgiver }
+
+                arbeidsforholdliste.associateWith { arbeidsforhold ->
+                    val andreArbeidsforholdISammeVirksomhet = arbeidsforholdEtterVirksomhet.getValue(arbeidsforhold.arbeidsgiver)
+                    val index = andreArbeidsforholdISammeVirksomhet.indexOf(arbeidsforhold)
+
+                    if (andreArbeidsforholdISammeVirksomhet.size > 1) {
+                        tellAvvikPåArbeidsforholdISammeVirksomhet(andreArbeidsforholdISammeVirksomhet)
+                    }
+
+                    if (index == 0) {
+                        inntekterEtterVirksomhet[arbeidsforhold.arbeidsgiver] ?: emptyList()
+                    } else {
+                        emptyList()
+                    }
                 }
-            }.mapValues { entry ->
-                entry.value.groupBy { lønnsinntekt ->
-                    lønnsinntekt.utbetalingsperiode
+            }.let { arbeidsforholdMedOgUtenInntekter ->
+                val arbeidsforholdMedInntekter = arbeidsforholdMedOgUtenInntekter.filterValues { inntekter ->
+                    inntekter.isNotEmpty()
+                }.mapValues { entry ->
+                    entry.value.groupBy { lønnsinntekt ->
+                        lønnsinntekt.utbetalingsperiode
+                    }
                 }
+
+                val arbeidsforholdUtenInntekter = arbeidsforholdMedOgUtenInntekter.filterValues { inntekter ->
+                    inntekter.isEmpty()
+                }.keys.toList()
+
+                Pair(arbeidsforholdMedInntekter, arbeidsforholdUtenInntekter)
             }
 
     private fun tellAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) =
             arbeidsforholdliste.forEach { arbeidsforhold ->
                 arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
                 log.warn("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
+            }
+
+    private fun tellAvvikPåArbeidsforholdISammeVirksomhet(andreArbeidsforholdISammeVirksomhet: List<Arbeidsforhold>) {
+        arbeidsforholdISammeVirksomhetCounter.inc(andreArbeidsforholdISammeVirksomhet.size.toDouble())
+        log.info("fant ${andreArbeidsforholdISammeVirksomhet.size} arbeidsforhold i samme virksomhet")
+    }
+
+    private fun tellAvvikPåArbeidsforholdIVirksomhetMedFlereArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) =
+            arbeidsforholdliste.forEach { arbeidsforhold ->
+                arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
+                arbeidsforholdISammeVirksomhetAvviksCounter.inc()
+                log.warn("arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver} har ingen inntekter fordi det er flere " +
+                        "arbeidsforhold i samme virksomhet, og inntektene har blitt fordelt på ett av dem")
             }
 
     private fun tellAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {

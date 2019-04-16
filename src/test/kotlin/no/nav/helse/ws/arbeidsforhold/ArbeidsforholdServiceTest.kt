@@ -60,6 +60,36 @@ class ArbeidsforholdServiceTest {
     }
 
     @Test
+    fun `skal ikke slå sammen to arbeidsforhold under samme virksomhet`() {
+        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
+
+        val aktørId = AktørId("123456789")
+        val fom = LocalDate.parse("2019-01-01")
+        val tom = LocalDate.parse("2019-02-01")
+
+        val expected = listOf(
+                forventet_arbeidsforhold_uten_sluttdato,
+                forventet_arbeidsforhold_uten_sluttdato
+        )
+
+        every {
+            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
+        } returns Try.Success(listOf(arbeidsforhold_uten_sluttdato, arbeidsforhold_uten_sluttdato))
+
+        every {
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
+        } returns Try.Success(arbeidsforhold_uten_sluttdato_avtaler)
+
+        val actual = ArbeidsforholdService(arbeidsforholdClient)
+                .finnArbeidsforhold(aktørId, fom, tom)
+
+        when (actual) {
+            is Either.Right -> assertEquals(expected, actual.b)
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
+    }
+
+    @Test
     fun `ukjent arbeidsgivertype skal merkes som ukjent`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
 
