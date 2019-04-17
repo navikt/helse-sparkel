@@ -2,28 +2,35 @@ package no.nav.helse.ws.arbeidsforhold
 
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.arbeidsforhold.domain.Permisjon
 import no.nav.helse.ws.arbeidsforhold.dto.ArbeidsavtaleDTO
 import no.nav.helse.ws.arbeidsforhold.dto.ArbeidsforholdDTO
 import no.nav.helse.ws.arbeidsforhold.dto.ArbeidsgiverDTO
 import no.nav.helse.ws.arbeidsforhold.dto.PermisjonDTO
+import no.nav.helse.ws.inntekt.domain.Virksomhet
 
 object ArbeidDtoMapper {
 
-    fun toDto(arbeidsforhold: Arbeidsforhold) =
-            ArbeidsforholdDTO(
-                    arbeidsgiver = arbeidsgiver(arbeidsforhold.arbeidsgiver),
-                    startdato = arbeidsforhold.startdato,
-                    sluttdato = arbeidsforhold.sluttdato,
-                    arbeidsavtaler = toArbeidsavtalerDto(arbeidsforhold.arbeidsavtaler),
-                    permisjon = toPermisjonDto(arbeidsforhold.permisjon)
-            )
+    fun toDto(arbeidsforhold: Arbeidsforhold) = ArbeidsforholdDTO(
+            type = arbeidsforhold.type(),
+            arbeidsgiver = toArbeidsgiver(arbeidsforhold.arbeidsgiver),
+            startdato = arbeidsforhold.startdato,
+            sluttdato = arbeidsforhold.sluttdato,
+            yrke = when (arbeidsforhold) {
+                is Arbeidsforhold.Frilans -> arbeidsforhold.yrke
+                is Arbeidsforhold.Arbeidstaker -> arbeidsforhold.arbeidsavtaler.firstOrNull()?.yrke
+            },
+            arbeidsavtaler = when (arbeidsforhold) {
+                is Arbeidsforhold.Arbeidstaker -> toArbeidsavtalerDto(arbeidsforhold.arbeidsavtaler)
+                else -> emptyList()
+            },
+            permisjon = when (arbeidsforhold) {
+                is Arbeidsforhold.Arbeidstaker -> toPermisjonDto(arbeidsforhold.permisjon)
+                else -> emptyList()
+            }
+    )
 
-    private fun arbeidsgiver(arbeidsgiver: Arbeidsgiver) = when (arbeidsgiver) {
-        is Arbeidsgiver.Virksomhet -> ArbeidsgiverDTO(arbeidsgiver.virksomhetsnummer.value, null)
-        is Arbeidsgiver.Person -> throw NotImplementedError("arbeidsgiver of type Person is not implemented")
-    }
+    fun toArbeidsgiver(virksomhet: Virksomhet) = ArbeidsgiverDTO(virksomhet.identifikator, virksomhet.type())
 
     fun toArbeidsavtalerDto(arbeidsavtaler: List<Arbeidsavtale>) =
             arbeidsavtaler.map { arbeidsavtale ->

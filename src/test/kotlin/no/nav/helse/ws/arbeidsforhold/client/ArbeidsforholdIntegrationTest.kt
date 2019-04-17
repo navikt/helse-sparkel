@@ -113,11 +113,6 @@ class ArbeidsforholdIntegrationTest {
 
     @Test
     fun `skal hente historiske arbeidsavtaler`() {
-
-        val aktørId = AktørId("08088806280")
-        val fom = LocalDate.parse("2017-01-01")
-        val tom = LocalDate.parse("2019-01-01")
-
         val arbeidsforholdId = 123456789L
 
         val expected = listOf(

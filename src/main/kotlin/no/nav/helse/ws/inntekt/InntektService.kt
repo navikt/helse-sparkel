@@ -8,7 +8,6 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.client.InntektClient
-import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
@@ -23,11 +22,6 @@ class InntektService(private val inntektClient: InntektClient) {
 
     companion object {
         private val log = LoggerFactory.getLogger(InntektService::class.java)
-
-        private val frilansCounter = Counter.build()
-                .name("arbeidsforhold_frilans_totals")
-                .help("antall frilans arbeidsforhold")
-                .register()
     }
 
     fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
@@ -41,48 +35,6 @@ class InntektService(private val inntektClient: InntektClient) {
     fun hentInntekter(aktørId: AktørId, fom: YearMonth, tom: YearMonth) = hentInntekt(aktørId, fom, tom) {
         inntektClient.hentInntekter(aktørId, fom, tom)
     }
-
-    fun hentFrilansarbeidsforhold(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
-            inntektClient.hentInntekter(aktørId, fom, tom).toEither { err ->
-                log.error("Error during inntekt lookup", err)
-
-                when (err) {
-                    is HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter -> Feilårsak.FeilFraTjeneste
-                    is HentInntektListeBolkUgyldigInput -> Feilårsak.FeilFraTjeneste
-                    else -> Feilårsak.UkjentFeil
-                }
-            }.flatMap { response ->
-                if (response.sikkerhetsavvikListe != null && !response.sikkerhetsavvikListe.isEmpty()) {
-                    log.error("Sikkerhetsavvik fra inntekt: ${response.sikkerhetsavvikListe.joinToString {
-                        it.tekst
-                    } }")
-                    Either.Left(Feilårsak.FeilFraTjeneste)
-                } else {
-                    Either.Right(response.arbeidsInntektIdentListe)
-                }
-            }.map {
-                it.flatMap {
-                    it.arbeidsInntektMaaned
-                }.flatMap {
-                    it.arbeidsInntektInformasjon.arbeidsforholdListe.map { arbeidsforholdFrilanser ->
-                        frilansCounter.inc()
-
-                        when (arbeidsforholdFrilanser.arbeidsgiver) {
-                            is PersonIdent -> Virksomhet.Person((arbeidsforholdFrilanser.arbeidsgiver as PersonIdent).personIdent)
-                            is AktoerId -> Virksomhet.NavAktør((arbeidsforholdFrilanser.arbeidsgiver as AktoerId).aktoerId)
-                            is Organisasjon -> Virksomhet.Organisasjon(Organisasjonsnummer((arbeidsforholdFrilanser.arbeidsgiver as Organisasjon).orgnummer))
-                            else -> null
-                        }?.let {virksomhet ->
-                            ArbeidsforholdFrilanser(
-                                    arbeidsgiver = virksomhet,
-                                    startdato = arbeidsforholdFrilanser.frilansPeriode.fom.toLocalDate(),
-                                    sluttdato = arbeidsforholdFrilanser.frilansPeriode?.tom?.toLocalDate(),
-                                    yrke = arbeidsforholdFrilanser.yrke?.value
-                            )
-                        }
-                    }
-                }.filterNotNull()
-            }
 
     private fun hentInntekt(aktørId: AktørId, fom: YearMonth, tom: YearMonth, f: InntektService.() -> Try<HentInntektListeBolkResponse>) =
             f(this).toEither { err ->

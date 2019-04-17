@@ -14,6 +14,7 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.arbeidsforhold.client.ArbeidsforholdClient
+import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
@@ -142,7 +143,6 @@ class ArbeidsforholdComponentTest {
     @Test
     fun `en liste over arbeidsforhold skal returneres`() {
         val arbeidsforholdV3 = mockk<ArbeidsforholdV3>()
-        val organisasjonV5 = mockk<OrganisasjonV5>()
 
         val aktørId = AktørId("1831212532188")
 
@@ -239,7 +239,8 @@ class ArbeidsforholdComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 arbeidsforholdService = ArbeidsforholdService(
-                        arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
+                        arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
+                        inntektClient = InntektClient(mockk())
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
@@ -526,9 +527,12 @@ private val expectedJson_arbeidsforhold = """
 {
     "arbeidsforhold": [{
         "arbeidsgiver": {
-            "orgnummer": "889640782"
+            "identifikator": "889640782",
+            "type": "Organisasjon"
         },
+        "type": "Arbeidstaker",
         "startdato": "2019-01-01",
+        "yrke": "Butikkmedarbeider",
         "arbeidsavtaler": [
             {
                 "fom":"2019-01-01",
@@ -539,10 +543,13 @@ private val expectedJson_arbeidsforhold = """
         "permisjon": []
     },{
         "arbeidsgiver": {
-            "orgnummer": "995298775"
+            "identifikator": "995298775",
+            "type": "Organisasjon"
         },
+        "type": "Arbeidstaker",
         "startdato": "2015-01-01",
         "sluttdato": "2019-01-01",
+        "yrke": "Butikkmedarbeider",
         "arbeidsavtaler": [
             {
                 "fom":"2017-01-01",

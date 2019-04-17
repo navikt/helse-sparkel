@@ -3,8 +3,8 @@ package no.nav.helse.ws.arbeidsforhold
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsavtale
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver.*
 import no.nav.helse.ws.arbeidsforhold.domain.Permisjon
+import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
@@ -16,14 +16,14 @@ object ArbeidDomainMapper {
 
     fun toArbeidsforhold(arbeidsforhold: no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold) =
             when (arbeidsforhold.arbeidsgiver) {
-                is Organisasjon -> Virksomhet(Organisasjonsnummer((arbeidsforhold.arbeidsgiver as Organisasjon).orgnummer))
-                is Person -> Person((arbeidsforhold.arbeidsgiver as Person).ident.ident)
+                is Organisasjon -> Virksomhet.Organisasjon(Organisasjonsnummer((arbeidsforhold.arbeidsgiver as Organisasjon).orgnummer))
+                is Person -> Virksomhet.Person((arbeidsforhold.arbeidsgiver as Person).ident.ident)
                 else -> {
                     log.error("unknown arbeidsgivertype: ${arbeidsforhold.arbeidsgiver}")
                     null
                 }
             }?.let { arbeidsgiver ->
-                Arbeidsforhold(
+                Arbeidsforhold.Arbeidstaker(
                         arbeidsgiver = arbeidsgiver,
                         startdato = arbeidsforhold.ansettelsesPeriode.periode.fom.toLocalDate(),
                         sluttdato = arbeidsforhold.ansettelsesPeriode.periode.tom?.toLocalDate(),

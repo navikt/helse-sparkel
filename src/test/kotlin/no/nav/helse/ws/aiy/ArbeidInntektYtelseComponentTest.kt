@@ -254,11 +254,14 @@ class ArbeidInntektYtelseComponentTest {
                 organisasjonsClient = OrganisasjonClient(organisasjonV5)
         )
 
+        val inntektClient = InntektClient(inntektV3)
+
         val arbeidsforholdService = ArbeidsforholdService(
-                arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3)
+                arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
+                inntektClient = inntektClient
         )
         val inntektService = InntektService(
-                inntektClient = InntektClient(inntektV3)
+                inntektClient = inntektClient
         )
 
         val jwkStub = JwtStub("test issuer")

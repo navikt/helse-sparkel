@@ -35,7 +35,7 @@ fun Route.arbeidsforhold(
                 return@get
             }
 
-            arbeidsforholdService.finnArbeidsforhold(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+            arbeidsforholdService.finnArbeidstakerarbeidsforhold(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
                 it.map(ArbeidDtoMapper::toDto)
             }.map {
                 ArbeidsforholdResponse(it)

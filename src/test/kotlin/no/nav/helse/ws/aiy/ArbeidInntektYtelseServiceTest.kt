@@ -9,9 +9,7 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
 import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
 import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -37,11 +35,9 @@ class ArbeidInntektYtelseServiceTest {
         val frilansVirksomhet1 = Organisasjonsnummer("971524960")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet1), fom, arbeidsforholdId = 1234L),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet2), LocalDate.parse("2018-01-01"), fom, arbeidsforholdId = 5678L)
-        )
-        val frilansArbeidsforhold = listOf(
-                ArbeidsforholdFrilanser(Virksomhet.Organisasjon(frilansVirksomhet1), LocalDate.parse("2019-01-01"), null, null)
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), startdato = fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), startdato = LocalDate.parse("2018-01-01"), sluttdato = fom, arbeidsforholdId = 5678L),
+                Arbeidsforhold.Frilans(Virksomhet.Organisasjon(frilansVirksomhet1), LocalDate.parse("2019-01-01"), null, null)
         )
 
         val inntekter = listOf(
@@ -55,7 +51,7 @@ class ArbeidInntektYtelseServiceTest {
 
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 1234L, fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 1234L, fom) to mapOf(
                                 YearMonth.of(2019, 1) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000))
                                 ),
@@ -64,7 +60,7 @@ class ArbeidInntektYtelseServiceTest {
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 2), BigDecimal(25000))
                                 )
                         ),
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), 5678L, LocalDate.parse("2018-01-01"), fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), 5678L, LocalDate.parse("2018-01-01"), fom) to mapOf(
                                 YearMonth.of(2018, 10) to listOf(
                                     Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000))
                                 ),
@@ -75,7 +71,7 @@ class ArbeidInntektYtelseServiceTest {
                                     Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 12), BigDecimal(17000))
                                 )
                         ),
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Frilans(Virksomhet.Organisasjon(frilansVirksomhet1), LocalDate.parse("2019-01-01")) to mapOf(
+                        Arbeidsforhold.Frilans(Virksomhet.Organisasjon(frilansVirksomhet1), LocalDate.parse("2019-01-01")) to mapOf(
                                 YearMonth.of(2019, 2) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(frilansVirksomhet1), YearMonth.of(2019, 2), BigDecimal(30000))
                                 )
@@ -91,7 +87,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
@@ -103,21 +98,15 @@ class ArbeidInntektYtelseServiceTest {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
 
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(frilansArbeidsforhold)
-
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
         val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         assertEquals(0.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
         assertEquals(0.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
@@ -140,8 +129,8 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet1 = Organisasjonsnummer("995298775")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet1), fom, arbeidsforholdId = 1234L),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(virksomhet1), fom, arbeidsforholdId = 5678L)
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), startdato = fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), startdato = fom, arbeidsforholdId = 5678L)
         )
 
         val inntekter = listOf(
@@ -152,7 +141,7 @@ class ArbeidInntektYtelseServiceTest {
 
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 1234L, fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 1234L, fom) to mapOf(
                                 YearMonth.of(2019, 1) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000))
                                 ),
@@ -165,7 +154,7 @@ class ArbeidInntektYtelseServiceTest {
                         )
                 ),
                 arbeidsforholdUtenInntekter = listOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 5678L, fom)
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 5678L, fom)
                 )
         )
 
@@ -177,7 +166,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
@@ -188,10 +176,6 @@ class ArbeidInntektYtelseServiceTest {
         every {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
-
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(emptyList())
 
         every {
             organisasjonService.hentOrganisasjon(juridiskNrForVirksomhet)
@@ -205,13 +189,11 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         assertEquals(1.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(1.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(1.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
         assertEquals(1.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
@@ -231,7 +213,6 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet2 = Organisasjonsnummer("958995369")
 
         val arbeidsforholdliste = emptyList<Arbeidsforhold>()
-        val frilansArbeidsforhold = emptyList<ArbeidsforholdFrilanser>()
 
         val inntekter = listOf(
                 Inntekt.Ytelse(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000), "foreldrepenger"),
@@ -265,10 +246,6 @@ class ArbeidInntektYtelseServiceTest {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
 
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(frilansArbeidsforhold)
-
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
         when (actual) {
@@ -286,7 +263,7 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), fom, arbeidsforholdId = 1234L)
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), startdato = fom, arbeidsforholdId = 1234L)
         )
 
         val inntekter = listOf(
@@ -300,7 +277,7 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet1 = Organisasjonsnummer("889640782")
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 1234L, fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet1), 1234L, fom) to mapOf(
                                 YearMonth.of(2019, 1) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet1), YearMonth.of(2019, 1), BigDecimal(20000))
                                 ),
@@ -335,10 +312,6 @@ class ArbeidInntektYtelseServiceTest {
         every {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
-
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(emptyList())
 
         every {
             organisasjonService.hentOrganisasjon(Organisasjonsnummer("995298775"))
@@ -384,8 +357,8 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("889640782")), fom, arbeidsforholdId = 1234L),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), LocalDate.parse("2018-01-01"), fom, arbeidsforholdId = 5678L)
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), startdato = fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), startdato = LocalDate.parse("2018-01-01"), sluttdato = fom, arbeidsforholdId = 5678L)
         )
 
         val inntekter = listOf(
@@ -397,7 +370,7 @@ class ArbeidInntektYtelseServiceTest {
         val virksomhet2 = Organisasjonsnummer("995298775")
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), 5678L, LocalDate.parse("2018-01-01"), fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(virksomhet2), 5678L, LocalDate.parse("2018-01-01"), fom) to mapOf(
                                 YearMonth.of(2018, 10) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(virksomhet2), YearMonth.of(2018, 10), BigDecimal(15000))
                                 ),
@@ -410,7 +383,7 @@ class ArbeidInntektYtelseServiceTest {
                         )
                 ),
                 arbeidsforholdUtenInntekter = listOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), 1234L, fom)
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")), 1234L, fom)
                 )
         )
 
@@ -432,10 +405,6 @@ class ArbeidInntektYtelseServiceTest {
         every {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
-
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(emptyList())
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
@@ -465,8 +434,8 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), fom, arbeidsforholdId = 1234L),
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("874707112")), fom, arbeidsforholdId = 5678L)
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), startdato = fom, arbeidsforholdId = 1234L),
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("874707112")), startdato = fom, arbeidsforholdId = 5678L)
         )
 
         val inntekter = listOf(
@@ -478,7 +447,7 @@ class ArbeidInntektYtelseServiceTest {
 
         val expected = ArbeidInntektYtelse(
                 arbeidsforhold = mapOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), 1234L, fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), 1234L, fom) to mapOf(
                                 YearMonth.of(2018, 10) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 10), BigDecimal(15000))
                                 ),
@@ -489,7 +458,7 @@ class ArbeidInntektYtelseServiceTest {
                                         Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), YearMonth.of(2018, 12), BigDecimal(17000))
                                 )
                         ),
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("874707112")), 5678L, fom) to mapOf(
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("874707112")), 5678L, fom) to mapOf(
                                 YearMonth.of(2018, 12) to listOf(
                                         Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("874707112")), YearMonth.of(2018, 12), BigDecimal(18000))
                                 )
@@ -503,11 +472,11 @@ class ArbeidInntektYtelseServiceTest {
             organisasjonService.hentOrganisasjon(match {
                 it.value == "889640782"
             })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), "ARBEIDS- OG VELFERDSETATEN"))
+        } returns Either.Right(Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), "ARBEIDS- OG VELFERDSETATEN"))
 
         every {
             organisasjonService.hentOrganisasjon(Organisasjonsnummer("971524960"))
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("971524960"), "STORTINGET"))
+        } returns Either.Right(Organisasjon.JuridiskEnhet(Organisasjonsnummer("971524960"), "STORTINGET"))
 
         every {
             organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(match {
@@ -544,10 +513,6 @@ class ArbeidInntektYtelseServiceTest {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
 
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(emptyList())
-
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
         val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
@@ -575,7 +540,7 @@ class ArbeidInntektYtelseServiceTest {
         val tom = LocalDate.parse("2019-03-01")
 
         val arbeidsforholdliste = listOf(
-                Arbeidsforhold(Arbeidsgiver.Virksomhet(Organisasjonsnummer("995298775")), fom, arbeidsforholdId = 1234L)
+                Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), startdato = fom, arbeidsforholdId = 1234L)
         )
 
         val inntekter = listOf(
@@ -588,7 +553,7 @@ class ArbeidInntektYtelseServiceTest {
                 arbeidsforhold = emptyMap(),
                 inntekterUtenArbeidsforhold = inntekter,
                 arbeidsforholdUtenInntekter = listOf(
-                        no.nav.helse.ws.aiy.domain.Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), 1234L, fom)
+                        Arbeidsforhold.Arbeidstaker(Virksomhet.Organisasjon(Organisasjonsnummer("995298775")), 1234L, fom)
                 )
         )
 
@@ -598,7 +563,7 @@ class ArbeidInntektYtelseServiceTest {
             organisasjonService.hentOrganisasjon(match {
                 it.value == "889640782"
             })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), "ARBEIDS- OG VELFERDSETATEN"))
+        } returns Either.Right(Organisasjon.JuridiskEnhet(Organisasjonsnummer("889640782"), "ARBEIDS- OG VELFERDSETATEN"))
 
         every {
             organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(match {
@@ -627,10 +592,6 @@ class ArbeidInntektYtelseServiceTest {
         every {
             inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
         } returns Either.Right(inntekter)
-
-        every {
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Either.Right(emptyList())
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 

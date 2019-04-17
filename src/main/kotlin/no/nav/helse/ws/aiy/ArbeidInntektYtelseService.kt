@@ -3,16 +3,13 @@ package no.nav.helse.ws.aiy
 import arrow.core.Either
 import arrow.core.flatMap
 import io.prometheus.client.Counter
-import io.prometheus.client.Histogram
 import no.nav.helse.Feilårsak
 import no.nav.helse.arrow.sequenceU
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.aiy.domain.ArbeidInntektYtelse
-import no.nav.helse.ws.aiy.domain.Arbeidsforhold
 import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
-import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsgiver
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.inntekt.domain.ArbeidsforholdFrilanser
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.domain.Virksomhet
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -30,11 +27,6 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .name("arbeidsforhold_avvik_totals")
                 .labelNames("type")
                 .help("antall arbeidsforhold som ikke har noen tilhørende inntekter")
-                .register()
-
-        private val arbeidsforholdISammeVirksomhetCounter = Counter.build()
-                .name("arbeidsforhold_i_samme_virksomhet_totals")
-                .help("antall arbeidsforhold i samme virksomhet")
                 .register()
 
         private val foreløpigArbeidsforholdAvviksCounter = Counter.build()
@@ -62,19 +54,11 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .name("juridisk_til_virksomhetsnummer_totals")
                 .help("antall ganger vi har funnet virksomhetsnummer fra juridisk nummer")
                 .register()
-
-        private val arbeidsforholdHistogram = Histogram.build()
-                .buckets(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 15.0, 20.0, 40.0, 60.0, 80.0, 100.0)
-                .name("arbeidsforhold_sizes")
-                .help("fordeling over hvor mange arbeidsforhold en arbeidstaker har, både frilans og vanlig arbeidstaker")
-                .register()
     }
 
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             finnInntekterOgFordelEtterType(aktørId, YearMonth.from(fom), YearMonth.from(tom)) { lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter ->
-                finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId, fom, tom).flatMap { kombinertArbeidsforholdliste ->
-                    tellAvvikPåArbeidsforholdISammeVirksomhet(kombinertArbeidsforholdliste)
-
+                arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).flatMap { kombinertArbeidsforholdliste ->
                     kombinerArbeidsforholdOgInntekt(lønnsinntekter, kombinertArbeidsforholdliste).map { (inntekterEtterArbeidsforhold, arbeidsforholdUtenInntekter, inntekterUtenArbeidsforhold) ->
                         ArbeidInntektYtelse(inntekterEtterArbeidsforhold, inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekter, ytelser, pensjonEllerTrygd, næringsinntekter)
                     }
@@ -99,40 +83,6 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
 
                 this.callback(lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter)
             }
-
-    private fun finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            inntektService.hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom)).flatMap { frilansArbeidsforholdliste ->
-                arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).map { arbeidsforholdliste ->
-                    kombinerArbeidsforhold(arbeidsforholdliste, frilansArbeidsforholdliste).also { kombinertListe ->
-                        arbeidsforholdHistogram.observe(kombinertListe.size.toDouble())
-                    }
-                }
-            }
-
-    private fun kombinerArbeidsforhold(arbeidstakerArbeidsforhold: List<no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold>, frilansArbeidsforhold: List<ArbeidsforholdFrilanser>) =
-            arbeidstakerArbeidsforhold.map(::tilArbeidsforhold)
-                    .plus(frilansArbeidsforhold.map(::tilArbeidsforhold))
-
-    private fun tilArbeidsforhold(arbeidsforhold: no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold) =
-            Arbeidsforhold.Arbeidstaker(
-                    arbeidsgiver = when (arbeidsforhold.arbeidsgiver) {
-                        is Arbeidsgiver.Virksomhet -> Virksomhet.Organisasjon(arbeidsforhold.arbeidsgiver.virksomhetsnummer)
-                        is Arbeidsgiver.Person -> Virksomhet.Person(arbeidsforhold.arbeidsgiver.personnummer)
-                    },
-                    startdato = arbeidsforhold.startdato,
-                    sluttdato = arbeidsforhold.sluttdato,
-                    arbeidsforholdId = arbeidsforhold.arbeidsforholdId,
-                    arbeidsavtaler = arbeidsforhold.arbeidsavtaler,
-                    permisjon = arbeidsforhold.permisjon
-            )
-
-    private fun tilArbeidsforhold(arbeidsforhold: ArbeidsforholdFrilanser) =
-            Arbeidsforhold.Frilans(
-                    arbeidsgiver = arbeidsforhold.arbeidsgiver,
-                    startdato = arbeidsforhold.startdato,
-                    sluttdato = arbeidsforhold.sluttdato,
-                    yrke = arbeidsforhold.yrke
-            )
 
     private fun kombinerArbeidsforholdOgInntekt(lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
             splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter, arbeidsforholdliste) { foreløpigInntekterMedArbeidsforhold, foreløpigArbeidsforholdUtenInntekt, foreløpigInntekterUtenArbeidsforhold ->
@@ -220,18 +170,6 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
                 log.warn("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
             }
-        }
-    }
-
-    private fun tellAvvikPåArbeidsforholdISammeVirksomhet(arbeidsforholdliste: List<Arbeidsforhold>) {
-        val unikeArbeidsgivere = arbeidsforholdliste.distinctBy {
-            it.arbeidsgiver
-        }
-        val arbeidsforholdISammeVirksomhet = arbeidsforholdliste.size - unikeArbeidsgivere.size
-
-        if (arbeidsforholdISammeVirksomhet > 0) {
-            arbeidsforholdISammeVirksomhetCounter.inc(arbeidsforholdISammeVirksomhet.toDouble())
-            log.info("fant $arbeidsforholdISammeVirksomhet arbeidsforhold i samme virksomhet")
         }
     }
 

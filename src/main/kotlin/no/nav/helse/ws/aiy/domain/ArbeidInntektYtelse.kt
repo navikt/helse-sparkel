@@ -1,5 +1,6 @@
 package no.nav.helse.ws.aiy.domain
 
+import no.nav.helse.ws.arbeidsforhold.domain.Arbeidsforhold
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import java.time.YearMonth
 

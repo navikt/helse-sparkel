@@ -184,8 +184,6 @@ class InntektServiceTest {
             Try.Success(it)
         }
 
-        val organisasjonService = mockk<OrganisasjonService>()
-
         val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {

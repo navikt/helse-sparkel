@@ -77,7 +77,8 @@ fun main() {
 
         val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
 
-        val inntektService = InntektService(wsClients.inntekt(env.inntektEndpointUrl))
+        val inntektClient = wsClients.inntekt(env.inntektEndpointUrl)
+        val inntektService = InntektService(inntektClient)
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
@@ -90,7 +91,8 @@ fun main() {
         val arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl)
 
         val arbeidsforholdService = ArbeidsforholdService(
-                arbeidsforholdClient = arbeidsforholdClient
+                arbeidsforholdClient = arbeidsforholdClient,
+                inntektClient = inntektClient
         )
 
         val arbeidsgiverService = ArbeidsgiverService(
