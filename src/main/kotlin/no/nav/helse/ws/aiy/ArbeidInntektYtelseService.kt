@@ -37,11 +37,6 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 .help("antall arbeidsforhold i samme virksomhet")
                 .register()
 
-        private val arbeidsforholdISammeVirksomhetAvviksCounter = Counter.build()
-                .name("arbeidsforhold_i_samme_virksomhet_avvik_totals")
-                .help("antall arbeidsforhold som ikke har noen tilhørende inntekter fordi personen har flere arbeidsforhold i samme virksomhet")
-                .register()
-
         private val foreløpigArbeidsforholdAvviksCounter = Counter.build()
                 .name("forelopig_arbeidsforhold_avvik_totals")
                 .labelNames("type")
@@ -78,7 +73,9 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             finnInntekterOgFordelEtterType(aktørId, YearMonth.from(fom), YearMonth.from(tom)) { lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter ->
                 finnOgKombinerArbeidsforholdOgFrilansArbeidsforhold(aktørId, fom, tom).flatMap { kombinertArbeidsforholdliste ->
-                    kombinerArbeidsforholdOgInntekt(lønnsinntekter, kombinertArbeidsforholdliste).map { (inntekterEtterArbeidsforhold, inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekter) ->
+                    tellAvvikPåArbeidsforholdISammeVirksomhet(kombinertArbeidsforholdliste)
+
+                    kombinerArbeidsforholdOgInntekt(lønnsinntekter, kombinertArbeidsforholdliste).map { (inntekterEtterArbeidsforhold, arbeidsforholdUtenInntekter, inntekterUtenArbeidsforhold) ->
                         ArbeidInntektYtelse(inntekterEtterArbeidsforhold, inntekterUtenArbeidsforhold, arbeidsforholdUtenInntekter, ytelser, pensjonEllerTrygd, næringsinntekter)
                     }
                 }
@@ -138,57 +135,34 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             )
 
     private fun kombinerArbeidsforholdOgInntekt(lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
-            splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter, arbeidsforholdliste) { foreløpigArbeidsforholdUtenInntekt, foreløpigInntekterMedArbeidsforhold, foreløpigInntekterUtenArbeidsforhold ->
-                if (foreløpigArbeidsforholdUtenInntekt.isNotEmpty()) {
-                    log.warn("fant foreløpig ${foreløpigArbeidsforholdUtenInntekt.size} arbeidsforhold hvor vi ikke finner inntekter: ${foreløpigArbeidsforholdUtenInntekt.joinToString { "${it.type()} - ${it.arbeidsgiver}" }}")
-                    foreløpigArbeidsforholdUtenInntekt.forEach { arbeidsforhold ->
-                        foreløpigArbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
-                    }
-                }
-                if (foreløpigInntekterUtenArbeidsforhold.isNotEmpty()) {
-                    log.warn("fant foreløpig ${foreløpigInntekterUtenArbeidsforhold.size} inntekter hvor vi ikke finner arbeidsforhold: ${foreløpigInntekterUtenArbeidsforhold.joinToString { "${it.type()} - ${it.virksomhet}" }}")
-                    foreløpigInntektAvviksCounter.inc(foreløpigInntekterUtenArbeidsforhold.size.toDouble())
-                }
+            splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter, arbeidsforholdliste) { foreløpigInntekterMedArbeidsforhold, foreløpigArbeidsforholdUtenInntekt, foreløpigInntekterUtenArbeidsforhold ->
+                tellForeløpigAvvikPåArbeidsforhold(foreløpigArbeidsforholdUtenInntekt)
+                tellForeløpigAvvikPåInntekter(foreløpigInntekterUtenArbeidsforhold)
 
                 hentVirksomhetsnummerForInntekterRegistrertPåJuridiskNummer(foreløpigInntekterUtenArbeidsforhold)
                         .map { inntekterUtenArbeidsforholdMedOppdatertVirksomhetsnummer ->
-                            splittInntekterMedOgUtenArbeidsforhold(foreløpigInntekterMedArbeidsforhold + inntekterUtenArbeidsforholdMedOppdatertVirksomhetsnummer, arbeidsforholdliste) { arbeidsforholdUtenInntekt, inntekterMedArbeidsforhold, inntekterUtenArbeidsforhold ->
-                                if (arbeidsforholdUtenInntekt.isNotEmpty()) {
-                                    tellAvvikPåArbeidsforhold(arbeidsforholdUtenInntekt)
-                                }
-                                if (inntekterUtenArbeidsforhold.isNotEmpty()) {
-                                    tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
-                                }
+                            splittInntekterMedOgUtenArbeidsforhold(foreløpigInntekterMedArbeidsforhold, inntekterUtenArbeidsforholdMedOppdatertVirksomhetsnummer, arbeidsforholdliste) { inntekterMedArbeidsforhold, arbeidsforholdUtenInntekt, inntekterUtenArbeidsforhold ->
+                                tellAvvikPåArbeidsforhold(arbeidsforholdUtenInntekt)
+                                tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
 
-                                grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold, arbeidsforholdliste).let { arbeidsforholdMedOgUtenInntekter ->
-                                    arbeidsforholdMedOgUtenInntekter.second.filterNot { arbeidsforhold ->
-                                        arbeidsforholdUtenInntekt.contains(arbeidsforhold)
-                                    }.let { arbeidsforholdUtenInntekterIVirksomhetMedFlereArbeidsforhold ->
-                                        if (arbeidsforholdUtenInntekterIVirksomhetMedFlereArbeidsforhold.isNotEmpty()) {
-                                            tellAvvikPåArbeidsforholdIVirksomhetMedFlereArbeidsforhold(arbeidsforholdUtenInntekterIVirksomhetMedFlereArbeidsforhold)
-                                        }
-                                    }
-
-                                    Triple(arbeidsforholdMedOgUtenInntekter.first, inntekterUtenArbeidsforhold, arbeidsforholdMedOgUtenInntekter.second)
-                                }
+                                Triple(
+                                        first = grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold),
+                                        second = arbeidsforholdUtenInntekt,
+                                        third = inntekterUtenArbeidsforhold
+                                )
                             }
                         }
             }
 
-    private fun <R> splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>, callback: ArbeidInntektYtelseService.(List<Arbeidsforhold>, List<Inntekt.Lønn>, List<Inntekt.Lønn>) -> R) =
-            lønnsinntekter.partition { inntekt ->
-                arbeidsforholdliste.any { arbeidsforhold ->
-                    inntekt.virksomhet == arbeidsforhold.arbeidsgiver
-                }
-            }.let { fordeltInntekter ->
-                val arbeidsforholdUtenInntekter = arbeidsforholdliste.filter { arbeidsforhold ->
-                    lønnsinntekter.none { inntekt ->
-                        arbeidsforhold.arbeidsgiver == inntekt.virksomhet
-                    }
-                }
-
-                callback(this, arbeidsforholdUtenInntekter, fordeltInntekter.first, fordeltInntekter.second)
+    private fun <R> splittInntekterMedOgUtenArbeidsforhold(lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>, callback: ArbeidInntektYtelseService.(Map<Arbeidsforhold, List<Inntekt.Lønn>>, List<Arbeidsforhold>, List<Inntekt.Lønn>) -> R) =
+            arbeidsforholdliste.combineAndComputeDiff(lønnsinntekter) { arbeidsforhold, inntekt ->
+                arbeidsforhold.arbeidsgiver == inntekt.virksomhet
+            }.let { (arbeidsforholdMedInntekter, arbeidsforholdUtenInntekter, inntekterUtenArbeidsforhold) ->
+                callback(this, arbeidsforholdMedInntekter, arbeidsforholdUtenInntekter, inntekterUtenArbeidsforhold)
             }
+
+    private fun <R> splittInntekterMedOgUtenArbeidsforhold(inntekterMedArbeidsforhold: Map<Arbeidsforhold, List<Inntekt.Lønn>>, lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>, callback: ArbeidInntektYtelseService.(Map<Arbeidsforhold, List<Inntekt.Lønn>>, List<Arbeidsforhold>, List<Inntekt.Lønn>) -> R) =
+            splittInntekterMedOgUtenArbeidsforhold(inntekterMedArbeidsforhold.flatMap { it.value } + lønnsinntekter, arbeidsforholdliste, callback)
 
     private fun hentVirksomhetsnummerForInntekterRegistrertPåJuridiskNummer(inntekter: List<Inntekt.Lønn>) =
             inntekter.map { inntekt ->
@@ -217,63 +191,54 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 else -> Either.Right(inntekt)
             }
 
-    private fun grupperInntekterEtterArbeidsforholdOgPeriode(inntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
-            inntekter.groupBy { inntekt ->
-                inntekt.virksomhet
-            }.let { inntekterEtterVirksomhet ->
-                val arbeidsforholdEtterVirksomhet = arbeidsforholdliste.groupBy { it.arbeidsgiver }
-
-                arbeidsforholdliste.associateWith { arbeidsforhold ->
-                    val andreArbeidsforholdISammeVirksomhet = arbeidsforholdEtterVirksomhet.getValue(arbeidsforhold.arbeidsgiver)
-                    val index = andreArbeidsforholdISammeVirksomhet.indexOf(arbeidsforhold)
-
-                    if (andreArbeidsforholdISammeVirksomhet.size > 1) {
-                        tellAvvikPåArbeidsforholdISammeVirksomhet(andreArbeidsforholdISammeVirksomhet)
-                    }
-
-                    if (index == 0) {
-                        inntekterEtterVirksomhet[arbeidsforhold.arbeidsgiver] ?: emptyList()
-                    } else {
-                        emptyList()
-                    }
+    private fun grupperInntekterEtterArbeidsforholdOgPeriode(inntekterMedArbeidsforhold: Map<Arbeidsforhold, List<Inntekt.Lønn>>) =
+            inntekterMedArbeidsforhold.mapValues { entry ->
+                entry.value.groupBy { inntekt ->
+                    inntekt.utbetalingsperiode
                 }
-            }.let { arbeidsforholdMedOgUtenInntekter ->
-                val arbeidsforholdMedInntekter = arbeidsforholdMedOgUtenInntekter.filterValues { inntekter ->
-                    inntekter.isNotEmpty()
-                }.mapValues { entry ->
-                    entry.value.groupBy { lønnsinntekt ->
-                        lønnsinntekt.utbetalingsperiode
-                    }
-                }
-
-                val arbeidsforholdUtenInntekter = arbeidsforholdMedOgUtenInntekter.filterValues { inntekter ->
-                    inntekter.isEmpty()
-                }.keys.toList()
-
-                Pair(arbeidsforholdMedInntekter, arbeidsforholdUtenInntekter)
             }
 
-    private fun tellAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) =
+    private fun tellForeløpigAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) {
+        if (arbeidsforholdliste.isNotEmpty()) {
+            log.warn("fant foreløpig ${arbeidsforholdliste.size} arbeidsforhold hvor vi ikke finner inntekter: ${arbeidsforholdliste.joinToString { "${it.type()} - ${it.arbeidsgiver}" }}")
+            arbeidsforholdliste.forEach { arbeidsforhold ->
+                foreløpigArbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
+            }
+        }
+    }
+
+    private fun tellForeløpigAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {
+        if (inntekter.isNotEmpty()) {
+            log.warn("fant foreløpig ${inntekter.size} inntekter hvor vi ikke finner arbeidsforhold: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
+            foreløpigInntektAvviksCounter.inc(inntekter.size.toDouble())
+        }
+    }
+
+    private fun tellAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) {
+        if (arbeidsforholdliste.isNotEmpty()) {
             arbeidsforholdliste.forEach { arbeidsforhold ->
                 arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
                 log.warn("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
             }
-
-    private fun tellAvvikPåArbeidsforholdISammeVirksomhet(andreArbeidsforholdISammeVirksomhet: List<Arbeidsforhold>) {
-        arbeidsforholdISammeVirksomhetCounter.inc(andreArbeidsforholdISammeVirksomhet.size.toDouble())
-        log.info("fant ${andreArbeidsforholdISammeVirksomhet.size} arbeidsforhold i samme virksomhet")
+        }
     }
 
-    private fun tellAvvikPåArbeidsforholdIVirksomhetMedFlereArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) =
-            arbeidsforholdliste.forEach { arbeidsforhold ->
-                arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
-                arbeidsforholdISammeVirksomhetAvviksCounter.inc()
-                log.warn("arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver} har ingen inntekter fordi det er flere " +
-                        "arbeidsforhold i samme virksomhet, og inntektene har blitt fordelt på ett av dem")
-            }
+    private fun tellAvvikPåArbeidsforholdISammeVirksomhet(arbeidsforholdliste: List<Arbeidsforhold>) {
+        val unikeArbeidsgivere = arbeidsforholdliste.distinctBy {
+            it.arbeidsgiver
+        }
+        val arbeidsforholdISammeVirksomhet = arbeidsforholdliste.size - unikeArbeidsgivere.size
+
+        if (arbeidsforholdISammeVirksomhet > 0) {
+            arbeidsforholdISammeVirksomhetCounter.inc(arbeidsforholdISammeVirksomhet.toDouble())
+            log.info("fant $arbeidsforholdISammeVirksomhet arbeidsforhold i samme virksomhet")
+        }
+    }
 
     private fun tellAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {
-        inntektAvviksCounter.inc(inntekter.size.toDouble())
-        log.warn("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}" )
+        if (inntekter.isNotEmpty()) {
+            inntektAvviksCounter.inc(inntekter.size.toDouble())
+            log.warn("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
+        }
     }
 }

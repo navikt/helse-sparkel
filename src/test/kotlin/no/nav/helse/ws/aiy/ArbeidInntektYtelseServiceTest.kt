@@ -91,7 +91,7 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_avvik_totals") ?: 0.0
+        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
@@ -111,13 +111,13 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_avvik_totals") ?: 0.0
+        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
         assertEquals(0.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, arbeidsforholdISammeVirksomhetAvviksCounterAfter - arbeidsforholdISammeVirksomhetAvviksCounterBefore)
+        assertEquals(0.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
         assertEquals(0.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
@@ -177,7 +177,7 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_avvik_totals") ?: 0.0
+        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
@@ -205,13 +205,13 @@ class ArbeidInntektYtelseServiceTest {
 
         val foreløpigArbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         val arbeidsforholdAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        val arbeidsforholdISammeVirksomhetAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_avvik_totals") ?: 0.0
+        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
         val foreløpigInntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("forelopig_inntekt_avvik_totals")
         val inntektAvviksCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
 
-        assertEquals(0.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
+        assertEquals(1.0, foreløpigArbeidsforholdAvviksCounterAfter - foreløpigArbeidsforholdAvviksCounterBefore)
         assertEquals(1.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(1.0, arbeidsforholdISammeVirksomhetAvviksCounterAfter - arbeidsforholdISammeVirksomhetAvviksCounterBefore)
+        assertEquals(1.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
         assertEquals(1.0, foreløpigInntektAvviksCounterAfter - foreløpigInntektAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
