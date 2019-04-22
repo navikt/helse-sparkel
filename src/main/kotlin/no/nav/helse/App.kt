@@ -35,7 +35,6 @@ import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
 import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.ws.infotrygdberegningsgrunnlag.infotrygdBeregningsgrunnlag
 import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.inntekt.inntekt
 import no.nav.helse.ws.meldekort.MeldekortService
 import no.nav.helse.ws.meldekort.meldekort
 import no.nav.helse.ws.organisasjon.OrganisasjonService
@@ -45,6 +44,8 @@ import no.nav.helse.ws.person.person
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingService
 import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import no.nav.helse.ws.sts.stsClient
+import no.nav.helse.ws.sykepengegrunnlag.SykepengegrunnlagService
+import no.nav.helse.ws.sykepengegrunnlag.sykepengegrunnlag
 import no.nav.helse.ws.sykepenger.HentSykepengeListeRestClient
 import no.nav.helse.ws.sykepenger.SykepengelisteService
 import no.nav.helse.ws.sykepenger.sykepengeListe
@@ -110,6 +111,8 @@ fun main() {
 
         val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
 
+        val sykepengegrunnlagService = SykepengegrunnlagService(inntektService)
+
         val sykepengelisteService = SykepengelisteService(
                 sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
                 hentSykepengeperiodeClient = hentSykepengeperiodeClient,
@@ -129,12 +132,12 @@ fun main() {
                 arbeidsfordelingService,
                 arbeidsforholdService,
                 arbeidsgiverService,
-                inntektService,
                 arbeidsforholdMedInntektService,
                 meldekortServie,
                 organisasjonService,
                 personService,
                 sakOgBehandlingService,
+                sykepengegrunnlagService,
                 sykepengelisteService,
                 infotrygdBeregningsgrunnlagService,
                 aktørregisterService
@@ -154,12 +157,12 @@ fun Application.sparkel(
         arbeidsfordelingService: ArbeidsfordelingService,
         arbeidsforholdService: ArbeidsforholdService,
         arbeidsgiverService: ArbeidsgiverService,
-        inntektService: InntektService,
         arbeidInntektYtelseService: ArbeidInntektYtelseService,
         meldekortService: MeldekortService,
         organisasjonService: OrganisasjonService,
         personService: PersonService,
         sakOgBehandlingService: SakOgBehandlingService,
+        sykepengegrunnlagService: SykepengegrunnlagService,
         sykepengelisteService: SykepengelisteService,
         infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService,
         aktørregisterService: AktørregisterService
@@ -211,8 +214,6 @@ fun Application.sparkel(
     routing {
         authenticate {
 
-            inntekt(inntektService)
-
             arbeidsfordeling(arbeidsfordelingService)
 
             person(personService)
@@ -224,6 +225,8 @@ fun Application.sparkel(
             organisasjon(organisasjonService)
 
             sakOgBehandling(sakOgBehandlingService)
+
+            sykepengegrunnlag(sykepengegrunnlagService)
 
             sykepengeListe(sykepengelisteService)
 

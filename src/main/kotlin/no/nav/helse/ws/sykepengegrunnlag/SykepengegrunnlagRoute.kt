@@ -1,4 +1,4 @@
-package no.nav.helse.ws.inntekt
+package no.nav.helse.ws.sykepengegrunnlag
 
 import arrow.core.Either
 import io.ktor.application.ApplicationCall
@@ -12,22 +12,23 @@ import no.nav.helse.HttpFeil
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.InntektDtoMapper
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.dto.InntektResponse
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
-fun Route.inntekt(inntektService: InntektService) {
+fun Route.sykepengegrunnlag(sykepengegrunnlagService: SykepengegrunnlagService) {
 
     get("api/inntekt/{aktorId}/beregningsgrunnlag") {
         hentInntekt { aktørId, fom, tom ->
-            inntektService.hentBeregningsgrunnlag(aktørId, fom, tom)
+            sykepengegrunnlagService.hentBeregningsgrunnlag(aktørId, fom, tom)
         }
     }
 
     get("api/inntekt/{aktorId}/sammenligningsgrunnlag") {
         hentInntekt { aktørId, fom, tom ->
-            inntektService.hentSammenligningsgrunnlag(aktørId, fom, tom)
+            sykepengegrunnlagService.hentSammenligningsgrunnlag(aktørId, fom, tom)
         }
     }
 }

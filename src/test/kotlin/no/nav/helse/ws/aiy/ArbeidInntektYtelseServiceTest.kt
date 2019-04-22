@@ -95,7 +95,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
@@ -174,7 +174,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         every {
@@ -243,7 +243,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
@@ -310,7 +310,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         every {
@@ -403,7 +403,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
@@ -510,7 +510,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
@@ -590,7 +590,7 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(arbeidsforholdliste)
 
         every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom))
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
         } returns Either.Right(inntekter)
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)

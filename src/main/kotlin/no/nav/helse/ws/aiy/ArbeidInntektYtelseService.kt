@@ -23,6 +23,8 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     companion object {
         private val log = LoggerFactory.getLogger(ArbeidInntektYtelseService::class.java)
 
+        private val inntektfilter = "ForeldrepengerA-Inntekt"
+
         private val arbeidsforholdAvviksCounter = Counter.build()
                 .name("arbeidsforhold_avvik_totals")
                 .labelNames("type")
@@ -66,7 +68,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             }
 
     private fun <R> finnInntekterOgFordelEtterType(aktørId: AktørId, fom: YearMonth, tom: YearMonth, callback: ArbeidInntektYtelseService.(List<Inntekt.Lønn>, List<Inntekt.Ytelse>, List<Inntekt.PensjonEllerTrygd>, List<Inntekt.Næring>) -> Either<Feilårsak, R>) =
-            inntektService.hentInntekter(aktørId, fom, tom).flatMap { inntekter ->
+            inntektService.hentInntekter(aktørId, fom, tom, inntektfilter).flatMap { inntekter ->
                 val lønnsinntekter = mutableListOf<Inntekt.Lønn>()
                 val ytelser = mutableListOf<Inntekt.Ytelse>()
                 val pensjonEllerTrygd = mutableListOf<Inntekt.PensjonEllerTrygd>()

@@ -1,4 +1,4 @@
-package no.nav.helse.ws.inntekt
+package no.nav.helse.ws.sykepengegrunnlag
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -13,6 +13,7 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
+import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
@@ -24,7 +25,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-class InntektComponentTest {
+class SykepengegrunnlagComponentTest {
 
     @Test
     fun `feil returneres når fom ikke er satt`() {
@@ -47,7 +48,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -74,7 +75,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -101,7 +102,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -128,7 +129,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -158,7 +159,9 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3)))}) {
+                sykepengegrunnlagService = SykepengegrunnlagService(
+                        inntektService = InntektService(InntektClient(inntektV3))
+                ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -187,12 +190,14 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3)))}) {
+                sykepengegrunnlagService = SykepengegrunnlagService(
+                        inntektService = InntektService(InntektClient(inntektV3))
+                ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.InternalServerError.value, response.status()?.value)
+                assertEquals(HttpStatusCode.InternalServerError, response.status())
                 assertJsonEquals(JSONObject(expectedJson_fault), JSONObject(response.content))
             }
         }
@@ -219,7 +224,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -246,7 +251,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -273,7 +278,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -300,7 +305,7 @@ class InntektComponentTest {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                kotlin.test.assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertEquals(HttpStatusCode.BadRequest, response.status())
                 assertJsonEquals(JSONObject(expected), JSONObject(response.content))
             }
         }
@@ -425,7 +430,9 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3)))}) {
+                sykepengegrunnlagService = SykepengegrunnlagService(
+                        inntektService = InntektService(InntektClient(inntektV3))
+                ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
@@ -454,7 +461,9 @@ class InntektComponentTest {
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
-                inntektService = InntektService(InntektClient(inntektV3)))}) {
+                sykepengegrunnlagService = SykepengegrunnlagService(
+                        inntektService = InntektService(InntektClient(inntektV3))
+                ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")

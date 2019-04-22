@@ -9,7 +9,6 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.client.InntektClient
 import no.nav.helse.ws.inntekt.domain.Virksomhet
-import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
@@ -31,10 +30,10 @@ class InntektServiceTest {
 
         val inntektClient = mockk<InntektClient>()
         every {
-            inntektClient.hentBeregningsgrunnlag(aktør, fom, tom)
+            inntektClient.hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
         } returns Try.Failure(Exception("SOAP fault"))
 
-        val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
+        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
@@ -62,7 +61,7 @@ class InntektServiceTest {
 
         val inntektClient = mockk<InntektClient>()
         every {
-            inntektClient.hentBeregningsgrunnlag(aktør, fom, tom)
+            inntektClient.hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
         } returns HentInntektListeBolkResponse().apply {
             with (arbeidsInntektIdentListe) {
                 add(ArbeidsInntektIdent().apply {
@@ -130,24 +129,10 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            Try.Success(it)
+            Try.Success(it.arbeidsInntektIdentListe)
         }
 
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        every {
-            organisasjonService.hentOrganisasjon(match {
-                it.value == "889640782"
-            })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
-
-        every {
-            organisasjonService.hentOrganisasjon(match {
-                it.value == "995277670"
-            })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Organisasjonsledd(Organisasjonsnummer("995277670"), null))
-
-        val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
+        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Right -> {
@@ -170,7 +155,7 @@ class InntektServiceTest {
 
         val inntektClient = mockk<InntektClient>()
         every {
-            inntektClient.hentBeregningsgrunnlag(aktør, fom, tom)
+            inntektClient.hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
         } returns HentInntektListeBolkResponse().apply {
             with (sikkerhetsavvikListe) {
                 add(Sikkerhetsavvik().apply {
@@ -181,102 +166,14 @@ class InntektServiceTest {
                 })
             }
         }.let {
-            Try.Success(it)
+            Try.Failure(SikkerhetsavvikException("en feil nr 1, en feil nr 2"))
         }
 
-        val actual = InntektService(inntektClient).hentBeregningsgrunnlag(aktør, fom, tom)
+        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
             is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
-
-    }
-
-    @Test
-    fun `skal gi feil når oppslag gir feil for sammenligningsgrunnlag`() {
-        val aktør = AktørId("11987654321")
-
-        val fom = YearMonth.parse("2019-01")
-        val tom = YearMonth.parse("2019-02")
-
-        val inntektClient = mockk<InntektClient>()
-        every {
-            inntektClient.hentSammenligningsgrunnlag(aktør, fom, tom)
-        } returns Try.Failure(Exception("SOAP fault"))
-
-        val actual = InntektService(inntektClient).hentSammenligningsgrunnlag(aktør, fom, tom)
-
-        when (actual) {
-            is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
-            else -> fail { "Expected Either.Left to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal returnere liste over inntekter for sammenligningsgrunnlag`() {
-        val aktør = AktørId("11987654321")
-
-        val fom = YearMonth.parse("2019-01")
-        val tom = YearMonth.parse("2019-02")
-
-        val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
-                        fom, BigDecimal.valueOf(2500))
-        )
-
-        val inntektClient = mockk<InntektClient>()
-        every {
-            inntektClient.hentSammenligningsgrunnlag(aktør, fom, tom)
-        } returns HentInntektListeBolkResponse().apply {
-            with (arbeidsInntektIdentListe) {
-                add(ArbeidsInntektIdent().apply {
-                    ident = AktoerId().apply {
-                        aktoerId = aktør.aktor
-                    }
-                    with (arbeidsInntektMaaned) {
-                        add(ArbeidsInntektMaaned().apply {
-                            aarMaaned = fom.toXmlGregorianCalendar()
-                            arbeidsInntektInformasjon = ArbeidsInntektInformasjon().apply {
-                                with (inntektListe) {
-                                    add(Loennsinntekt().apply {
-                                        beloep = BigDecimal.valueOf(2500)
-                                        inntektsmottaker = AktoerId().apply {
-                                            aktoerId = aktør.aktor
-                                        }
-                                        virksomhet = Organisasjon().apply {
-                                            orgnummer = "889640782"
-                                        }
-                                        utbetaltIPeriode = fom.toXmlGregorianCalendar()
-                                    })
-                                }
-                            }
-                        })
-                    }
-                })
-            }
-        }.let {
-            Try.Success(it)
-        }
-
-        val organisasjonService = mockk<OrganisasjonService>()
-
-        every {
-            organisasjonService.hentOrganisasjon(match {
-                it.value == "889640782"
-            })
-        } returns Either.Right(no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet(Organisasjonsnummer("889640782"), null))
-
-        val actual = InntektService(inntektClient).hentSammenligningsgrunnlag(aktør, fom, tom)
-
-        when (actual) {
-            is Either.Right -> {
-                assertEquals(expected.size, actual.b.size)
-                expected.forEachIndexed { index, inntekt ->
-                    assertEquals(inntekt, actual.b[index])
-                }
-            }
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
 
     }

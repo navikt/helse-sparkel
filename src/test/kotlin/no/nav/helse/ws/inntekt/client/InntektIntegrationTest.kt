@@ -56,7 +56,7 @@ class InntektIntegrationTest {
                 request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
                 response = WireMock.serverError().withBody(hentInntektListeBolk_fault_response)
         ) { inntektClient ->
-            val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
+            val actual = inntektClient.hentInntekter(aktørId, fom, tom, filter)
 
             when (actual) {
                 is Try.Failure -> {
@@ -85,68 +85,12 @@ class InntektIntegrationTest {
                 request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
                 response = WireMock.okXml(hentInntektListeBolk_response)
         ) { inntektClient ->
-            val actual = inntektClient.hentBeregningsgrunnlag(aktørId, fom, tom)
+            val actual = inntektClient.hentInntekter(aktørId, fom, tom, filter)
 
             when (actual) {
                 is Try.Success -> {
-                    assertEquals(1, actual.value.arbeidsInntektIdentListe.size)
-                    assertEquals(2, actual.value.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
-                }
-                is Try.Failure -> fail { "Expected Try.Success to be returned" }
-            }
-        }
-    }
-
-    @Test
-    fun `skal svare med feil når tjenesten svarer med feil for sammenligningsgrunnlag`() {
-        val aktørId = AktørId("12345678911")
-        val fom = YearMonth.parse("2017-01")
-        val tom = YearMonth.parse("2019-01")
-
-        val filter = "8-30"
-        val formål = "Foreldrepenger"
-
-        inntektStub(
-                server = server,
-                scenario = "inntektskomponenten_feil",
-                request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
-                response = WireMock.serverError().withBody(hentInntektListeBolk_fault_response)
-        ) { inntektClient ->
-            val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
-
-            when (actual) {
-                is Try.Failure -> {
-                    when (actual.exception) {
-                        is SOAPFaultException -> assertEquals("SOAP fault", actual.exception.message)
-                        else -> fail { "Expected SOAPFaultException to be returned" }
-                    }
-                }
-                is Try.Success -> fail { "Expected Try.Failure to be returned" }
-            }
-        }
-    }
-
-    @Test
-    fun `skal svare med liste over inntekter for sammenligningsgrunnlag`() {
-        val aktørId = AktørId("12345678911")
-        val fom = YearMonth.parse("2017-01")
-        val tom = YearMonth.parse("2019-01")
-
-        val filter = "8-30"
-        val formål = "Foreldrepenger"
-
-        inntektStub(
-                server = server,
-                scenario = "inntektskomponenten_feil",
-                request = hentInntektListeBolkStub(aktørId.aktor, "2017-01Z", "2019-01Z", filter, formål),
-                response = WireMock.okXml(hentInntektListeBolk_response)
-        ) { inntektClient ->
-            val actual = inntektClient.hentSammenligningsgrunnlag(aktørId, fom, tom)
-
-            when (actual) {
-                is Try.Success -> {
-                    assertEquals(1, actual.value.arbeidsInntektIdentListe.size)
-                    assertEquals(2, actual.value.arbeidsInntektIdentListe[0].arbeidsInntektMaaned.size)
+                    assertEquals(1, actual.value.size)
+                    assertEquals(2, actual.value[0].arbeidsInntektMaaned.size)
                 }
                 is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
