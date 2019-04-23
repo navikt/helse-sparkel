@@ -15,9 +15,16 @@ import no.nav.helse.mockedSparkel
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.InntektService
 import no.nav.helse.ws.inntekt.client.InntektClient
+import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.organisasjon.client.OrganisasjonClient
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
+import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
+import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
+import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -160,7 +167,8 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3))
+                        inntektService = InntektService(InntektClient(inntektV3)),
+                        organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
@@ -191,9 +199,208 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3))
+                        inntektService = InntektService(InntektClient(inntektV3)),
+                        organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-02") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.InternalServerError, response.status())
+                assertJsonEquals(JSONObject(expectedJson_fault), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når fom ikke er satt for virksomhet`() {
+        val aktørId = AktørId("1831212532188")
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        val expected = """
+            {
+                "feilmelding": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom ikke er satt for virksomhet`() {
+        val aktørId = AktørId("1831212532188")
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        val expected = """
+            {
+                "feilmelding": "you need to supply query parameter fom and tom"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når fom er ugyldig for virksomhet`() {
+        val aktørId = AktørId("1831212532188")
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        val expected = """
+            {
+                "feilmelding": "fom must be specified as yyyy-mm"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=foo&tom=2019-01") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `feil returneres når tom er ugyldig for virksomhet`() {
+        val aktørId = AktørId("1831212532188")
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        val expected = """
+            {
+                "feilmelding": "tom must be specified as yyyy-mm"
+            }
+        """.trimIndent()
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider()
+        )}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=foo") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.BadRequest, response.status())
+                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med liste av inntekter for virksomhet`() {
+        val inntektV3 = mockk<InntektV3>()
+        val organisasjonV5 = mockk<OrganisasjonV5>()
+
+        val aktørId = AktørId("11987654321")
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+        val fom = YearMonth.parse("2019-01")
+
+        val expected = listeMedTreInntekter(aktørId, fom, virksomhetsnummer.value, virksomhetsnummer.value, virksomhetsnummer.value)
+
+        every {
+            organisasjonV5.hentOrganisasjon(match {
+                it.orgnummer == virksomhetsnummer.value
+            })
+        } returns HentOrganisasjonResponse().apply {
+            organisasjon = Virksomhet().apply {
+                orgnummer = virksomhetsnummer.value
+                navn = UstrukturertNavn().apply {
+                    with (navnelinje) {
+                        add("NAV")
+                    }
+                }
+            }
+        }
+
+        every {
+            inntektV3.hentInntektListeBolk(match {
+                it.identListe.size == 1 && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
+            })
+        } returns expected
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                sykepengegrunnlagService = SykepengegrunnlagService(
+                        inntektService = InntektService(InntektClient(inntektV3)),
+                        organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
+                ))}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=2019-03") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertJsonEquals(JSONObject(expectedJson_virksomhet), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med feil ved organisasjon oppslag-feil`() {
+        val inntektV3 = mockk<InntektV3>()
+        val organisasjonV5 = mockk<OrganisasjonV5>()
+
+        val aktørId = AktørId("11987654321")
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        every {
+            organisasjonV5.hentOrganisasjon(match {
+                it.orgnummer == virksomhetsnummer.value
+            })
+        } throws (Exception("SOAP fault"))
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
+        withTestApplication({mockedSparkel(
+                jwtIssuer = "test issuer",
+                jwkProvider = jwkStub.stubbedJwkProvider(),
+                sykepengegrunnlagService = SykepengegrunnlagService(
+                        inntektService = InntektService(InntektClient(inntektV3)),
+                        organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
+                ))}) {
+            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
@@ -431,7 +638,8 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3))
+                        inntektService = InntektService(InntektClient(inntektV3)),
+                        organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-03") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
@@ -462,7 +670,8 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3))
+                        inntektService = InntektService(InntektClient(inntektV3)),
+                        organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-02") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
@@ -488,6 +697,36 @@ private val expectedJson = """
     }, {
         "arbeidsgiver": {
             "identifikator": "912998827",
+            "type": "Organisasjon"
+        },
+        "beløp": 3500,
+        "utbetalingsperiode": "2019-02",
+        "ytelse": false
+    }, {
+        "arbeidsgiver": {
+            "identifikator": "995298775",
+            "type": "Organisasjon"
+        },
+        "beløp": 2500,
+        "utbetalingsperiode": "2019-03",
+        "ytelse": false
+    }]
+}
+""".trimIndent()
+
+private val expectedJson_virksomhet = """
+{
+    "inntekter": [{
+        "arbeidsgiver": {
+            "identifikator": "995298775",
+            "type": "Organisasjon"
+        },
+        "beløp": 2500,
+        "utbetalingsperiode": "2019-01",
+        "ytelse": false
+    }, {
+        "arbeidsgiver": {
+            "identifikator": "995298775",
             "type": "Organisasjon"
         },
         "beløp": 3500,

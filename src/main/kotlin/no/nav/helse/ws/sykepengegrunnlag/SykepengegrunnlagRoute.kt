@@ -15,10 +15,17 @@ import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.InntektDtoMapper
 import no.nav.helse.ws.inntekt.domain.Inntekt
 import no.nav.helse.ws.inntekt.dto.InntektResponse
+import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
 fun Route.sykepengegrunnlag(sykepengegrunnlagService: SykepengegrunnlagService) {
+
+    get("api/inntekt/{aktorId}/beregningsgrunnlag/{virksomhetsnummer}") {
+        hentInntekt { aktørId, fom, tom ->
+            sykepengegrunnlagService.hentBeregningsgrunnlag(aktørId, Organisasjonsnummer(call.parameters["virksomhetsnummer"]!!), fom, tom)
+        }
+    }
 
     get("api/inntekt/{aktorId}/beregningsgrunnlag") {
         hentInntekt { aktørId, fom, tom ->

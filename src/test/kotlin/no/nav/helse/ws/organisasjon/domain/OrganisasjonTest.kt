@@ -18,6 +18,6 @@ class OrganisasjonTest {
         val orgnr = Organisasjonsnummer("889640782")
         assertEquals("JuridiskEnhet(orgnr=Organisasjonsnummer(value=889640782), navn=null)", Organisasjon.JuridiskEnhet(orgnr).toString())
         assertEquals("Organisasjonsledd(orgnr=Organisasjonsnummer(value=889640782), navn=null)", Organisasjon.Organisasjonsledd(orgnr).toString())
-        assertEquals("Virksomhet(orgnr=Organisasjonsnummer(value=889640782), navn=null)", Organisasjon.Virksomhet(orgnr).toString())
+        assertEquals("Virksomhet(orgnr=Organisasjonsnummer(value=889640782), navn=null, inngårIJuridiskEnhet=[])", Organisasjon.Virksomhet(orgnr).toString())
     }
 }

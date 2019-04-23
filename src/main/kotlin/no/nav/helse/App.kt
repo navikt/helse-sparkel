@@ -111,7 +111,7 @@ fun main() {
 
         val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
 
-        val sykepengegrunnlagService = SykepengegrunnlagService(inntektService)
+        val sykepengegrunnlagService = SykepengegrunnlagService(inntektService, organisasjonService)
 
         val sykepengelisteService = SykepengelisteService(
                 sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),

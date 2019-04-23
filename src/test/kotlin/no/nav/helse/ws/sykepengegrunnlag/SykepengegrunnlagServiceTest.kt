@@ -6,13 +6,18 @@ import io.mockk.mockk
 import no.nav.helse.Feilårsak
 import no.nav.helse.ws.AktørId
 import no.nav.helse.ws.inntekt.InntektService
+import no.nav.helse.ws.inntekt.domain.Inntekt.*
 import no.nav.helse.ws.inntekt.domain.Virksomhet
+import no.nav.helse.ws.organisasjon.OrganisasjonService
+import no.nav.helse.ws.organisasjon.domain.InngårIJuridiskEnhet
+import no.nav.helse.ws.organisasjon.domain.Organisasjon
 import no.nav.helse.ws.organisasjon.domain.Organisasjonsnummer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.YearMonth
 
 class SykepengegrunnlagServiceTest {
@@ -29,7 +34,7 @@ class SykepengegrunnlagServiceTest {
             inntektService.hentInntekter(aktør, fom, tom, "8-28")
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
-        val actual = SykepengegrunnlagService(inntektService)
+        val actual = SykepengegrunnlagService(inntektService, mockk())
                 .hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
@@ -46,13 +51,13 @@ class SykepengegrunnlagServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500)),
-                no.nav.helse.ws.inntekt.domain.Inntekt.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(500), "barnetrygd"),
-                no.nav.helse.ws.inntekt.domain.Inntekt.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(1500), "næringsinntekt"),
-                no.nav.helse.ws.inntekt.domain.Inntekt.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(3000), "alderspensjon")
         )
 
@@ -60,16 +65,16 @@ class SykepengegrunnlagServiceTest {
         every {
             inntektService.hentInntekter(aktør, fom, tom, "8-28")
         } returns Either.Right(listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500)),
-                no.nav.helse.ws.inntekt.domain.Inntekt.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(500), "barnetrygd"),
-                no.nav.helse.ws.inntekt.domain.Inntekt.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(1500), "næringsinntekt"),
-                no.nav.helse.ws.inntekt.domain.Inntekt.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(3000), "alderspensjon")))
 
-        val actual = SykepengegrunnlagService(inntektService)
+        val actual = SykepengegrunnlagService(inntektService, mockk())
                 .hentBeregningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
@@ -77,6 +82,94 @@ class SykepengegrunnlagServiceTest {
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
 
+    }
+
+    @Test
+    fun `skal gi feil når oppslag for organisasjon gir feil`() {
+        val aktør = AktørId("11987654321")
+
+        val fom = YearMonth.parse("2019-01")
+        val tom = YearMonth.parse("2019-02")
+
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        val organisasjonService = mockk<OrganisasjonService>()
+        every {
+            organisasjonService.hentOrganisasjon(virksomhetsnummer)
+        } returns Either.Left(Feilårsak.FeilFraTjeneste)
+
+        val inntektService = mockk<InntektService>()
+
+        val actual = SykepengegrunnlagService(inntektService, organisasjonService)
+                .hentBeregningsgrunnlag(aktør, virksomhetsnummer, fom, tom)
+
+        when (actual) {
+            is Either.Left -> assertTrue(actual.a is Feilårsak.FeilFraTjeneste)
+            else -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal gi feil når virksomhetsnummer ikke er en virksomhet`() {
+        val aktør = AktørId("11987654321")
+
+        val fom = YearMonth.parse("2019-01")
+        val tom = YearMonth.parse("2019-02")
+
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+
+        val organisasjonService = mockk<OrganisasjonService>()
+        every {
+            organisasjonService.hentOrganisasjon(virksomhetsnummer)
+        } returns Either.Right(Organisasjon.JuridiskEnhet(virksomhetsnummer))
+
+        val inntektService = mockk<InntektService>()
+
+        val actual = SykepengegrunnlagService(inntektService, organisasjonService)
+                .hentBeregningsgrunnlag(aktør, virksomhetsnummer, fom, tom)
+
+        when (actual) {
+            is Either.Left -> assertTrue(actual.a is Feilårsak.FeilFraBruker)
+            else -> fail { "Expected Either.Left to be returned" }
+        }
+    }
+
+    @Test
+    fun `skal gi inntekter på virksomhetsnummer og juridisk nummer`() {
+        val aktør = AktørId("11987654321")
+
+        val fom = YearMonth.parse("2019-01")
+        val tom = YearMonth.parse("2019-02")
+
+        val virksomhetsnummer = Organisasjonsnummer("995298775")
+        val juridiskNummer = Organisasjonsnummer("889640782")
+        val etAnnetOrganisasjonsnummer = Organisasjonsnummer("971524960")
+
+        val expected = listOf(
+                Lønn(Virksomhet.Organisasjon(virksomhetsnummer), fom, BigDecimal.valueOf(2500)),
+                Lønn(Virksomhet.Organisasjon(juridiskNummer), fom, BigDecimal.valueOf(500))
+        )
+
+        val organisasjonService = mockk<OrganisasjonService>()
+        every {
+            organisasjonService.hentOrganisasjon(virksomhetsnummer)
+        } returns Either.Right(Organisasjon.Virksomhet(virksomhetsnummer, null, listOf(InngårIJuridiskEnhet(juridiskNummer, LocalDate.now(), null))))
+
+        val inntektService = mockk<InntektService>()
+        every {
+            inntektService.hentInntekter(aktør, fom, tom, "8-28")
+        } returns Either.Right(listOf(
+                Lønn(Virksomhet.Organisasjon(virksomhetsnummer), fom, BigDecimal.valueOf(2500)),
+                Lønn(Virksomhet.Organisasjon(juridiskNummer), fom, BigDecimal.valueOf(500)),
+                Lønn(Virksomhet.Organisasjon(etAnnetOrganisasjonsnummer), fom, BigDecimal.valueOf(1500))))
+
+        val actual = SykepengegrunnlagService(inntektService, organisasjonService)
+                .hentBeregningsgrunnlag(aktør, virksomhetsnummer, fom, tom)
+
+        when (actual) {
+            is Either.Right -> assertEquals(expected, actual.b)
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
     }
 
     @Test
@@ -91,7 +184,7 @@ class SykepengegrunnlagServiceTest {
             inntektService.hentInntekter(aktør, fom, tom, "8-30")
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
-        val actual = SykepengegrunnlagService(inntektService)
+        val actual = SykepengegrunnlagService(inntektService, mockk())
                 .hentSammenligningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
@@ -108,7 +201,7 @@ class SykepengegrunnlagServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500))
         )
 
@@ -116,11 +209,11 @@ class SykepengegrunnlagServiceTest {
         every {
             inntektService.hentInntekter(aktør, fom, tom, "8-30")
         } returns Either.Right(listOf(
-                no.nav.helse.ws.inntekt.domain.Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500))
         ))
 
-        val actual = SykepengegrunnlagService(inntektService)
+        val actual = SykepengegrunnlagService(inntektService, mockk())
                 .hentSammenligningsgrunnlag(aktør, fom, tom)
 
         when (actual) {
