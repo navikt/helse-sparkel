@@ -32,7 +32,7 @@ object ArbeidDomainMapper {
                         permisjon = arbeidsforhold.permisjonOgPermittering.map { permisjonOgPermittering ->
                             Permisjon(
                                     fom = permisjonOgPermittering.permisjonsPeriode.fom.toLocalDate(),
-                                    tom = permisjonOgPermittering.permisjonsPeriode.tom.toLocalDate(),
+                                    tom = permisjonOgPermittering.permisjonsPeriode.tom?.toLocalDate(),
                                     permisjonsprosent = permisjonOgPermittering.permisjonsprosent,
                                     årsak = permisjonOgPermittering.permisjonOgPermittering.value
                             )
