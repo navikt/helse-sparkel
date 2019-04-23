@@ -5,6 +5,12 @@ import java.time.LocalDate
 
 sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdato: LocalDate, open val sluttdato: LocalDate?) {
 
+    init {
+        if (sluttdato != null && startdato > sluttdato) {
+            throw IllegalArgumentException("startdato er større enn sluttdato")
+        }
+    }
+
     fun type() = when (this) {
         is Arbeidstaker -> "Arbeidstaker"
         is Frilans -> "Frilans"
@@ -20,5 +26,11 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
             override val arbeidsgiver: Virksomhet,
             override val startdato: LocalDate,
             override val sluttdato: LocalDate? = null,
-            val yrke: String? = null): Arbeidsforhold(arbeidsgiver, startdato, sluttdato)
+            val yrke: String? = null): Arbeidsforhold(arbeidsgiver, startdato, sluttdato) {
+        init {
+            if (yrke != null && yrke.isBlank()) {
+                throw IllegalArgumentException("yrke kan ikke være en tom streng")
+            }
+        }
+    }
 }
