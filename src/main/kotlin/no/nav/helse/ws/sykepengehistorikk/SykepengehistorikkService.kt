@@ -30,7 +30,8 @@ class SykepengehistorikkService(val infotrygdService : InfotrygdBeregningsgrunnl
                         Tidsperiode(it.anvistPeriode.fom.toLocalDate(), it.anvistPeriode.tom.toLocalDate())
                     }
                 }
-                tidligereSykepengedagerHistogram.observe(result.map { it.nrOfDays() }.reduce(operation = Long::plus).toDouble())
+                val antallSykepengedager = if (result.size < 1) 0.0 else result.map { it.nrOfDays() }.reduce(operation = Long::plus).toDouble()
+                tidligereSykepengedagerHistogram.observe(antallSykepengedager)
                 result
             })
 }
