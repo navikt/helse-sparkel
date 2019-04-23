@@ -27,12 +27,6 @@ fun Route.sykepengegrunnlag(sykepengegrunnlagService: SykepengegrunnlagService) 
         }
     }
 
-    get("api/inntekt/{aktorId}/beregningsgrunnlag") {
-        hentInntekt { aktørId, fom, tom ->
-            sykepengegrunnlagService.hentBeregningsgrunnlag(aktørId, fom, tom)
-        }
-    }
-
     get("api/inntekt/{aktorId}/sammenligningsgrunnlag") {
         hentInntekt { aktørId, fom, tom ->
             sykepengegrunnlagService.hentSammenligningsgrunnlag(aktørId, fom, tom)

@@ -35,184 +35,6 @@ import java.time.YearMonth
 class SykepengegrunnlagComponentTest {
 
     @Test
-    fun `feil returneres når fom ikke er satt`() {
-        val aktørId = AktørId("1831212532188")
-
-        val expected = """
-            {
-                "feilmelding": "you need to supply query parameter fom and tom"
-            }
-        """.trimIndent()
-
-        val jwkStub = JwtStub("test issuer")
-        val token = jwkStub.createTokenFor("srvpleiepengesokna")
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = "test issuer",
-                jwkProvider = jwkStub.stubbedJwkProvider()
-        )}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag") {
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
-                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
-            }
-        }
-    }
-
-    @Test
-    fun `feil returneres når tom ikke er satt`() {
-        val aktørId = AktørId("1831212532188")
-
-        val expected = """
-            {
-                "feilmelding": "you need to supply query parameter fom and tom"
-            }
-        """.trimIndent()
-
-        val jwkStub = JwtStub("test issuer")
-        val token = jwkStub.createTokenFor("srvpleiepengesokna")
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = "test issuer",
-                jwkProvider = jwkStub.stubbedJwkProvider()
-        )}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01") {
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
-                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
-            }
-        }
-    }
-
-    @Test
-    fun `feil returneres når fom er ugyldig`() {
-        val aktørId = AktørId("1831212532188")
-
-        val expected = """
-            {
-                "feilmelding": "fom must be specified as yyyy-mm"
-            }
-        """.trimIndent()
-
-        val jwkStub = JwtStub("test issuer")
-        val token = jwkStub.createTokenFor("srvpleiepengesokna")
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = "test issuer",
-                jwkProvider = jwkStub.stubbedJwkProvider()
-        )}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=foo&tom=2019-01") {
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
-                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
-            }
-        }
-    }
-
-    @Test
-    fun `feil returneres når tom er ugyldig`() {
-        val aktørId = AktørId("1831212532188")
-
-        val expected = """
-            {
-                "feilmelding": "tom must be specified as yyyy-mm"
-            }
-        """.trimIndent()
-
-        val jwkStub = JwtStub("test issuer")
-        val token = jwkStub.createTokenFor("srvpleiepengesokna")
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = "test issuer",
-                jwkProvider = jwkStub.stubbedJwkProvider()
-        )}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=foo") {
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(HttpStatusCode.BadRequest, response.status())
-                assertJsonEquals(JSONObject(expected), JSONObject(response.content))
-            }
-        }
-    }
-
-    @Test
-    fun `skal svare med liste av inntekter`() {
-        val inntektV3 = mockk<InntektV3>()
-
-        val aktørId = AktørId("11987654321")
-        val fom = YearMonth.parse("2019-01")
-
-        val virksomhet1 = "889640782"
-        val virksomhet2 = "912998827"
-        val virksomhet3 = "995298775"
-        val expected = listeMedTreInntekter(aktørId, fom, virksomhet1, virksomhet2, virksomhet3)
-
-        every {
-            inntektV3.hentInntektListeBolk(match {
-                it.identListe.size == 1 && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
-            })
-        } returns expected
-
-        val jwkStub = JwtStub("test issuer")
-        val token = jwkStub.createTokenFor("srvpleiepengesokna")
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = "test issuer",
-                jwkProvider = jwkStub.stubbedJwkProvider(),
-                sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3)),
-                        organisasjonService = mockk()
-                ))}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-03") {
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
-            }
-        }
-    }
-
-    @Test
-    fun `skal svare med feil ved feil`() {
-        val inntektV3 = mockk<InntektV3>()
-
-        val aktørId = AktørId("11987654321")
-
-        every {
-            inntektV3.hentInntektListeBolk(match {
-                it.identListe.size == 1 && (it.identListe[0] as AktoerId).aktoerId == aktørId.aktor
-            })
-        } throws (Exception("SOAP fault"))
-
-        val jwkStub = JwtStub("test issuer")
-        val token = jwkStub.createTokenFor("srvpleiepengesokna")
-
-        withTestApplication({mockedSparkel(
-                jwtIssuer = "test issuer",
-                jwkProvider = jwkStub.stubbedJwkProvider(),
-                sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3)),
-                        organisasjonService = mockk()
-                ))}) {
-            handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag?fom=2019-01&tom=2019-02") {
-                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
-                addHeader(HttpHeaders.Authorization, "Bearer $token")
-            }.apply {
-                assertEquals(HttpStatusCode.InternalServerError, response.status())
-                assertJsonEquals(JSONObject(expectedJson_fault), JSONObject(response.content))
-            }
-        }
-    }
-
-    @Test
     fun `feil returneres når fom ikke er satt for virksomhet`() {
         val aktørId = AktørId("1831212532188")
         val virksomhetsnummer = Organisasjonsnummer("995298775")
@@ -371,7 +193,7 @@ class SykepengegrunnlagComponentTest {
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                assertJsonEquals(JSONObject(expectedJson_virksomhet), JSONObject(response.content))
+                assertJsonEquals(JSONObject(expectedJson_beregningsgrunnlag), JSONObject(response.content))
             }
         }
     }
@@ -646,7 +468,7 @@ class SykepengegrunnlagComponentTest {
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+                assertJsonEquals(JSONObject(expectedJson_sammenligningsgrunnlag), JSONObject(response.content))
             }
         }
     }
@@ -684,7 +506,7 @@ class SykepengegrunnlagComponentTest {
     }
 }
 
-private val expectedJson = """
+private val expectedJson_sammenligningsgrunnlag = """
 {
     "inntekter": [{
         "arbeidsgiver": {
@@ -714,7 +536,7 @@ private val expectedJson = """
 }
 """.trimIndent()
 
-private val expectedJson_virksomhet = """
+private val expectedJson_beregningsgrunnlag = """
 {
     "inntekter": [{
         "arbeidsgiver": {

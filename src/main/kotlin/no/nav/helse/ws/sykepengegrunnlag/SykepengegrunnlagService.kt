@@ -24,7 +24,7 @@ class SykepengegrunnlagService(private val inntektService: InntektService, priva
             organisasjonService.hentOrganisasjon(virksomhetsnummer).flatMap { organisasjon ->
                 when (organisasjon) {
                     is no.nav.helse.ws.organisasjon.domain.Organisasjon.Virksomhet -> {
-                        hentBeregningsgrunnlag(aktørId, fom, tom).map { inntekter ->
+                        inntektService.hentInntekter(aktørId, fom, tom, Beregningsgrunnlagfilter).map { inntekter ->
                             inntekter.filter { inntekt ->
                                 inntekt.virksomhet is Virksomhet.Organisasjon
                             }
@@ -43,9 +43,6 @@ class SykepengegrunnlagService(private val inntektService: InntektService, priva
                     }
                 }
             }
-
-    fun hentBeregningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
-            inntektService.hentInntekter(aktørId, fom, tom, Beregningsgrunnlagfilter)
 
     fun hentSammenligningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
             inntektService.hentInntekter(aktørId, fom, tom, Sammenligningsgrunnlagfilter)
