@@ -14,6 +14,7 @@ import no.nav.helse.ws.organisasjon.OrganisasjonService
 import no.nav.helse.ws.person.PersonService
 import no.nav.helse.ws.sakogbehandling.SakOgBehandlingService
 import no.nav.helse.ws.sykepengegrunnlag.SykepengegrunnlagService
+import no.nav.helse.ws.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.ws.sykepenger.SykepengelisteService
 
 fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, arbeidsfordelingService: ArbeidsfordelingService = mockk(),
@@ -27,10 +28,11 @@ fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, 
                               sykepengegrunnlagService: SykepengegrunnlagService = mockk(),
                               sykepengelisteService: SykepengelisteService = mockk(),
                               infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService = mockk(),
-                              aktørregisterService: AktørregisterService = mockk()
+                              aktørregisterService: AktørregisterService = mockk(),
+                              sykepengehistorikkService: SykepengehistorikkService = mockk()
                               ) {
     return sparkel(jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, arbeidsgiverService,
             arbeidInntektYtelseService, meldekortService, organisasjonService,
             personService, sakOgBehandlingService, sykepengegrunnlagService, sykepengelisteService, infotrygdBeregningsgrunnlagService,
-            aktørregisterService)
+            aktørregisterService, sykepengehistorikkService)
 }

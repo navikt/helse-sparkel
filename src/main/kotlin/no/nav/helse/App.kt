@@ -46,6 +46,8 @@ import no.nav.helse.ws.sakogbehandling.sakOgBehandling
 import no.nav.helse.ws.sts.stsClient
 import no.nav.helse.ws.sykepengegrunnlag.SykepengegrunnlagService
 import no.nav.helse.ws.sykepengegrunnlag.sykepengegrunnlag
+import no.nav.helse.ws.sykepengehistorikk.SykepengehistorikkService
+import no.nav.helse.ws.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.ws.sykepenger.HentSykepengeListeRestClient
 import no.nav.helse.ws.sykepenger.SykepengelisteService
 import no.nav.helse.ws.sykepenger.sykepengeListe
@@ -126,6 +128,8 @@ fun main() {
                 aktørregisterService = aktørregisterService
         )
 
+        val sykepengehistorikkService = SykepengehistorikkService(infotrygdBeregningsgrunnlagService)
+
         sparkel(
                 env.jwtIssuer,
                 jwkProvider,
@@ -140,7 +144,8 @@ fun main() {
                 sykepengegrunnlagService,
                 sykepengelisteService,
                 infotrygdBeregningsgrunnlagService,
-                aktørregisterService
+                aktørregisterService,
+                sykepengehistorikkService
         )
     }
 
@@ -165,7 +170,8 @@ fun Application.sparkel(
         sykepengegrunnlagService: SykepengegrunnlagService,
         sykepengelisteService: SykepengelisteService,
         infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService,
-        aktørregisterService: AktørregisterService
+        aktørregisterService: AktørregisterService,
+        sykepengehistorikkService: SykepengehistorikkService
 ) {
     install(CallId) {
         header("Nav-Call-Id")
@@ -235,6 +241,8 @@ fun Application.sparkel(
             fnrForAktør(aktørregisterService)
 
             infotrygdBeregningsgrunnlag(infotrygdBeregningsgrunnlagService)
+
+            sykepengehistorikk(sykepengehistorikkService)
         }
 
         nais(collectorRegistry)
