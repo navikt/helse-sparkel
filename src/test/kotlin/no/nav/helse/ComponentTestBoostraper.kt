@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.*
 import com.github.tomakehurst.wiremock.core.*
 import io.prometheus.client.*
 import no.nav.helse.sts.*
-import no.nav.helse.ws.*
+import no.nav.helse.oppslag.*
 
 fun bootstrapComponentTest() : ComponentTestBootstrap {
     val wireMockServer = WireMockServer(WireMockConfiguration.options().dynamicPort())

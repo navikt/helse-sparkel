@@ -20,37 +20,30 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
-import no.nav.helse.http.aktør.AktørregisterService
-import no.nav.helse.http.aktør.fnrForAktør
+import no.nav.helse.domene.aiy.ArbeidInntektYtelseService
+import no.nav.helse.domene.aiy.arbeidInntektYtelse
+import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.aktør.fnrForAktør
+import no.nav.helse.domene.arbeid.ArbeidsforholdService
+import no.nav.helse.domene.arbeid.ArbeidsgiverService
+import no.nav.helse.domene.arbeid.arbeidsforhold
+import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
+import no.nav.helse.domene.arbeidsfordeling.arbeidsfordeling
+import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
+import no.nav.helse.domene.infotrygd.infotrygdBeregningsgrunnlag
+import no.nav.helse.domene.inntekt.InntektService
+import no.nav.helse.domene.organisasjon.OrganisasjonService
+import no.nav.helse.domene.organisasjon.organisasjon
+import no.nav.helse.domene.person.PersonService
+import no.nav.helse.domene.person.person
+import no.nav.helse.domene.sykepengegrunnlag.SykepengegrunnlagService
+import no.nav.helse.domene.sykepengegrunnlag.sykepengegrunnlag
+import no.nav.helse.domene.sykepengehistorikk.SykepengehistorikkService
+import no.nav.helse.domene.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.nais.nais
 import no.nav.helse.sts.StsRestClient
-import no.nav.helse.ws.WsClients
-import no.nav.helse.ws.aiy.ArbeidInntektYtelseService
-import no.nav.helse.ws.aiy.arbeidInntektYtelse
-import no.nav.helse.ws.arbeidsfordeling.ArbeidsfordelingService
-import no.nav.helse.ws.arbeidsfordeling.arbeidsfordeling
-import no.nav.helse.ws.arbeidsforhold.ArbeidsforholdService
-import no.nav.helse.ws.arbeidsforhold.ArbeidsgiverService
-import no.nav.helse.ws.arbeidsforhold.arbeidsforhold
-import no.nav.helse.ws.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagService
-import no.nav.helse.ws.infotrygdberegningsgrunnlag.infotrygdBeregningsgrunnlag
-import no.nav.helse.ws.inntekt.InntektService
-import no.nav.helse.ws.meldekort.MeldekortService
-import no.nav.helse.ws.meldekort.meldekort
-import no.nav.helse.ws.organisasjon.OrganisasjonService
-import no.nav.helse.ws.organisasjon.organisasjon
-import no.nav.helse.ws.person.PersonService
-import no.nav.helse.ws.person.person
-import no.nav.helse.ws.sakogbehandling.SakOgBehandlingService
-import no.nav.helse.ws.sakogbehandling.sakOgBehandling
-import no.nav.helse.ws.sts.stsClient
-import no.nav.helse.ws.sykepengegrunnlag.SykepengegrunnlagService
-import no.nav.helse.ws.sykepengegrunnlag.sykepengegrunnlag
-import no.nav.helse.ws.sykepengehistorikk.SykepengehistorikkService
-import no.nav.helse.ws.sykepengehistorikk.sykepengehistorikk
-import no.nav.helse.ws.sykepenger.HentSykepengeListeRestClient
-import no.nav.helse.ws.sykepenger.SykepengelisteService
-import no.nav.helse.ws.sykepenger.sykepengeListe
+import no.nav.helse.oppslag.WsClients
+import no.nav.helse.oppslag.sts.stsClient
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
@@ -85,8 +78,6 @@ fun main() {
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
-        val hentSykepengeperiodeClient = HentSykepengeListeRestClient(env.hentSykePengeperiodeEndpointUrl, stsClientRest)
-
         val arbeidsfordelingService = ArbeidsfordelingService(
                 arbeidsfordelingClient = wsClients.arbeidsfordeling(env.arbeidsfordelingEndpointUrl),
                 personService = personService)
@@ -109,19 +100,9 @@ fun main() {
                 organisasjonService = organisasjonService
         )
 
-        val sakOgBehandlingService = SakOgBehandlingService(wsClients.sakOgBehandling(env.sakOgBehandlingEndpointUrl))
-
         val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))
 
         val sykepengegrunnlagService = SykepengegrunnlagService(inntektService, organisasjonService)
-
-        val sykepengelisteService = SykepengelisteService(
-                sykepengerClient = wsClients.sykepengeliste(env.hentSykePengeListeEndpointUrl),
-                hentSykepengeperiodeClient = hentSykepengeperiodeClient,
-                aktørregisterService = aktørregisterService
-        )
-
-        val meldekortServie = MeldekortService(wsClients.meldekort(env.meldekortEndpointUrl))
 
         val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(
                 infotrygdClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl),
@@ -137,12 +118,9 @@ fun main() {
                 arbeidsforholdService,
                 arbeidsgiverService,
                 arbeidsforholdMedInntektService,
-                meldekortServie,
                 organisasjonService,
                 personService,
-                sakOgBehandlingService,
                 sykepengegrunnlagService,
-                sykepengelisteService,
                 infotrygdBeregningsgrunnlagService,
                 aktørregisterService,
                 sykepengehistorikkService
@@ -163,12 +141,9 @@ fun Application.sparkel(
         arbeidsforholdService: ArbeidsforholdService,
         arbeidsgiverService: ArbeidsgiverService,
         arbeidInntektYtelseService: ArbeidInntektYtelseService,
-        meldekortService: MeldekortService,
         organisasjonService: OrganisasjonService,
         personService: PersonService,
-        sakOgBehandlingService: SakOgBehandlingService,
         sykepengegrunnlagService: SykepengegrunnlagService,
-        sykepengelisteService: SykepengelisteService,
         infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService,
         aktørregisterService: AktørregisterService,
         sykepengehistorikkService: SykepengehistorikkService
@@ -230,13 +205,7 @@ fun Application.sparkel(
 
             organisasjon(organisasjonService)
 
-            sakOgBehandling(sakOgBehandlingService)
-
             sykepengegrunnlag(sykepengegrunnlagService)
-
-            sykepengeListe(sykepengelisteService)
-
-            meldekort(meldekortService)
 
             fnrForAktør(aktørregisterService)
 
