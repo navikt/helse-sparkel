@@ -9,11 +9,11 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
-import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.domene.arbeid.domain.Permisjon
-import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.helse.domene.inntekt.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
@@ -160,6 +160,10 @@ class ArbeidsforholdServiceTest {
         every {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
         } returns Try.Success(arbeidsforhold_med_person_som_arbeidsgiver_avtaler)
+
+        every {
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_2)
+        } returns Try.Success(emptyList())
 
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk())
                 .finnArbeidstakerarbeidsforhold(aktørId, fom, tom)

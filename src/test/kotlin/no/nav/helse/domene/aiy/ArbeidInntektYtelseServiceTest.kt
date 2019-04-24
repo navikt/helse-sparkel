@@ -8,6 +8,7 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.ArbeidsforholdService
+import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
 import no.nav.helse.domene.inntekt.InntektService
 import no.nav.helse.domene.inntekt.domain.Inntekt
@@ -323,19 +324,28 @@ private val aktivt_arbeidstakerforhold_startdato = LocalDate.parse("2019-01-01")
 private val aktivt_arbeidstakerforhold = Arbeidsforhold.Arbeidstaker(
         arbeidsgiver = virksomhet1,
         startdato = aktivt_arbeidstakerforhold_startdato,
-        arbeidsforholdId = arbeidsforholdId1)
+        arbeidsforholdId = arbeidsforholdId1,
+        arbeidsavtaler = listOf(
+                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_startdato, null)
+        ))
 
 private val aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato = LocalDate.parse("2018-12-01")
 private val aktivt_arbeidstakerforhold_i_samme_virksomhet = Arbeidsforhold.Arbeidstaker(
         arbeidsgiver = virksomhet1,
         startdato = aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato,
-        arbeidsforholdId = arbeidsforholdId2)
+        arbeidsforholdId = arbeidsforholdId2,
+        arbeidsavtaler = listOf(
+                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato, null)
+        ))
 
 private val aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato = LocalDate.parse("2019-01-01")
 private val aktivt_arbeidstakerforhold_i_annen_virksomhet = Arbeidsforhold.Arbeidstaker(
         arbeidsgiver = virksomhet3,
         startdato = aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato,
-        arbeidsforholdId = arbeidsforholdId2)
+        arbeidsforholdId = arbeidsforholdId2,
+        arbeidsavtaler = listOf(
+                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato, null)
+        ))
 
 private val avsluttet_arbeidstakerforhold_startdato = LocalDate.parse("2018-01-01")
 private val avsluttet_arbeidstakerforhold_sluttdato = LocalDate.parse("2018-12-31")
@@ -343,7 +353,10 @@ private val avsluttet_arbeidstakerforhold = Arbeidsforhold.Arbeidstaker(
         arbeidsgiver = virksomhet2,
         startdato = avsluttet_arbeidstakerforhold_startdato,
         sluttdato = avsluttet_arbeidstakerforhold_sluttdato,
-        arbeidsforholdId = arbeidsforholdId3)
+        arbeidsforholdId = arbeidsforholdId3,
+        arbeidsavtaler = listOf(
+                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), avsluttet_arbeidstakerforhold_startdato, avsluttet_arbeidstakerforhold_sluttdato)
+        ))
 
 private val aktivt_frilansforhold_startdato = LocalDate.parse("2019-01-01")
 private val aktivt_frilansforhold = Arbeidsforhold.Frilans(

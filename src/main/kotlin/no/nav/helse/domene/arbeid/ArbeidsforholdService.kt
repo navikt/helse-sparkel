@@ -67,16 +67,16 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     is FinnArbeidsforholdPrArbeidstakerUgyldigInput -> Feilårsak.FeilFraTjeneste
                     else -> Feilårsak.UkjentFeil
                 }
-            }.map { liste ->
-                liste.mapNotNull(ArbeidDomainMapper::toArbeidsforhold)
             }.flatMap { liste ->
                 liste.map { arbeidsforhold ->
-                    finnHistoriskeAvtaler(arbeidsforhold).map { avtaler ->
-                        arbeidsforhold.copy(
-                                arbeidsavtaler = avtaler
-                        )
+                    finnHistoriskeAvtaler(arbeidsforhold.arbeidsforholdIDnav).map { avtaler ->
+                        arbeidsforhold.arbeidsavtale.clear()
+                        arbeidsforhold.arbeidsavtale.addAll(avtaler)
+                        arbeidsforhold
                     }
                 }.sequenceU()
+            }.map { liste ->
+                liste.mapNotNull(ArbeidDomainMapper::toArbeidsforhold)
             }
 
     fun hentFrilansarbeidsforhold(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
@@ -108,8 +108,8 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                 }.filterNotNull()
             }
 
-    private fun finnHistoriskeAvtaler(arbeidsforhold: Arbeidsforhold.Arbeidstaker) =
-            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforhold.arbeidsforholdId).toEither { err ->
+    private fun finnHistoriskeAvtaler(arbeidsforholdId: Long) =
+            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdId).toEither { err ->
                 log.error("Error while doing arbeidsforhold historikk lookup", err)
 
                 when (err) {
@@ -117,8 +117,6 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
                     is HentArbeidsforholdHistorikkArbeidsforholdIkkeFunnet -> Feilårsak.IkkeFunnet
                     else -> Feilårsak.UkjentFeil
                 }
-            }.map { avtaler ->
-                avtaler.map(ArbeidDomainMapper::toArbeidsavtale)
             }
 
     private fun tellAvvikPåArbeidsforholdISammeVirksomhet(arbeidsforholdliste: List<Arbeidsforhold>) {

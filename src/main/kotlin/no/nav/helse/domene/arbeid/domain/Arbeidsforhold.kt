@@ -21,7 +21,17 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
                             override val startdato: LocalDate,
                             override val sluttdato: LocalDate? = null,
                             val permisjon: List<Permisjon> = emptyList(),
-                            val arbeidsavtaler: List<Arbeidsavtale> = emptyList()): Arbeidsforhold(arbeidsgiver, startdato, sluttdato)
+                            val arbeidsavtaler: List<Arbeidsavtale> = emptyList()): Arbeidsforhold(arbeidsgiver, startdato, sluttdato) {
+        init {
+            if (arbeidsavtaler.isEmpty()) {
+                throw IllegalArgumentException("arbeidsavtaler er tom: $arbeidsforholdId")
+            }
+            if (arbeidsavtaler.filter { it.tom == null }.size > 1) {
+                throw IllegalArgumentException("det er flere enn én gjeldende arbeidsavtale")
+            }
+        }
+    }
+
     data class Frilans(
             override val arbeidsgiver: Virksomhet,
             override val startdato: LocalDate,
