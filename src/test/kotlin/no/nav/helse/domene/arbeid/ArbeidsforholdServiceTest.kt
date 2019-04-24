@@ -161,10 +161,6 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
         } returns Try.Success(arbeidsforhold_med_person_som_arbeidsgiver_avtaler)
 
-        every {
-            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_2)
-        } returns Try.Success(emptyList())
-
         val actual = ArbeidsforholdService(arbeidsforholdClient, mockk())
                 .finnArbeidstakerarbeidsforhold(aktørId, fom, tom)
 
@@ -332,6 +328,15 @@ private val arbeidsforhold_med_person_som_arbeidsgiver get() = Arbeidsforhold().
             this.fom = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
         }
     }
+    with (arbeidsavtale) {
+        add(Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2019-02-01").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
+            }
+            stillingsprosent = BigDecimal.valueOf(100)
+        })
+    }
 }
 
 private val arbeidsforhold_med_person_som_arbeidsgiver_avtaler = listOf(Arbeidsavtale().apply {
@@ -352,6 +357,15 @@ private val arbeidsforhold_med_historisk_arbeidsgiver get() = Arbeidsforhold().a
         periode = Gyldighetsperiode().apply {
             this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
         }
+    }
+    with (arbeidsavtale) {
+        add(Arbeidsavtale().apply {
+            fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+            yrke = Yrker().apply {
+                value = "Butikkmedarbeider"
+            }
+            stillingsprosent = BigDecimal.valueOf(100)
+        })
     }
 }
 

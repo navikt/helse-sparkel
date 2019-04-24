@@ -162,6 +162,15 @@ class ArbeidsforholdComponentTest {
                             this.fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                         }
                     }
+                    with (arbeidsavtale) {
+                        add(Arbeidsavtale().apply {
+                            fomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                            yrke = Yrker().apply {
+                                value = "Butikkmedarbeider"
+                            }
+                            stillingsprosent = BigDecimal.valueOf(100)
+                        })
+                    }
                 })
                 add(Arbeidsforhold().apply {
                     arbeidsgiver = Organisasjon().apply {
@@ -174,6 +183,16 @@ class ArbeidsforholdComponentTest {
                             this.fom = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
                             this.tom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                         }
+                    }
+                    with (arbeidsavtale) {
+                        add(Arbeidsavtale().apply {
+                            fomGyldighetsperiode = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
+                            tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
+                            yrke = Yrker().apply {
+                                value = "Butikkmedarbeider"
+                            }
+                            stillingsprosent = BigDecimal.valueOf(100)
+                        })
                     }
                 })
             }
