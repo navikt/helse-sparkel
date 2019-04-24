@@ -129,7 +129,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
 
                     when (organisasjon) {
                         is Organisasjon.JuridiskEnhet -> organisasjonService.hentVirksomhetForJuridiskOrganisasjonsnummer(organisasjon.orgnr, inntekt.utbetalingsperiode.atDay(1)).fold({
-                            log.warn("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
+                            log.info("error while looking up virksomhetsnummer for juridisk enhet, responding with the juridisk organisasjonsnummer (${organisasjon.orgnr}) instead")
                             Either.Right(inntekt)
                         }, { virksomhetsnummer ->
                             log.info("slo opp virksomhetsnummer for ${organisasjon.orgnr}")
@@ -153,7 +153,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
 
     private fun tellForeløpigAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) {
         if (arbeidsforholdliste.isNotEmpty()) {
-            log.warn("fant foreløpig ${arbeidsforholdliste.size} arbeidsforhold hvor vi ikke finner inntekter: ${arbeidsforholdliste.joinToString { "${it.type()} - ${it.arbeidsgiver}" }}")
+            log.info("fant foreløpig ${arbeidsforholdliste.size} arbeidsforhold hvor vi ikke finner inntekter: ${arbeidsforholdliste.joinToString { "${it.type()} - ${it.arbeidsgiver}" }}")
             arbeidsforholdliste.forEach { arbeidsforhold ->
                 foreløpigArbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
             }
@@ -162,7 +162,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
 
     private fun tellForeløpigAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {
         if (inntekter.isNotEmpty()) {
-            log.warn("fant foreløpig ${inntekter.size} inntekter hvor vi ikke finner arbeidsforhold: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
+            log.info("fant foreløpig ${inntekter.size} inntekter hvor vi ikke finner arbeidsforhold: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
             foreløpigInntektAvviksCounter.inc(inntekter.size.toDouble())
         }
     }
@@ -171,7 +171,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
         if (arbeidsforholdliste.isNotEmpty()) {
             arbeidsforholdliste.forEach { arbeidsforhold ->
                 arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
-                log.warn("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
+                log.info("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
             }
         }
     }
@@ -179,7 +179,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     private fun tellAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {
         if (inntekter.isNotEmpty()) {
             inntektAvviksCounter.inc(inntekter.size.toDouble())
-            log.warn("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
+            log.info("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
         }
     }
 }

@@ -166,7 +166,7 @@ object InntektMapper {
                     && tom.atEndOfMonth() >= inntekt.utbetaltIPeriode.toLocalDate()) {
                 true
             } else {
-                log.warn("utbetaltIPeriode (${inntekt.utbetaltIPeriode.toLocalDate()}) er utenfor perioden")
+                log.info("utbetaltIPeriode (${inntekt.utbetaltIPeriode.toLocalDate()}) er utenfor perioden")
                 false
             }
 }
