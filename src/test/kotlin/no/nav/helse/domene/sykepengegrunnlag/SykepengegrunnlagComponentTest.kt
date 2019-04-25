@@ -509,10 +509,6 @@ class SykepengegrunnlagComponentTest {
 private val expectedJson_sammenligningsgrunnlag = """
 {
     "inntekter": [{
-        "arbeidsgiver": {
-            "identifikator": "889640782",
-            "type": "Organisasjon"
-        },
         "virksomhet": {
             "identifikator": "889640782",
             "type": "Organisasjon"
@@ -522,10 +518,6 @@ private val expectedJson_sammenligningsgrunnlag = """
         "type": "Lønn",
         "ytelse": false
     }, {
-        "arbeidsgiver": {
-            "identifikator": "912998827",
-            "type": "Organisasjon"
-        },
         "virksomhet": {
             "identifikator": "912998827",
             "type": "Organisasjon"
@@ -535,10 +527,6 @@ private val expectedJson_sammenligningsgrunnlag = """
         "type": "Lønn",
         "ytelse": false
     }, {
-        "arbeidsgiver": {
-            "identifikator": "995298775",
-            "type": "Organisasjon"
-        },
         "virksomhet": {
             "identifikator": "995298775",
             "type": "Organisasjon"
@@ -554,10 +542,6 @@ private val expectedJson_sammenligningsgrunnlag = """
 private val expectedJson_beregningsgrunnlag = """
 {
     "inntekter": [{
-        "arbeidsgiver": {
-            "identifikator": "995298775",
-            "type": "Organisasjon"
-        },
         "virksomhet": {
             "identifikator": "995298775",
             "type": "Organisasjon"
@@ -567,10 +551,6 @@ private val expectedJson_beregningsgrunnlag = """
         "type": "Lønn",
         "ytelse": false
     }, {
-        "arbeidsgiver": {
-            "identifikator": "995298775",
-            "type": "Organisasjon"
-        },
         "virksomhet": {
             "identifikator": "995298775",
             "type": "Organisasjon"
@@ -580,10 +560,6 @@ private val expectedJson_beregningsgrunnlag = """
         "type": "Lønn",
         "ytelse": false
     }, {
-        "arbeidsgiver": {
-            "identifikator": "995298775",
-            "type": "Organisasjon"
-        },
         "virksomhet": {
             "identifikator": "995298775",
             "type": "Organisasjon"
