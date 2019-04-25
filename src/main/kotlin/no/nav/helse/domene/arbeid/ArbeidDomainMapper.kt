@@ -8,6 +8,9 @@ import no.nav.helse.domene.inntekt.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsforholdFrilanser
+import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import org.slf4j.LoggerFactory
 
 object ArbeidDomainMapper {
@@ -37,6 +40,21 @@ object ArbeidDomainMapper {
                                     årsak = permisjonOgPermittering.permisjonOgPermittering.value
                             )
                         }
+                )
+            }
+
+    fun toArbeidsforhold(arbeidsforhold: ArbeidsforholdFrilanser) =
+            when (arbeidsforhold.arbeidsgiver) {
+                is PersonIdent -> Virksomhet.Person((arbeidsforhold.arbeidsgiver as PersonIdent).personIdent)
+                is AktoerId -> Virksomhet.NavAktør((arbeidsforhold.arbeidsgiver as AktoerId).aktoerId)
+                is no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon -> Virksomhet.Organisasjon(Organisasjonsnummer((arbeidsforhold.arbeidsgiver as no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon).orgnummer))
+                else -> null
+            }?.let { virksomhet ->
+                Arbeidsforhold.Frilans(
+                        arbeidsgiver = virksomhet,
+                        startdato = arbeidsforhold.frilansPeriode.fom.toLocalDate(),
+                        sluttdato = arbeidsforhold.frilansPeriode?.tom?.toLocalDate(),
+                        yrke = arbeidsforhold.yrke.value
                 )
             }
 

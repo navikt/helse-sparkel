@@ -375,6 +375,9 @@ private val frilans_arbeidsforhold_1 = ArbeidsforholdFrilanser().apply {
         fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
         tom = LocalDate.parse("2019-01-31").toXmlGregorianCalendar()
     }
+    yrke = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Yrker().apply {
+        value = "Butikkmedarbeider"
+    }
 }
 
 private val frilans_arbeidsforhold = listOf(frilans_arbeidsforhold_1)
@@ -439,5 +442,6 @@ private val forventet_arbeidsforhold_med_person_som_arbeidsgiver = no.nav.helse.
 private val forventet_frilans_arbeidsforhold = no.nav.helse.domene.arbeid.domain.Arbeidsforhold.Frilans(
         arbeidsgiver = Virksomhet.Organisasjon(Organisasjonsnummer((frilans_arbeidsforhold_1.arbeidsgiver as no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon).orgnummer)),
         startdato = LocalDate.parse("2019-01-01"),
-        sluttdato = LocalDate.parse("2019-01-31")
+        sluttdato = LocalDate.parse("2019-01-31"),
+        yrke = "Butikkmedarbeider"
 )

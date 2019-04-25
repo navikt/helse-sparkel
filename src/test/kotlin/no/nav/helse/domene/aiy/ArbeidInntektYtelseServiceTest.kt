@@ -363,7 +363,7 @@ private val aktivt_frilansforhold = Arbeidsforhold.Frilans(
         arbeidsgiver = virksomhet3,
         startdato = aktivt_frilansforhold_startdato,
         sluttdato = null,
-        yrke = null)
+        yrke = "Butikkmedarbeider")
 
 private val januar_2019 = YearMonth.of(2019, JANUARY)
 private val februar_2019 = YearMonth.of(2019, FEBRUARY)

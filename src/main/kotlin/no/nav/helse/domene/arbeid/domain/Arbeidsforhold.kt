@@ -36,9 +36,9 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
             override val arbeidsgiver: Virksomhet,
             override val startdato: LocalDate,
             override val sluttdato: LocalDate? = null,
-            val yrke: String? = null): Arbeidsforhold(arbeidsgiver, startdato, sluttdato) {
+            val yrke: String): Arbeidsforhold(arbeidsgiver, startdato, sluttdato) {
         init {
-            if (yrke != null && yrke.isBlank()) {
+            if (yrke.isBlank()) {
                 throw IllegalArgumentException("yrke kan ikke være en tom streng")
             }
         }

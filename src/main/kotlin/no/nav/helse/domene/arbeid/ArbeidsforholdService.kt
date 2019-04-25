@@ -5,11 +5,8 @@ import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
 import no.nav.helse.Feilårsak
 import no.nav.helse.arrow.sequenceU
-import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
-import no.nav.helse.domene.inntekt.domain.Virksomhet
-import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
@@ -18,9 +15,6 @@ import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.HentArbeidsforholdHi
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.HentArbeidsforholdHistorikkSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkHarIkkeTilgangTilOensketAInntektsfilter
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.HentInntektListeBolkUgyldigInput
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.PersonIdent
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.YearMonth
@@ -91,20 +85,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
             }.map {
                 it.map { arbeidsforholdFrilanser ->
                     frilansCounter.inc()
-
-                    when (arbeidsforholdFrilanser.arbeidsgiver) {
-                        is PersonIdent -> Virksomhet.Person((arbeidsforholdFrilanser.arbeidsgiver as PersonIdent).personIdent)
-                        is AktoerId -> Virksomhet.NavAktør((arbeidsforholdFrilanser.arbeidsgiver as AktoerId).aktoerId)
-                        is Organisasjon -> Virksomhet.Organisasjon(Organisasjonsnummer((arbeidsforholdFrilanser.arbeidsgiver as Organisasjon).orgnummer))
-                        else -> null
-                    }?.let { virksomhet ->
-                        Arbeidsforhold.Frilans(
-                                arbeidsgiver = virksomhet,
-                                startdato = arbeidsforholdFrilanser.frilansPeriode.fom.toLocalDate(),
-                                sluttdato = arbeidsforholdFrilanser.frilansPeriode?.tom?.toLocalDate(),
-                                yrke = arbeidsforholdFrilanser.yrke?.value
-                        )
-                    }
+                    ArbeidDomainMapper.toArbeidsforhold(arbeidsforholdFrilanser)
                 }.filterNotNull()
             }
 
