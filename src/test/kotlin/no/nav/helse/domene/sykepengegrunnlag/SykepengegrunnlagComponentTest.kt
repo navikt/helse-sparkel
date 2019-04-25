@@ -11,13 +11,13 @@ import io.mockk.mockk
 import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.mockedSparkel
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.inntekt.InntektService
-import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.helse.domene.organisasjon.OrganisasjonService
-import no.nav.helse.oppslag.organisasjon.OrganisasjonClient
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.mockedSparkel
+import no.nav.helse.oppslag.inntekt.InntektClient
+import no.nav.helse.oppslag.organisasjon.OrganisasjonClient
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
@@ -513,24 +513,39 @@ private val expectedJson_sammenligningsgrunnlag = """
             "identifikator": "889640782",
             "type": "Organisasjon"
         },
+        "virksomhet": {
+            "identifikator": "889640782",
+            "type": "Organisasjon"
+        },
         "beløp": 2500,
         "utbetalingsperiode": "2019-01",
+        "type": "Lønn",
         "ytelse": false
     }, {
         "arbeidsgiver": {
             "identifikator": "912998827",
             "type": "Organisasjon"
         },
+        "virksomhet": {
+            "identifikator": "912998827",
+            "type": "Organisasjon"
+        },
         "beløp": 3500,
         "utbetalingsperiode": "2019-02",
+        "type": "Lønn",
         "ytelse": false
     }, {
         "arbeidsgiver": {
             "identifikator": "995298775",
             "type": "Organisasjon"
         },
+        "virksomhet": {
+            "identifikator": "995298775",
+            "type": "Organisasjon"
+        },
         "beløp": 2500,
         "utbetalingsperiode": "2019-03",
+        "type": "Lønn",
         "ytelse": false
     }]
 }
@@ -543,24 +558,39 @@ private val expectedJson_beregningsgrunnlag = """
             "identifikator": "995298775",
             "type": "Organisasjon"
         },
+        "virksomhet": {
+            "identifikator": "995298775",
+            "type": "Organisasjon"
+        },
         "beløp": 2500,
         "utbetalingsperiode": "2019-01",
+        "type": "Lønn",
         "ytelse": false
     }, {
         "arbeidsgiver": {
+            "identifikator": "995298775",
+            "type": "Organisasjon"
+        },
+        "virksomhet": {
             "identifikator": "995298775",
             "type": "Organisasjon"
         },
         "beløp": 3500,
         "utbetalingsperiode": "2019-02",
+        "type": "Lønn",
         "ytelse": false
     }, {
         "arbeidsgiver": {
             "identifikator": "995298775",
             "type": "Organisasjon"
         },
+        "virksomhet": {
+            "identifikator": "995298775",
+            "type": "Organisasjon"
+        },
         "beløp": 2500,
         "utbetalingsperiode": "2019-03",
+        "type": "Lønn",
         "ytelse": false
     }]
 }
