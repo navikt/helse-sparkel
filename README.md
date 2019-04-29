@@ -1,6 +1,8 @@
 Sparkel
 =======
 
+[![CircleCI](https://circleci.com/gh/navikt/helse-sparkel.svg?style=svg)](https://circleci.com/gh/navikt/helse-sparkel)
+
 Oppslagstjeneste for ulike registre og tjenester.
 
 # Henvendelser
