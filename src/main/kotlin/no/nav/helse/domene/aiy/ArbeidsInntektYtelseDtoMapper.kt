@@ -20,13 +20,13 @@ object ArbeidsInntektYtelseDtoMapper {
             }.let { inntekter ->
                 arbeidInntektYtelse.arbeidsforhold.map(ArbeidDtoMapper::toDto).let { arbeidsforhold ->
                     arbeidInntektYtelse.ytelser.map {
-                        YtelseDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                        YtelseDTO(InntektDtoMapper.toDto(it.virksomhet), it.utbetalingsperiode, it.beløp, it.kode)
                     }.let { ytelser ->
                         arbeidInntektYtelse.pensjonEllerTrygd.map {
-                            PensjonEllerTrygdDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                            PensjonEllerTrygdDTO(InntektDtoMapper.toDto(it.virksomhet), it.utbetalingsperiode, it.beløp, it.kode)
                         }.let { pensjonEllerTrygd ->
                             arbeidInntektYtelse.næringsinntekt.map {
-                                NæringDTO(it.virksomhet, it.utbetalingsperiode, it.beløp, it.kode)
+                                NæringDTO(InntektDtoMapper.toDto(it.virksomhet), it.utbetalingsperiode, it.beløp, it.kode)
                             }.let { næring ->
                                 ArbeidInntektYtelseDTO(arbeidsforhold, inntekter, ytelser, pensjonEllerTrygd, næring)
                             }

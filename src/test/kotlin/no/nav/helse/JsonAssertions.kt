@@ -20,7 +20,7 @@ fun assertJsonEquals(expected: JSONObject, actual: JSONObject) {
 }
 
 fun assertJsonEquals(expected: JSONArray, actual: JSONArray) {
-    Assertions.assertEquals(expected.length(), actual.length())
+    Assertions.assertEquals(expected.length(), actual.length(), "${actual.toString(2)} does not match ${expected.toString(2)}")
 
     expected.forEachIndexed { index, it ->
         when(it) {

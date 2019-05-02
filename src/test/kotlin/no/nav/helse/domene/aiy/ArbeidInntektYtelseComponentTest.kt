@@ -227,7 +227,7 @@ class ArbeidInntektYtelseComponentTest {
             }
         }
 
-        val treInntekter = listeMedTreInntekter(aktørId, YearMonth.of(2017, 1), virksomhet)
+        val treInntekter = listeMedTreInntekterYtelseNæringsinntektOgPensjon(aktørId, YearMonth.of(2017, 1), virksomhet)
 
         every {
             inntektV3.hentInntektListeBolk(match {
@@ -275,7 +275,7 @@ class ArbeidInntektYtelseComponentTest {
                         inntektService = inntektService,
                         organisasjonService = organisasjonService
                 ))}) {
-            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}/inntekter?fom=2017-01-01&tom=2019-03-01") {
+            handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}/inntekter?fom=2017-01-01&tom=2019-04-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
@@ -320,6 +320,110 @@ class ArbeidInntektYtelseComponentTest {
                 }
             }
 
+    private fun næringsinntekt(aktørId: AktørId,
+                               virksomhet: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon,
+                               periode: YearMonth,
+                               beløp: Long) =
+            Naeringsinntekt().apply {
+                beloep = BigDecimal.valueOf(beløp)
+                fordel = Fordel().apply {
+                    value = "kontantytelse"
+                }
+                inntektskilde = InntektsInformasjonsopphav().apply {
+                    value = "A-ordningen"
+                }
+                inntektsperiodetype = Inntektsperiodetype().apply {
+                    value = "Maaned"
+                }
+                inntektsstatus = Inntektsstatuser().apply {
+                    value = "LoependeInnrapportert"
+                }
+                levereringstidspunkt = periode.toXmlGregorianCalendar()
+                utbetaltIPeriode = periode.toXmlGregorianCalendar()
+                opplysningspliktig = virksomhet
+                this.virksomhet = virksomhet
+                inntektsmottaker = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                isInngaarIGrunnlagForTrekk = true
+                isUtloeserArbeidsgiveravgift = true
+                informasjonsstatus = Informasjonsstatuser().apply {
+                    value = "InngaarAlltid"
+                }
+                beskrivelse = Naeringsinntektsbeskrivelse().apply {
+                    value = "loenn"
+                }
+            }
+    private fun ytelse(aktørId: AktørId,
+                               virksomhet: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon,
+                               periode: YearMonth,
+                               beløp: Long) =
+            YtelseFraOffentlige().apply {
+                beloep = BigDecimal.valueOf(beløp)
+                fordel = Fordel().apply {
+                    value = "kontantytelse"
+                }
+                inntektskilde = InntektsInformasjonsopphav().apply {
+                    value = "A-ordningen"
+                }
+                inntektsperiodetype = Inntektsperiodetype().apply {
+                    value = "Maaned"
+                }
+                inntektsstatus = Inntektsstatuser().apply {
+                    value = "LoependeInnrapportert"
+                }
+                levereringstidspunkt = periode.toXmlGregorianCalendar()
+                utbetaltIPeriode = periode.toXmlGregorianCalendar()
+                opplysningspliktig = virksomhet
+                this.virksomhet = virksomhet
+                inntektsmottaker = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                isInngaarIGrunnlagForTrekk = true
+                isUtloeserArbeidsgiveravgift = true
+                informasjonsstatus = Informasjonsstatuser().apply {
+                    value = "InngaarAlltid"
+                }
+                beskrivelse = YtelseFraOffentligeBeskrivelse().apply {
+                    value = "foreldrepenger"
+                }
+            }
+
+    private fun pensjon(aktørId: AktørId,
+                       virksomhet: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon,
+                       periode: YearMonth,
+                       beløp: Long) =
+            PensjonEllerTrygd().apply {
+                beloep = BigDecimal.valueOf(beløp)
+                fordel = Fordel().apply {
+                    value = "kontantytelse"
+                }
+                inntektskilde = InntektsInformasjonsopphav().apply {
+                    value = "A-ordningen"
+                }
+                inntektsperiodetype = Inntektsperiodetype().apply {
+                    value = "Maaned"
+                }
+                inntektsstatus = Inntektsstatuser().apply {
+                    value = "LoependeInnrapportert"
+                }
+                levereringstidspunkt = periode.toXmlGregorianCalendar()
+                utbetaltIPeriode = periode.toXmlGregorianCalendar()
+                opplysningspliktig = virksomhet
+                this.virksomhet = virksomhet
+                inntektsmottaker = AktoerId().apply {
+                    aktoerId = aktørId.aktor
+                }
+                isInngaarIGrunnlagForTrekk = true
+                isUtloeserArbeidsgiveravgift = true
+                informasjonsstatus = Informasjonsstatuser().apply {
+                    value = "InngaarAlltid"
+                }
+                beskrivelse = PensjonEllerTrygdebeskrivelse().apply {
+                    value = "uforetrygd"
+                }
+            }
+
     private fun inntektMedOpptjeningsperiode(aktørId: AktørId,
                                              virksomhet: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon,
                                              periode: YearMonth,
@@ -332,7 +436,7 @@ class ArbeidInntektYtelseComponentTest {
                     sluttDato = opptjeningsperiodeTom.toXmlGregorianCalendar()
                 }
             }
-    private fun listeMedTreInntekter(aktørId: AktørId, fom: YearMonth, virksomhet: String) = HentInntektListeBolkResponse().apply {
+    private fun listeMedTreInntekterYtelseNæringsinntektOgPensjon(aktørId: AktørId, fom: YearMonth, virksomhet: String) = HentInntektListeBolkResponse().apply {
         with (arbeidsInntektIdentListe) {
             add(ArbeidsInntektIdent().apply {
                 ident = AktoerId().apply {
@@ -386,6 +490,30 @@ class ArbeidInntektYtelseComponentTest {
                                         },
                                         periode = YearMonth.of(2019, 3),
                                         beløp = -500
+                                ))
+                                add(næringsinntekt(
+                                        aktørId = aktørId,
+                                        virksomhet = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
+                                            orgnummer = virksomhet
+                                        },
+                                        periode = YearMonth.of(2019, 3),
+                                        beløp = 500
+                                ))
+                                add(ytelse(
+                                        aktørId = aktørId,
+                                        virksomhet = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
+                                            orgnummer = virksomhet
+                                        },
+                                        periode = YearMonth.of(2019, 4),
+                                        beløp = 8400
+                                ))
+                                add(pensjon(
+                                        aktørId = aktørId,
+                                        virksomhet = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
+                                            orgnummer = virksomhet
+                                        },
+                                        periode = YearMonth.of(2019, 4),
+                                        beløp = 1500
                                 ))
                             }
                         }
@@ -642,8 +770,38 @@ private val expectedJson_inntekterMedArbeidsforhold = """
       "type": "Arbeidstaker"
     }
   ],
-  "ytelser": [],
-  "pensjonEllerTrygd": [],
-  "næring": []
+  "ytelser": [
+    {
+      "beløp": 8400,
+      "kode": "foreldrepenger",
+      "virksomhet": {
+        "identifikator": "889640782",
+        "type": "Organisasjon"
+      },
+      "utbetalingsperiode": "2019-04"
+    }
+  ],
+  "pensjonEllerTrygd": [
+    {
+      "beløp": 1500,
+      "kode": "uforetrygd",
+      "virksomhet": {
+        "identifikator": "889640782",
+        "type": "Organisasjon"
+      },
+      "utbetalingsperiode": "2019-04"
+    }
+  ],
+  "næring": [
+    {
+      "beløp": 500,
+      "kode": "loenn",
+      "virksomhet": {
+        "identifikator": "889640782",
+        "type": "Organisasjon"
+      },
+      "utbetalingsperiode": "2019-03"
+    }
+  ]
 }
 """.trimIndent()
