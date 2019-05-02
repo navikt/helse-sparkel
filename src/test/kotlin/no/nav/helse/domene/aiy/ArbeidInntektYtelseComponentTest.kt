@@ -280,7 +280,7 @@ class ArbeidInntektYtelseComponentTest {
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                assertJsonEquals(JSONObject(expectedJson_arbeidsforholdMedInntekter), JSONObject(response.content))
+                assertJsonEquals(JSONObject(expectedJson_inntekterMedArbeidsforhold), JSONObject(response.content))
             }
         }
     }
@@ -396,76 +396,252 @@ class ArbeidInntektYtelseComponentTest {
     }
 }
 
-private val expectedJson_arbeidsforholdMedInntekter = """
+private val expectedJson_inntekterMedArbeidsforhold = """
 {
-  "arbeidsforhold": [
+  "inntekter": [
     {
-      "arbeidsforhold": {
-        "type": "Arbeidstaker",
-        "arbeidsgiver": {
+      "muligeArbeidsforhold": [
+        {
+          "permisjon": [
+            {
+              "arsak": "velferdspermisjon",
+              "tom": "2019-02-28",
+              "fom": "2019-02-01",
+              "permisjonsprosent": 100
+            }
+          ],
+          "arbeidsgiver": {
+            "identifikator": "889640782",
+            "type": "Organisasjon"
+          },
+          "startdato": "2019-01-01",
+          "arbeidsavtaler": [
+            {
+              "fom": "2019-02-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 100
+            },
+            {
+              "tom": "2019-01-31",
+              "fom": "2019-01-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 50
+            }
+          ],
+          "yrke": "Butikkmedarbeider",
+          "type": "Arbeidstaker"
+        }
+      ],
+      "inntekt": {
+        "beløp": 2500,
+        "virksomhet": {
           "identifikator": "889640782",
           "type": "Organisasjon"
         },
-        "startdato": "2019-01-01",
-        "yrke": "Butikkmedarbeider",
-        "permisjon": [
+        "utbetalingsperiode": "2019-01"
+      }
+    },
+    {
+      "muligeArbeidsforhold": [
+        {
+          "permisjon": [
             {
-                "fom":"2019-02-01",
-                "tom":"2019-02-28",
-                "permisjonsprosent":100,
-                "arsak": "velferdspermisjon"
+              "arsak": "velferdspermisjon",
+              "tom": "2019-02-28",
+              "fom": "2019-02-01",
+              "permisjonsprosent": 100
             }
-        ],
-        "arbeidsavtaler": [
+          ],
+          "arbeidsgiver": {
+            "identifikator": "889640782",
+            "type": "Organisasjon"
+          },
+          "startdato": "2019-01-01",
+          "arbeidsavtaler": [
             {
-                "fom":"2019-02-01",
-                "yrke":"Butikkmedarbeider",
-                "stillingsprosent":100
+              "fom": "2019-02-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 100
             },
             {
-                "fom":"2019-01-01",
-                "tom":"2019-01-31",
-                "yrke":"Butikkmedarbeider",
-                "stillingsprosent":50
+              "tom": "2019-01-31",
+              "fom": "2019-01-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 50
             }
-        ]
-      },
-      "perioder": {
-        "2019-01": {
-            "sum": 2500,
-            "inntekter": [
-                {
-                  "beløp": 2500
-                }
-            ]
-        },
-        "2019-02": {
-            "sum": 6000,
-            "inntekter": [
-                {
-                  "beløp": 3500
-                },
-                {
-                  "beløp": 2500
-                }
-            ]
-        },
-        "2019-03": {
-            "sum": 2000,
-            "inntekter": [
-                {
-                  "beløp": 2500
-                },
-                {
-                  "beløp": -500
-                }
-            ]
+          ],
+          "yrke": "Butikkmedarbeider",
+          "type": "Arbeidstaker"
         }
+      ],
+      "inntekt": {
+        "beløp": 3500,
+        "virksomhet": {
+          "identifikator": "889640782",
+          "type": "Organisasjon"
+        },
+        "utbetalingsperiode": "2019-02"
+      }
+    },
+    {
+      "muligeArbeidsforhold": [
+        {
+          "permisjon": [
+            {
+              "arsak": "velferdspermisjon",
+              "tom": "2019-02-28",
+              "fom": "2019-02-01",
+              "permisjonsprosent": 100
+            }
+          ],
+          "arbeidsgiver": {
+            "identifikator": "889640782",
+            "type": "Organisasjon"
+          },
+          "startdato": "2019-01-01",
+          "arbeidsavtaler": [
+            {
+              "fom": "2019-02-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 100
+            },
+            {
+              "tom": "2019-01-31",
+              "fom": "2019-01-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 50
+            }
+          ],
+          "yrke": "Butikkmedarbeider",
+          "type": "Arbeidstaker"
+        }
+      ],
+      "inntekt": {
+        "beløp": 2500,
+        "virksomhet": {
+          "identifikator": "889640782",
+          "type": "Organisasjon"
+        },
+        "utbetalingsperiode": "2019-02"
+      }
+    },
+    {
+      "muligeArbeidsforhold": [
+        {
+          "permisjon": [
+            {
+              "arsak": "velferdspermisjon",
+              "tom": "2019-02-28",
+              "fom": "2019-02-01",
+              "permisjonsprosent": 100
+            }
+          ],
+          "arbeidsgiver": {
+            "identifikator": "889640782",
+            "type": "Organisasjon"
+          },
+          "startdato": "2019-01-01",
+          "arbeidsavtaler": [
+            {
+              "fom": "2019-02-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 100
+            },
+            {
+              "tom": "2019-01-31",
+              "fom": "2019-01-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 50
+            }
+          ],
+          "yrke": "Butikkmedarbeider",
+          "type": "Arbeidstaker"
+        }
+      ],
+      "inntekt": {
+        "beløp": 2500,
+        "virksomhet": {
+          "identifikator": "889640782",
+          "type": "Organisasjon"
+        },
+        "utbetalingsperiode": "2019-03"
+      }
+    },
+    {
+      "muligeArbeidsforhold": [
+        {
+          "permisjon": [
+            {
+              "arsak": "velferdspermisjon",
+              "tom": "2019-02-28",
+              "fom": "2019-02-01",
+              "permisjonsprosent": 100
+            }
+          ],
+          "arbeidsgiver": {
+            "identifikator": "889640782",
+            "type": "Organisasjon"
+          },
+          "startdato": "2019-01-01",
+          "arbeidsavtaler": [
+            {
+              "fom": "2019-02-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 100
+            },
+            {
+              "tom": "2019-01-31",
+              "fom": "2019-01-01",
+              "yrke": "Butikkmedarbeider",
+              "stillingsprosent": 50
+            }
+          ],
+          "yrke": "Butikkmedarbeider",
+          "type": "Arbeidstaker"
+        }
+      ],
+      "inntekt": {
+        "beløp": -500,
+        "virksomhet": {
+          "identifikator": "889640782",
+          "type": "Organisasjon"
+        },
+        "utbetalingsperiode": "2019-03"
       }
     }
   ],
-  "arbeidsforholdUtenInntekter": [],
-  "inntekterUtenArbeidsforhold": [],
+  "arbeidsforhold": [
+    {
+      "permisjon": [
+        {
+          "arsak": "velferdspermisjon",
+          "tom": "2019-02-28",
+          "fom": "2019-02-01",
+          "permisjonsprosent": 100
+        }
+      ],
+      "arbeidsgiver": {
+        "identifikator": "889640782",
+        "type": "Organisasjon"
+      },
+      "startdato": "2019-01-01",
+      "arbeidsavtaler": [
+        {
+          "fom": "2019-02-01",
+          "yrke": "Butikkmedarbeider",
+          "stillingsprosent": 100
+        },
+        {
+          "tom": "2019-01-31",
+          "fom": "2019-01-01",
+          "yrke": "Butikkmedarbeider",
+          "stillingsprosent": 50
+        }
+      ],
+      "yrke": "Butikkmedarbeider",
+      "type": "Arbeidstaker"
+    }
+  ],
   "ytelser": [],
   "pensjonEllerTrygd": [],
   "næring": []

@@ -30,26 +30,4 @@ class OrganisasjonService(private val organisasjonsClient: OrganisasjonClient) {
                     Either.Right(it)
                 } ?: Either.Left(Feilårsak.UkjentFeil)
             }
-
-    fun hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr: Organisasjonsnummer, dato: LocalDate = LocalDate.now()) =
-            organisasjonsClient.hentVirksomhetForJuridiskOrganisasjonsnummer(orgnr, dato).toEither { err ->
-                log.error("Error during organisasjon lookup", err)
-                Feilårsak.UkjentFeil
-            }.flatMap {
-                it.unntakForOrgnrListe.firstOrNull()?.let {
-                    // example unntaksmeldinger:
-                    // - <orgnr> er opphørt eller eksisterer ikke på dato <dato>
-                    // - <orgnr> er et ugyldig organisasjonsnummer
-                    // - <orgnr> har flere enn en aktiv virksomhet på dato <dato>
-                    log.warn("Unntaksmelding for organisasjonsnummer ${orgnr.value}: ${it.unntaksmelding}")
-                    Either.Left(Feilårsak.IkkeFunnet)
-                } ?: it.orgnrForOrganisasjonListe.firstOrNull {
-                    it.juridiskOrganisasjonsnummer == orgnr.value
-                }?.let { organisasjon ->
-                    Either.Right(Organisasjonsnummer(organisasjon.organisasjonsnummer))
-                } ?: Feilårsak.IkkeFunnet.let {
-                    log.error("did not find virksomhet for juridisk orgnr ${orgnr.value}")
-                    Either.Left(it)
-                }
-            }
 }

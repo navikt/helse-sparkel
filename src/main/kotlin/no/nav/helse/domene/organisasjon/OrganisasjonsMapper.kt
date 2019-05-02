@@ -1,6 +1,7 @@
 package no.nav.helse.domene.organisasjon
 
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.domene.organisasjon.domain.DriverVirksomhet
 import no.nav.helse.domene.organisasjon.domain.InngårIJuridiskEnhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
@@ -14,11 +15,9 @@ object OrganisasjonsMapper {
         return Organisasjonsnummer(organisasjon.orgnummer).let { orgnr ->
             name(organisasjon.navn).let { navn ->
                 when (organisasjon) {
-                    is Orgledd -> Organisasjon.Organisasjonsledd(orgnr, navn)
-                    is JuridiskEnhet -> Organisasjon.JuridiskEnhet(orgnr, navn)
-                    is Virksomhet -> Organisasjon.Virksomhet(orgnr, navn, organisasjon.inngaarIJuridiskEnhet.map { entry ->
-                        InngårIJuridiskEnhet(Organisasjonsnummer(entry.juridiskEnhet.orgnummer), entry.fomGyldighetsperiode.toLocalDate(), entry.tomGyldighetsperiode?.toLocalDate())
-                    })
+                    is Orgledd -> Organisasjon.Organisasjonsledd(orgnr, navn, organisasjon.driverVirksomhet.map(::tilDriverVirksomhet), organisasjon.inngaarIJuridiskEnhet.map(::tilInngårIJuridiskEnhet))
+                    is JuridiskEnhet -> Organisasjon.JuridiskEnhet(orgnr, navn, organisasjon.driverVirksomhet.map(::tilDriverVirksomhet))
+                    is Virksomhet -> Organisasjon.Virksomhet(orgnr, navn, organisasjon.inngaarIJuridiskEnhet.map(::tilInngårIJuridiskEnhet))
                     else -> {
                         log.error("unknown organisasjonstype: ${organisasjon.javaClass.name}")
                         null
@@ -27,6 +26,19 @@ object OrganisasjonsMapper {
             }
         }
     }
+
+    fun tilDriverVirksomhet(driverVirksomhet: no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.DriverVirksomhet) =
+            DriverVirksomhet(tilVirksomhet(driverVirksomhet.virksomhet),
+                    driverVirksomhet.fomGyldighetsperiode.toLocalDate(),
+                    driverVirksomhet.tomGyldighetsperiode.toLocalDate())
+
+    fun tilVirksomhet(virksomhet: Virksomhet) =
+            Organisasjon.Virksomhet(Organisasjonsnummer(virksomhet.orgnummer), name(virksomhet.navn))
+
+    fun tilInngårIJuridiskEnhet(inngårIJuridiskEnhet: InngaarIJuridiskEnhet) =
+            InngårIJuridiskEnhet(Organisasjonsnummer(inngårIJuridiskEnhet.juridiskEnhet.orgnummer),
+                    inngårIJuridiskEnhet.fomGyldighetsperiode.toLocalDate(),
+                    inngårIJuridiskEnhet.tomGyldighetsperiode.toLocalDate())
 
     private fun name(sammensattNavn: SammensattNavn): String? {
         val medNavn=  (sammensattNavn as UstrukturertNavn).navnelinje.filterNot {  it.isNullOrBlank() }
