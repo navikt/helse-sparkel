@@ -38,7 +38,7 @@ object OrganisasjonsMapper {
     fun tilInngårIJuridiskEnhet(inngårIJuridiskEnhet: InngaarIJuridiskEnhet) =
             InngårIJuridiskEnhet(Organisasjonsnummer(inngårIJuridiskEnhet.juridiskEnhet.orgnummer),
                     inngårIJuridiskEnhet.fomGyldighetsperiode.toLocalDate(),
-                    inngårIJuridiskEnhet.tomGyldighetsperiode.toLocalDate())
+                    inngårIJuridiskEnhet.tomGyldighetsperiode?.toLocalDate())
 
     private fun name(sammensattNavn: SammensattNavn): String? {
         val medNavn=  (sammensattNavn as UstrukturertNavn).navnelinje.filterNot {  it.isNullOrBlank() }
