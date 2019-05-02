@@ -30,7 +30,7 @@ object OrganisasjonsMapper {
     fun tilDriverVirksomhet(driverVirksomhet: no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.DriverVirksomhet) =
             DriverVirksomhet(tilVirksomhet(driverVirksomhet.virksomhet),
                     driverVirksomhet.fomGyldighetsperiode.toLocalDate(),
-                    driverVirksomhet.tomGyldighetsperiode.toLocalDate())
+                    driverVirksomhet.tomGyldighetsperiode?.toLocalDate())
 
     fun tilVirksomhet(virksomhet: Virksomhet) =
             Organisasjon.Virksomhet(Organisasjonsnummer(virksomhet.orgnummer), name(virksomhet.navn))
