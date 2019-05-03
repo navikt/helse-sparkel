@@ -1,10 +1,11 @@
 package no.nav.helse.domene.infotrygd
 
 import arrow.core.flatMap
+import arrow.core.leftIfNull
 import no.nav.helse.Feilårsak
-import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
+import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
@@ -29,6 +30,9 @@ class InfotrygdBeregningsgrunnlagService(private val infotrygdClient : Infotrygd
                         is FinnGrunnlagListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
                         else -> Feilårsak.UkjentFeil
                     }
+                }.leftIfNull {
+                    log.info("FinnGrunnlagListeResponse er null")
+                    Feilårsak.FeilFraTjeneste
                 }
             }
 }
