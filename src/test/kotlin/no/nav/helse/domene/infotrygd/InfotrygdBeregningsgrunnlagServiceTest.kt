@@ -4,25 +4,25 @@ import arrow.core.Either
 import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.fail
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 class InfotrygdBeregningsgrunnlagServiceTest {
 
+    @Test
     fun `finnGrunnlagListeResponse kan være null`() {
-        val infotrygdClient = mockk< InfotrygdBeregningsgrunnlagListeClient>()
+        val infotrygdBeregningsgrunnlagListeClient = mockk<InfotrygdBeregningsgrunnlagListeClient>()
         val aktørregisterService = mockk< AktørregisterService>()
 
-        val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(infotrygdClient, aktørregisterService)
+        val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(infotrygdBeregningsgrunnlagListeClient, aktørregisterService)
 
         val aktørId = AktørId("123456789")
-        val fødselsnummer = "987654321"
+        val fødselsnummer = "11111111111"
         val fom = LocalDate.now().minusMonths(1)
         val tom = LocalDate.now()
 
@@ -31,12 +31,9 @@ class InfotrygdBeregningsgrunnlagServiceTest {
         } returns Either.Right(fødselsnummer)
 
         every {
-            infotrygdClient.finnGrunnlagListe(Fødselsnummer(fødselsnummer), tom, fom)
+            infotrygdBeregningsgrunnlagListeClient.finnGrunnlagListe(Fødselsnummer(fødselsnummer), fom, tom)
         } returns Try.Success(null)
 
-        when (val actual = infotrygdBeregningsgrunnlagService.finnGrunnlagListe(aktørId, fom, tom)) {
-            is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
-            is Either.Right -> fail { "Expected Either.Left to be returned" }
-        }
+        assertTrue(infotrygdBeregningsgrunnlagService.finnGrunnlagListe(aktørId, fom, tom) is Either.Right)
     }
 }

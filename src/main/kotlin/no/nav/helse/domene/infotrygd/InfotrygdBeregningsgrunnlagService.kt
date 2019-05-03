@@ -1,7 +1,6 @@
 package no.nav.helse.domene.infotrygd
 
 import arrow.core.flatMap
-import arrow.core.leftIfNull
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
@@ -10,6 +9,7 @@ import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunn
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeUgyldigInput
+import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -30,9 +30,13 @@ class InfotrygdBeregningsgrunnlagService(private val infotrygdClient : Infotrygd
                         is FinnGrunnlagListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
                         else -> Feilårsak.UkjentFeil
                     }
-                }.leftIfNull {
-                    log.info("FinnGrunnlagListeResponse er null")
-                    Feilårsak.FeilFraTjeneste
+                }.map { response ->
+                    if (response == null) {
+                        log.info("FinnGrunnlagListeResponse er null")
+                        FinnGrunnlagListeResponse()
+                    } else {
+                        response
+                    }
                 }
             }
 }
