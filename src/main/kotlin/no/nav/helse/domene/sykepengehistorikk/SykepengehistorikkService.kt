@@ -26,10 +26,12 @@ class SykepengehistorikkService(val infotrygdService : InfotrygdBeregningsgrunnl
                     }.map { vedtak ->
                         Tidsperiode(vedtak.anvistPeriode.fom.toLocalDate(), vedtak.anvistPeriode.tom.toLocalDate())
                     }
-                }.map { tidsperiode ->
-                    tidsperiode.nrOfDays()
-                }.fold(0L, Long::plus).also { antallSykepengedager ->
-                    tidligereSykepengedagerHistogram.observe(antallSykepengedager.toDouble())
+                }.also {
+                    it.map { tidsperiode ->
+                        tidsperiode.nrOfDays()
+                    }.fold(0L, Long::plus).also { antallSykepengedager ->
+                        tidligereSykepengedagerHistogram.observe(antallSykepengedager.toDouble())
+                    }
                 }
             }
 }
