@@ -54,7 +54,7 @@ object ArbeidDomainMapper {
                         arbeidsgiver = virksomhet,
                         startdato = arbeidsforhold.frilansPeriode.fom.toLocalDate(),
                         sluttdato = arbeidsforhold.frilansPeriode?.tom?.toLocalDate(),
-                        yrke = arbeidsforhold.yrke?.value ?: "UKJENT"
+                        yrke = if (arbeidsforhold.yrke?.value.isNullOrBlank()) "UKJENT" else arbeidsforhold.yrke.value
                 )
             }
 
