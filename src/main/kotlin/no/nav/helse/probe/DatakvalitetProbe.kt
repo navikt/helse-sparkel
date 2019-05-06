@@ -217,30 +217,6 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         sendDatakvalitetEvent(objekt, felt, Observasjonstype.FlereGjeldendeArbeidsavtaler, "det er $verdi gjeldende arbeidsavtaler")
     }
 
-    private fun nullVerdi(objekt: Any, felt: String) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.NullVerdi, "felt manger: $felt er null")
-    }
-
-    private fun tomListe(objekt: Any, felt: String) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomListe, "tom liste: $felt er tom")
-    }
-
-    private fun tomVerdi(objekt: Any, felt: String) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomVerdi, "tomt felt: $felt er tom, eller består bare av whitespace")
-    }
-
-    private fun prosentMindreEnnNull(objekt: Any, felt: String, prosent: BigDecimal) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentMindreEnnNull, "ugyldig prosent: $prosent % er mindre enn 0 %")
-    }
-
-    private fun prosentStørreEnnHundre(objekt: Any, felt: String, prosent: BigDecimal) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentStørreEnnHundre, "ugyldig prosent: $prosent % er større enn 100 %")
-    }
-
-    private fun datoErStørreEnn(objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.DatoStørreEnn, "ugyldig dato: $dato1 er større enn $dato2")
-    }
-
     private fun sendDatakvalitetEvent(objekt: Any, felt: String?, observasjonstype: Observasjonstype, beskrivelse: String) {
         log.info("objekt=${objekt.javaClass.name} ${if (felt != null) "felt=$felt " else "" }feil=$observasjonstype: $beskrivelse")
         influxMetricReporter.sendDataPoint("datakvalitet.event",
@@ -256,35 +232,35 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     private fun sjekkOmListeErTom(objekt: Any, felt: String, value: List<Any>) {
         if (value.isEmpty()) {
-            tomListe(objekt, felt)
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomListe, "tom liste: $felt er tom")
         }
     }
 
     private fun sjekkOmFeltErNull(objekt: Any, felt: String, value: Any?) {
         if (value == null) {
-            nullVerdi(objekt, felt)
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.NullVerdi, "felt manger: $felt er null")
         }
     }
 
     private fun sjekkOmFeltErBlank(objekt: Any, felt: String, value: String) {
         if (value.isBlank()) {
-            tomVerdi(objekt, felt)
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomVerdi, "tomt felt: $felt er tom, eller består bare av whitespace")
         }
     }
 
     private fun sjekkProsent(objekt: Any, felt: String, percent: BigDecimal) {
         if (percent < BigDecimal.ZERO) {
-            prosentMindreEnnNull(objekt, felt, percent)
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentMindreEnnNull, "ugyldig prosent: $percent % er mindre enn 0 %")
         }
 
         if (percent > BigDecimal(100)) {
-            prosentStørreEnnHundre(objekt, felt, percent)
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentStørreEnnHundre, "ugyldig prosent: $percent % er større enn 100 %")
         }
     }
 
     private fun sjekkOmDatoErStørreEnn(objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate?) {
         if (dato2 != null && dato1 > dato2) {
-            datoErStørreEnn(objekt, felt, dato1, dato2)
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.DatoStørreEnn, "ugyldig dato: $dato1 er større enn $dato2")
         }
     }
 }
