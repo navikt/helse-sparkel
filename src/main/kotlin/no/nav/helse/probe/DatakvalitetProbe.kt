@@ -127,7 +127,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         val arbeidsforholdISammeVirksomhet = arbeidInntektYtelse.arbeidsforhold.size - unikeArbeidsgivere.size
 
         if (arbeidsforholdISammeVirksomhet > 0) {
-            arbeidsforholdISammeVirksomhet(arbeidInntektYtelse, "arbeidsforhold", arbeidsforholdISammeVirksomhet)
+            arbeidsforholdISammeVirksomhetCounter.inc(arbeidsforholdISammeVirksomhet.toDouble())
         }
 
         arbeidInntektYtelse.lønnsinntekter.forEach { inntekt ->
@@ -216,11 +216,6 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     fun frilansArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold.Frilans>) {
         frilansCounter.inc(arbeidsforholdliste.size.toDouble())
-    }
-
-    private fun arbeidsforholdISammeVirksomhet(objekt: Any, felt: String, antall: Int) {
-        arbeidsforholdISammeVirksomhetCounter.inc(antall.toDouble())
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ArbeidsforholdISammeVirksomhet, "fant $antall arbeidsforhold i samme virksomhet")
     }
 
     private fun flereGjeldendeArbeidsavtaler(objekt: Any, felt: String, verdi: Int) {
