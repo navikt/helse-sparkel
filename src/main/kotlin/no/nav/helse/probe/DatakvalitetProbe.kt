@@ -90,17 +90,17 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
-        sjekkOmDatoErStørreEnn("Arbeid", arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
+        sjekkOmDatoErStørreEnn(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
 
         arbeidsforhold.permisjon.forEach { permisjon ->
             inspiserPermisjon(permisjon)
         }
 
-        sjekkOmListeErTom("Arbeid", arbeidsforhold, "arbeidsavtaler", arbeidsforhold.arbeidsavtaler)
+        sjekkOmListeErTom(arbeidsforhold, "arbeidsavtaler", arbeidsforhold.arbeidsavtaler)
 
         val gjeldendeArbeidsavtaler = arbeidsforhold.arbeidsavtaler.filter { it.tom == null }.size
         if (gjeldendeArbeidsavtaler > 1) {
-            flereGjeldendeArbeidsavtaler("Arbeid", arbeidsforhold, "arbeidsavtaler", gjeldendeArbeidsavtaler)
+            flereGjeldendeArbeidsavtaler(arbeidsforhold, "arbeidsavtaler", gjeldendeArbeidsavtaler)
         }
 
         arbeidsforhold.arbeidsavtaler.forEach { arbeidsavtale ->
@@ -110,7 +110,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     fun inspiserInntekt(inntekt: Inntekt) {
         if (inntekt.beløp < BigDecimal.ZERO) {
-            beløpErMindreEnnNull("Inntekt", inntekt, "beløp", inntekt.beløp)
+            beløpErMindreEnnNull(inntekt, "beløp", inntekt.beløp)
         }
     }
 
@@ -123,41 +123,41 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         val arbeidsforholdISammeVirksomhet = arbeidsforholdliste.size - unikeArbeidsgivere.size
 
         if (arbeidsforholdISammeVirksomhet > 0) {
-            arbeidsforholdISammeVirksomhet("Arbeid", arbeidsforholdliste, arbeidsforholdISammeVirksomhet)
+            arbeidsforholdISammeVirksomhet(arbeidsforholdliste, arbeidsforholdISammeVirksomhet)
         }
     }
 
     fun inspiserFrilans(arbeidsforhold: Arbeidsforhold.Frilans) {
-        sjekkOmDatoErStørreEnn("Arbeid", arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
-        sjekkOmFeltErBlank("Arbeid", arbeidsforhold, "yrke", arbeidsforhold.yrke)
+        sjekkOmDatoErStørreEnn(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
+        sjekkOmFeltErBlank(arbeidsforhold, "yrke", arbeidsforhold.yrke)
     }
 
     private fun inspiserArbeidsavtale(arbeidsavtale: Arbeidsavtale) {
         with (arbeidsavtale) {
-            sjekkOmFeltErBlank("Arbeid", this, "yrke", yrke)
-            sjekkOmFeltErNull("Arbeid", this, "stillingsprosent", stillingsprosent)
+            sjekkOmFeltErBlank(this, "yrke", yrke)
+            sjekkOmFeltErNull(this, "stillingsprosent", stillingsprosent)
             if (stillingsprosent != null) {
-                sjekkProsent("Arbeid", this, "stillingsprosent", stillingsprosent)
+                sjekkProsent(this, "stillingsprosent", stillingsprosent)
             }
-            sjekkOmDatoErStørreEnn("Arbeid", this, "fom,tom", fom, tom)
+            sjekkOmDatoErStørreEnn(this, "fom,tom", fom, tom)
         }
     }
 
     private fun inspiserPermisjon(permisjon: Permisjon) {
         with (permisjon) {
-            sjekkProsent("Arbeid", this, "permisjonsprosent", permisjonsprosent)
-            sjekkOmDatoErStørreEnn("Arbeid", this, "fom,tom", fom, tom)
+            sjekkProsent(this, "permisjonsprosent", permisjonsprosent)
+            sjekkOmDatoErStørreEnn(this, "fom,tom", fom, tom)
         }
     }
 
     fun inntektGjelderEnAnnenAktør(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) {
         andreAktørerCounter.inc()
         log.warn("Inntekt gjelder for annen aktør (${(inntekt.inntektsmottaker as AktoerId).aktoerId}) enn det vi forventet")
-        sendDatakvalitetEvent("Inntekt", inntekt, "inntektsmottaker", Observasjonstype.InntektGjelderEnAnnenAktør, "Inntekt gjelder for annen aktør")
+        sendDatakvalitetEvent(inntekt, "inntektsmottaker", Observasjonstype.InntektGjelderEnAnnenAktør, "Inntekt gjelder for annen aktør")
     }
 
-    fun beløpErMindreEnnNull(domain: String, objekt: Any, felt: String, verdi: BigDecimal) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.BeløpErMindreEnnNull, "$verdi er mindre enn 0")
+    fun beløpErMindreEnnNull(objekt: Any, felt: String, verdi: BigDecimal) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.BeløpErMindreEnnNull, "$verdi er mindre enn 0")
     }
 
     fun inntektErUtenforSøkeperiode(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) {
@@ -208,83 +208,82 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         frilansCounter.inc(arbeidsforholdliste.size.toDouble())
     }
 
-    private fun arbeidsforholdISammeVirksomhet(domain: String, objekt: Any, antall: Int) {
+    private fun arbeidsforholdISammeVirksomhet(objekt: Any, antall: Int) {
         arbeidsforholdISammeVirksomhetCounter.inc(antall.toDouble())
-        sendDatakvalitetEvent(domain, objekt, null, Observasjonstype.ArbeidsforholdISammeVirksomhet, "fant $antall arbeidsforhold i samme virksomhet")
+        sendDatakvalitetEvent(objekt, null, Observasjonstype.ArbeidsforholdISammeVirksomhet, "fant $antall arbeidsforhold i samme virksomhet")
     }
 
-    private fun flereGjeldendeArbeidsavtaler(domain: String, objekt: Any, felt: String, verdi: Int) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.FlereGjeldendeArbeidsavtaler, "det er $verdi gjeldende arbeidsavtaler")
+    private fun flereGjeldendeArbeidsavtaler(objekt: Any, felt: String, verdi: Int) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.FlereGjeldendeArbeidsavtaler, "det er $verdi gjeldende arbeidsavtaler")
     }
 
-    private fun nullVerdi(domain: String, objekt: Any, felt: String) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.NullVerdi, "felt manger: $felt er null")
+    private fun nullVerdi(objekt: Any, felt: String) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.NullVerdi, "felt manger: $felt er null")
     }
 
-    private fun tomListe(domain: String, objekt: Any, felt: String) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.TomListe, "tom liste: $felt er tom")
+    private fun tomListe(objekt: Any, felt: String) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomListe, "tom liste: $felt er tom")
     }
 
-    private fun tomVerdi(domain: String, objekt: Any, felt: String) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.TomVerdi, "tomt felt: $felt er tom, eller består bare av whitespace")
+    private fun tomVerdi(objekt: Any, felt: String) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomVerdi, "tomt felt: $felt er tom, eller består bare av whitespace")
     }
 
-    private fun prosentMindreEnnNull(domain: String, objekt: Any, felt: String, prosent: BigDecimal) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.ProsentMindreEnnNull, "ugyldig prosent: $prosent % er mindre enn 0 %")
+    private fun prosentMindreEnnNull(objekt: Any, felt: String, prosent: BigDecimal) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentMindreEnnNull, "ugyldig prosent: $prosent % er mindre enn 0 %")
     }
 
-    private fun prosentStørreEnnHundre(domain: String, objekt: Any, felt: String, prosent: BigDecimal) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.ProsentStørreEnnHundre, "ugyldig prosent: $prosent % er større enn 100 %")
+    private fun prosentStørreEnnHundre(objekt: Any, felt: String, prosent: BigDecimal) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentStørreEnnHundre, "ugyldig prosent: $prosent % er større enn 100 %")
     }
 
-    private fun datoErStørreEnn(domain: String, objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate) {
-        sendDatakvalitetEvent(domain, objekt, felt, Observasjonstype.DatoStørreEnn, "ugyldig dato: $dato1 er større enn $dato2")
+    private fun datoErStørreEnn(objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate) {
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.DatoStørreEnn, "ugyldig dato: $dato1 er større enn $dato2")
     }
 
-    private fun sendDatakvalitetEvent(domain: String, objekt: Any, felt: String?, observasjonstype: Observasjonstype, beskrivelse: String) {
-        log.info("domain=$domain objekt=${objekt.javaClass.name} ${if (felt != null) "felt=$felt " else "" }feil=$observasjonstype: $beskrivelse")
+    private fun sendDatakvalitetEvent(objekt: Any, felt: String?, observasjonstype: Observasjonstype, beskrivelse: String) {
+        log.info("objekt=${objekt.javaClass.name} ${if (felt != null) "felt=$felt " else "" }feil=$observasjonstype: $beskrivelse")
         influxMetricReporter.sendDataPoint("datakvalitet.event",
                 mapOf(
                         "beskrivelse" to beskrivelse
                 ),
                 mapOf(
-                        "domain" to domain,
                         "objekt" to objekt.javaClass.name,
                         "type" to observasjonstype.name
                 ))
     }
 
-    private fun sjekkOmListeErTom(domain: String, objekt: Any, felt: String, value: List<Any>) {
+    private fun sjekkOmListeErTom(objekt: Any, felt: String, value: List<Any>) {
         if (value.isEmpty()) {
-            tomListe(domain, objekt, felt)
+            tomListe(objekt, felt)
         }
     }
 
-    private fun sjekkOmFeltErNull(domain: String, objekt: Any, felt: String, value: Any?) {
+    private fun sjekkOmFeltErNull(objekt: Any, felt: String, value: Any?) {
         if (value == null) {
-            nullVerdi(domain, objekt, felt)
+            nullVerdi(objekt, felt)
         }
     }
 
-    private fun sjekkOmFeltErBlank(domain: String, objekt: Any, felt: String, value: String) {
+    private fun sjekkOmFeltErBlank(objekt: Any, felt: String, value: String) {
         if (value.isBlank()) {
-            tomVerdi(domain, objekt, felt)
+            tomVerdi(objekt, felt)
         }
     }
 
-    private fun sjekkProsent(domain: String, objekt: Any, felt: String, percent: BigDecimal) {
+    private fun sjekkProsent(objekt: Any, felt: String, percent: BigDecimal) {
         if (percent < BigDecimal.ZERO) {
-            prosentMindreEnnNull(domain, objekt, felt, percent)
+            prosentMindreEnnNull(objekt, felt, percent)
         }
 
         if (percent > BigDecimal(100)) {
-            prosentStørreEnnHundre(domain, objekt, felt, percent)
+            prosentStørreEnnHundre(objekt, felt, percent)
         }
     }
 
-    private fun sjekkOmDatoErStørreEnn(domain: String, objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate?) {
+    private fun sjekkOmDatoErStørreEnn(objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate?) {
         if (dato2 != null && dato1 > dato2) {
-            datoErStørreEnn(domain, objekt, felt, dato1, dato2)
+            datoErStørreEnn(objekt, felt, dato1, dato2)
         }
     }
 }
