@@ -79,6 +79,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
     enum class Observasjonstype {
         ErStørreEnnHundre,
         DatoStørreEnn,
+        DatoErIFremtiden,
         VerdiMangler,
         TomVerdi,
         TomListe,
@@ -90,6 +91,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
         sjekkOmDatoErStørreEnn(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
+        sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
 
         arbeidsforhold.permisjon.forEach { permisjon ->
             inspiserPermisjon(permisjon)
@@ -254,6 +256,12 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
         if (percent > BigDecimal(100)) {
             sendDatakvalitetEvent(objekt, felt, Observasjonstype.ErStørreEnnHundre, "ugyldig prosent: $percent % er større enn 100 %")
+        }
+    }
+
+    private fun sjekkOmDatoErIFremtiden(objekt: Any, felt: String, dato: LocalDate?) {
+        if (dato != null && dato > LocalDate.now()) {
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.DatoErIFremtiden, "ugyldig dato: $dato er i fremtiden")
         }
     }
 
