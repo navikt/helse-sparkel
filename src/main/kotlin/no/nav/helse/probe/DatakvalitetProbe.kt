@@ -85,7 +85,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         TomListe,
         FlereGjeldendeArbeidsavtaler,
         ArbeidsforholdISammeVirksomhet,
-        BeløpErMindreEnnNull,
+        ErMindreEnnNull,
         InntektGjelderEnAnnenAktør
     }
 
@@ -157,7 +157,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
     }
 
     fun beløpErMindreEnnNull(objekt: Any, felt: String, verdi: BigDecimal) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.BeløpErMindreEnnNull, "$verdi er mindre enn 0")
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ErMindreEnnNull, "$verdi er mindre enn 0")
     }
 
     fun inntektErUtenforSøkeperiode(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) {
