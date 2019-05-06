@@ -3,6 +3,7 @@ package no.nav.helse.probe
 import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
 import no.nav.helse.domene.arbeid.domain.Permisjon
@@ -85,6 +86,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         TomVerdi,
         TomListe,
         FlereGjeldendeArbeidsavtaler,
+        FlereArbeidsforholdPerInntekt,
         ArbeidsforholdISammeVirksomhet,
         ErMindreEnnNull,
         InntektGjelderEnAnnenAktør
@@ -116,16 +118,22 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         }
     }
 
-    fun inspiserArbeidsforholdISammeVirksomhet(arbeidsforholdliste: List<Arbeidsforhold>) {
-        arbeidsforholdHistogram.observe(arbeidsforholdliste.size.toDouble())
+    fun inspiserArbeidInntektYtelse(arbeidInntektYtelse: ArbeidInntektYtelse) {
+        arbeidsforholdHistogram.observe(arbeidInntektYtelse.arbeidsforhold.size.toDouble())
 
-        val unikeArbeidsgivere = arbeidsforholdliste.distinctBy {
+        val unikeArbeidsgivere = arbeidInntektYtelse.arbeidsforhold.distinctBy {
             it.arbeidsgiver
         }
-        val arbeidsforholdISammeVirksomhet = arbeidsforholdliste.size - unikeArbeidsgivere.size
+        val arbeidsforholdISammeVirksomhet = arbeidInntektYtelse.arbeidsforhold.size - unikeArbeidsgivere.size
 
         if (arbeidsforholdISammeVirksomhet > 0) {
-            arbeidsforholdISammeVirksomhet(arbeidsforholdliste, arbeidsforholdISammeVirksomhet)
+            arbeidsforholdISammeVirksomhet(arbeidInntektYtelse, "arbeidsforhold", arbeidsforholdISammeVirksomhet)
+        }
+
+        arbeidInntektYtelse.lønnsinntekter.forEach { inntekt ->
+            if (inntekt.second.size > 1) {
+                sendDatakvalitetEvent(arbeidInntektYtelse, "lønnsinntekter", Observasjonstype.FlereArbeidsforholdPerInntekt, "det er ${inntekt.second.size} potensielle arbeidsforhold for inntekt")
+            }
         }
     }
 
@@ -210,9 +218,9 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         frilansCounter.inc(arbeidsforholdliste.size.toDouble())
     }
 
-    private fun arbeidsforholdISammeVirksomhet(objekt: Any, antall: Int) {
+    private fun arbeidsforholdISammeVirksomhet(objekt: Any, felt: String, antall: Int) {
         arbeidsforholdISammeVirksomhetCounter.inc(antall.toDouble())
-        sendDatakvalitetEvent(objekt, null, Observasjonstype.ArbeidsforholdISammeVirksomhet, "fant $antall arbeidsforhold i samme virksomhet")
+        sendDatakvalitetEvent(objekt, felt, Observasjonstype.ArbeidsforholdISammeVirksomhet, "fant $antall arbeidsforhold i samme virksomhet")
     }
 
     private fun flereGjeldendeArbeidsavtaler(objekt: Any, felt: String, verdi: Int) {

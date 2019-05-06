@@ -29,9 +29,7 @@ class ArbeidsforholdService(private val arbeidsforholdClient: ArbeidsforholdClie
     fun finnArbeidsforhold(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             hentFrilansarbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom)).flatMap { frilansArbeidsforholdliste ->
                 finnArbeidstakerarbeidsforhold(aktørId, fom, tom).map { arbeidsforholdliste ->
-                    arbeidsforholdliste.plus(frilansArbeidsforholdliste).also { kombinertListe ->
-                        datakvalitetProbe.inspiserArbeidsforholdISammeVirksomhet(kombinertListe)
-                    }
+                    arbeidsforholdliste.plus(frilansArbeidsforholdliste)
                 }
             }
 

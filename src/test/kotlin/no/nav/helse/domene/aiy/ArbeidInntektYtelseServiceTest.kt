@@ -52,7 +52,7 @@ class ArbeidInntektYtelseServiceTest {
         inntektService = mockk()
         organisasjonService = mockk()
 
-        aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService, DatakvalitetProbe(mockk()))
+        aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService, DatakvalitetProbe(mockk(relaxed = true)))
 
         arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
@@ -108,10 +108,15 @@ class ArbeidInntektYtelseServiceTest {
             organisasjonService.hentOrganisasjon(virksomhet1.organisasjonsnummer)
         } returns Either.Right(Organisasjon.Virksomhet(virksomhet1.organisasjonsnummer))
 
+        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
+
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
         assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
         assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
+
+        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
+        assertEquals(1.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_virksomhetsnummer_med_flere_arbeidsforhold_i_samme, actual.b)

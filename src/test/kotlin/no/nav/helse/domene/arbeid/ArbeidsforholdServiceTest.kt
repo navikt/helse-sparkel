@@ -66,52 +66,6 @@ class ArbeidsforholdServiceTest {
     }
 
     @Test
-    fun `skal telle arbeidsforhold i samme virksomhet`() {
-        val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
-        val inntektClient = mockk<InntektClient>()
-
-        val aktørId = AktørId("123456789")
-        val fom = LocalDate.parse("2019-01-01")
-        val tom = LocalDate.parse("2019-02-01")
-
-        val expected = listOf(
-                forventet_arbeidsforhold_uten_sluttdato,
-                forventet_avsluttet_arbeidsforhold_med_permittering,
-                forventet_frilans_arbeidsforhold
-        )
-
-        every {
-            arbeidsforholdClient.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Try.Success(listOf(arbeidsforhold_uten_sluttdato, avsluttet_arbeidsforhold_med_permittering))
-
-        every {
-            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
-        } returns Try.Success(arbeidsforhold_uten_sluttdato_avtaler)
-
-        every {
-            arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_2)
-        } returns Try.Success(avsluttet_arbeidsforhold_med_permittering_avtaler)
-
-        every {
-            inntektClient.hentFrilansArbeidsforhold(aktørId, YearMonth.from(fom), YearMonth.from(tom))
-        } returns Try.Success(frilans_arbeidsforhold)
-
-        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
-
-        val actual = ArbeidsforholdService(arbeidsforholdClient, inntektClient, DatakvalitetProbe(mockk(relaxed = true)))
-                .finnArbeidsforhold(aktørId, fom, tom)
-
-        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
-
-        assertEquals(1.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
-
-        when (actual) {
-            is Either.Right -> assertEquals(expected, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
     fun `skal ikke slå sammen to arbeidsforhold under samme virksomhet`() {
         val arbeidsforholdClient = mockk<ArbeidsforholdClient>()
 
