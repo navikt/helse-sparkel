@@ -249,6 +249,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
                 ),
                 mapOf(
                         "objekt" to objekt.javaClass.name,
+                        "felt" to (felt ?: ""),
                         "type" to observasjonstype.name
                 ))
     }
