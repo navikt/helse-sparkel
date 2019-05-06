@@ -2,6 +2,7 @@ package no.nav.helse.domene.aiy
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.right
 import no.nav.helse.Feilårsak
 import no.nav.helse.arrow.sequenceU
 import no.nav.helse.domene.AktørId
@@ -82,26 +83,36 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             }
 
     private fun finnMuligeArbeidsforholdForInntekt(inntekt: Inntekt.Lønn, arbeidsforholdliste: List<Arbeidsforhold>) =
-            organisasjonService.hentOrganisasjon((inntekt.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer).map { organisasjon ->
-                when (organisasjon) {
-                    is Organisasjon.Virksomhet -> arbeidsforholdliste.filter {
-                        it.arbeidsgiver == inntekt.virksomhet || organisasjon.inngårIJuridiskEnhet.any { inngårIJuridiskEnhet ->
-                            when (it.arbeidsgiver) {
-                                is Virksomhet.Organisasjon -> inngårIJuridiskEnhet.organisasjonsnummer == (it.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
-                                else -> false
+            when (inntekt.virksomhet) {
+                is Virksomhet.Person -> arbeidsforholdliste.filter {
+                    it.arbeidsgiver is Virksomhet.Person
+                }.filter {
+                    (it.arbeidsgiver as Virksomhet.Person).personnummer == inntekt.virksomhet.personnummer
+                }.right()
+                is Virksomhet.Organisasjon -> organisasjonService.hentOrganisasjon(inntekt.virksomhet.organisasjonsnummer).map { organisasjon ->
+                    when (organisasjon) {
+                        is Organisasjon.Virksomhet -> arbeidsforholdliste.filter {
+                            it.arbeidsgiver is Virksomhet.Organisasjon
+                        }.filter {
+                            it.arbeidsgiver == inntekt.virksomhet || organisasjon.inngårIJuridiskEnhet.any { inngårIJuridiskEnhet ->
+                                when (it.arbeidsgiver) {
+                                    is Virksomhet.Organisasjon -> inngårIJuridiskEnhet.organisasjonsnummer == (it.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
+                                    else -> false
+                                }
                             }
                         }
-                    }
-                    is Organisasjon.JuridiskEnhet -> {
-                        arbeidsforholdliste.filter { arbeidsforhold ->
-                            arbeidsforhold.arbeidsgiver == inntekt.virksomhet || organisasjon.virksomheter.any { driverVirksomhet ->
-                                driverVirksomhet.virksomhet.orgnr == (arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
+                        is Organisasjon.JuridiskEnhet -> {
+                            arbeidsforholdliste.filter { arbeidsforhold ->
+                                arbeidsforhold.arbeidsgiver == inntekt.virksomhet || organisasjon.virksomheter.any { driverVirksomhet ->
+                                    driverVirksomhet.virksomhet.orgnr == (arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
+                                }
                             }
                         }
-                    }
-                    is Organisasjon.Organisasjonsledd -> {
-                        emptyList()
+                        is Organisasjon.Organisasjonsledd -> {
+                            emptyList()
+                        }
                     }
                 }
+                else -> throw NotImplementedError("har ikke implementert støtte for virksomhetstype ${inntekt.virksomhet.type()}")
         }
 }
