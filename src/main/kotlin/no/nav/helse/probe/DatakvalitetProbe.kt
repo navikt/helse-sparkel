@@ -78,7 +78,8 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     enum class Observasjonstype {
         ErStørreEnnHundre,
-        DatoStørreEnn,
+        FraOgMedDatoErStørreEnnTilOgMedDato,
+        StartdatoStørreEnnSluttdato,
         DatoErIFremtiden,
         VerdiMangler,
         TomVerdi,
@@ -90,7 +91,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
-        sjekkOmDatoErStørreEnn(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
+        sjekkOmStartdatoErStørreEnnSluttdato(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
         sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
 
         arbeidsforhold.permisjon.forEach { permisjon ->
@@ -129,7 +130,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
     }
 
     fun inspiserFrilans(arbeidsforhold: Arbeidsforhold.Frilans) {
-        sjekkOmDatoErStørreEnn(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
+        sjekkOmStartdatoErStørreEnnSluttdato(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
         sjekkOmFeltErBlank(arbeidsforhold, "yrke", arbeidsforhold.yrke)
     }
 
@@ -140,14 +141,14 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
             if (stillingsprosent != null) {
                 sjekkProsent(this, "stillingsprosent", stillingsprosent)
             }
-            sjekkOmDatoErStørreEnn(this, "fom,tom", fom, tom)
+            sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(this, "fom,tom", fom, tom)
         }
     }
 
     private fun inspiserPermisjon(permisjon: Permisjon) {
         with (permisjon) {
             sjekkProsent(this, "permisjonsprosent", permisjonsprosent)
-            sjekkOmDatoErStørreEnn(this, "fom,tom", fom, tom)
+            sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(this, "fom,tom", fom, tom)
         }
     }
 
@@ -265,9 +266,15 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         }
     }
 
-    private fun sjekkOmDatoErStørreEnn(objekt: Any, felt: String, dato1: LocalDate, dato2: LocalDate?) {
-        if (dato2 != null && dato1 > dato2) {
-            sendDatakvalitetEvent(objekt, felt, Observasjonstype.DatoStørreEnn, "ugyldig dato: $dato1 er større enn $dato2")
+    private fun sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(objekt: Any, felt: String, fom: LocalDate, tom: LocalDate?) {
+        if (tom != null && fom > tom) {
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.FraOgMedDatoErStørreEnnTilOgMedDato, "ugyldig dato: $fom er større enn $tom")
+        }
+    }
+
+    private fun sjekkOmStartdatoErStørreEnnSluttdato(objekt: Any, felt: String, startdato: LocalDate, sluttdato: LocalDate?) {
+        if (sluttdato != null && startdato > sluttdato) {
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.StartdatoStørreEnnSluttdato, "ugyldig dato: $startdato er større enn $sluttdato")
         }
     }
 }
