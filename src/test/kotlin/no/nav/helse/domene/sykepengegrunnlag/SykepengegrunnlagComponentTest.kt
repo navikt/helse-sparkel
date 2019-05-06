@@ -185,7 +185,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3)),
+                        inntektService = InntektService(InntektClient(inntektV3), mockk(relaxed = true)),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=2019-03") {
@@ -219,7 +219,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3)),
+                        inntektService = InntektService(InntektClient(inntektV3), mockk()),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=2019-02") {
@@ -460,7 +460,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3)),
+                        inntektService = InntektService(InntektClient(inntektV3), mockk(relaxed = true)),
                         organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-03") {
@@ -492,7 +492,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3)),
+                        inntektService = InntektService(InntektClient(inntektV3), mockk()),
                         organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-02") {

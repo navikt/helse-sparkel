@@ -2,8 +2,6 @@ package no.nav.helse.domene.aiy
 
 import arrow.core.Either
 import arrow.core.flatMap
-import io.prometheus.client.Counter
-import io.prometheus.client.Histogram
 import no.nav.helse.Feilårsak
 import no.nav.helse.arrow.sequenceU
 import no.nav.helse.domene.AktørId
@@ -15,33 +13,17 @@ import no.nav.helse.domene.inntekt.domain.Inntekt
 import no.nav.helse.domene.inntekt.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
-import org.slf4j.LoggerFactory
+import no.nav.helse.probe.DatakvalitetProbe
 import java.time.LocalDate
 import java.time.YearMonth
 
-class ArbeidInntektYtelseService(private val arbeidsforholdService: ArbeidsforholdService, private val inntektService: InntektService, private val organisasjonService: OrganisasjonService) {
+class ArbeidInntektYtelseService(private val arbeidsforholdService: ArbeidsforholdService,
+                                 private val inntektService: InntektService,
+                                 private val organisasjonService: OrganisasjonService,
+                                 private val datakvalitetProbe: DatakvalitetProbe) {
 
     companion object {
-        private val log = LoggerFactory.getLogger(ArbeidInntektYtelseService::class.java)
-
         private val inntektfilter = "ForeldrepengerA-Inntekt"
-
-        private val arbeidsforholdAvviksCounter = Counter.build()
-                .name("arbeidsforhold_avvik_totals")
-                .labelNames("type")
-                .help("antall arbeidsforhold som ikke har noen tilhørende inntekter")
-                .register()
-
-        private val inntektAvviksCounter = Counter.build()
-                .name("inntekt_avvik_totals")
-                .help("antall inntekter som ikke har noen tilhørende arbeidsforhold")
-                .register()
-
-        private val arbeidsforholdPerInntektHistogram = Histogram.build()
-                .buckets(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0)
-                .name("arbeidsforhold_per_inntekt_sizes")
-                .help("fordeling over hvor mange potensielle arbeidsforhold en inntekt har")
-                .register()
     }
 
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -80,13 +62,13 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
             }.sequenceU().also { either ->
                 either.map { inntekterMedMuligeArbeidsforhold ->
                     inntekterMedMuligeArbeidsforhold.onEach { (_, arbeidsforhold) ->
-                        arbeidsforholdPerInntektHistogram.observe(arbeidsforhold.size.toDouble())
+                        datakvalitetProbe.tellArbeidsforholdPerInntekt(arbeidsforhold)
                     }.filter { (_, arbeidsforhold) ->
                         arbeidsforhold.isEmpty()
                     }.map { (inntekt, _) ->
                         inntekt
                     }.let { inntekterUtenArbeidsforhold ->
-                        tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
+                        datakvalitetProbe.tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
                     }
 
                     arbeidsforholdliste.filterNot { arbeidsforhold ->
@@ -94,26 +76,10 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                             muligeArbeidsforhold.any { it == arbeidsforhold }
                         }
                     }.let { arbeidsforholdUtenInntekter ->
-                        tellAvvikPåArbeidsforhold(arbeidsforholdUtenInntekter)
+                        datakvalitetProbe.tellAvvikPåArbeidsforhold(arbeidsforholdUtenInntekter)
                     }
                 }
             }
-
-    private fun tellAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) {
-        if (arbeidsforholdliste.isNotEmpty()) {
-            arbeidsforholdliste.forEach { arbeidsforhold ->
-                arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
-                log.info("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
-            }
-        }
-    }
-
-    private fun tellAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {
-        if (inntekter.isNotEmpty()) {
-            inntektAvviksCounter.inc(inntekter.size.toDouble())
-            log.info("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
-        }
-    }
 
     private fun finnMuligeArbeidsforholdForInntekt(inntekt: Inntekt.Lønn, arbeidsforholdliste: List<Arbeidsforhold>) =
             organisasjonService.hentOrganisasjon((inntekt.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer).map { organisasjon ->

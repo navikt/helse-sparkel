@@ -41,9 +41,11 @@ import no.nav.helse.domene.sykepengegrunnlag.sykepengegrunnlag
 import no.nav.helse.domene.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.domene.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.nais.nais
-import no.nav.helse.sts.StsRestClient
 import no.nav.helse.oppslag.WsClients
 import no.nav.helse.oppslag.sts.stsClient
+import no.nav.helse.probe.DatakvalitetProbe
+import no.nav.helse.probe.SensuClient
+import no.nav.helse.sts.StsRestClient
 import org.slf4j.event.Level
 import java.net.URL
 import java.util.*
@@ -73,8 +75,11 @@ fun main() {
 
         val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
 
+        val sensuClient = SensuClient("sensu.nais", 3030)
+        val datakvalitetProbe = DatakvalitetProbe(sensuClient)
+
         val inntektClient = wsClients.inntekt(env.inntektEndpointUrl)
-        val inntektService = InntektService(inntektClient)
+        val inntektService = InntektService(inntektClient, datakvalitetProbe)
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
@@ -86,7 +91,8 @@ fun main() {
 
         val arbeidsforholdService = ArbeidsforholdService(
                 arbeidsforholdClient = arbeidsforholdClient,
-                inntektClient = inntektClient
+                inntektClient = inntektClient,
+                datakvalitetProbe = datakvalitetProbe
         )
 
         val arbeidsgiverService = ArbeidsgiverService(
@@ -97,7 +103,8 @@ fun main() {
         val arbeidsforholdMedInntektService = ArbeidInntektYtelseService(
                 arbeidsforholdService = arbeidsforholdService,
                 inntektService = inntektService,
-                organisasjonService = organisasjonService
+                organisasjonService = organisasjonService,
+                datakvalitetProbe = datakvalitetProbe
         )
 
         val aktørregisterService = AktørregisterService(wsClients.aktør(env.aktørregisterUrl))

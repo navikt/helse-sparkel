@@ -6,12 +6,12 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.domene.inntekt.domain.Inntekt
 import no.nav.helse.domene.AktørId
-import no.nav.helse.oppslag.inntekt.InntektClient
+import no.nav.helse.domene.inntekt.domain.Inntekt
 import no.nav.helse.domene.inntekt.domain.Virksomhet
-import no.nav.helse.oppslag.inntekt.SikkerhetsavvikException
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.oppslag.inntekt.InntektClient
+import no.nav.helse.oppslag.inntekt.SikkerhetsavvikException
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import no.nav.tjeneste.virksomhet.inntekt.v3.meldinger.HentInntektListeBolkResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -35,7 +35,7 @@ class InntektServiceTest {
             inntektClient.hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
         } returns Try.Failure(Exception("SOAP fault"))
 
-        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
+        val actual = InntektService(inntektClient, mockk()).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
@@ -134,7 +134,7 @@ class InntektServiceTest {
             Try.Success(it.arbeidsInntektIdentListe)
         }
 
-        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
+        val actual = InntektService(inntektClient, mockk(relaxed = true)).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Right -> {
@@ -171,7 +171,7 @@ class InntektServiceTest {
             Try.Failure(SikkerhetsavvikException("en feil nr 1, en feil nr 2"))
         }
 
-        val actual = InntektService(inntektClient).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
+        val actual = InntektService(inntektClient, mockk()).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)

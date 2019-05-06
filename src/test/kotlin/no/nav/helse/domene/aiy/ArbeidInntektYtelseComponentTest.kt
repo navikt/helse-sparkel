@@ -258,10 +258,12 @@ class ArbeidInntektYtelseComponentTest {
 
         val arbeidsforholdService = ArbeidsforholdService(
                 arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
-                inntektClient = inntektClient
+                inntektClient = inntektClient,
+                datakvalitetProbe = mockk(relaxed = true)
         )
         val inntektService = InntektService(
-                inntektClient = inntektClient
+                inntektClient = inntektClient,
+                datakvalitetProbe = mockk(relaxed = true)
         )
 
         val jwkStub = JwtStub("test issuer")
@@ -273,7 +275,8 @@ class ArbeidInntektYtelseComponentTest {
                 arbeidInntektYtelseService = ArbeidInntektYtelseService(
                         arbeidsforholdService = arbeidsforholdService,
                         inntektService = inntektService,
-                        organisasjonService = organisasjonService
+                        organisasjonService = organisasjonService,
+                        datakvalitetProbe = mockk(relaxed = true)
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}/inntekter?fom=2017-01-01&tom=2019-04-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())

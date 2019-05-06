@@ -18,6 +18,7 @@ import no.nav.helse.domene.organisasjon.domain.DriverVirksomhet
 import no.nav.helse.domene.organisasjon.domain.InngårIJuridiskEnhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.probe.DatakvalitetProbe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -51,7 +52,7 @@ class ArbeidInntektYtelseServiceTest {
         inntektService = mockk()
         organisasjonService = mockk()
 
-        aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService)
+        aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService, DatakvalitetProbe(mockk()))
 
         arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
         inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")

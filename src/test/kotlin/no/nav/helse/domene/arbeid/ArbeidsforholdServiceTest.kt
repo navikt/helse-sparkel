@@ -14,6 +14,7 @@ import no.nav.helse.domene.inntekt.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.oppslag.inntekt.InntektClient
+import no.nav.helse.probe.DatakvalitetProbe
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
@@ -55,7 +56,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_2)
         } returns Try.Success(avsluttet_arbeidsforhold_med_permittering_avtaler)
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk())
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk(), mockk(relaxed = true))
                 .finnArbeidstakerarbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
@@ -97,7 +98,7 @@ class ArbeidsforholdServiceTest {
 
         val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, inntektClient)
+        val actual = ArbeidsforholdService(arbeidsforholdClient, inntektClient, DatakvalitetProbe(mockk(relaxed = true)))
                 .finnArbeidsforhold(aktørId, fom, tom)
 
         val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
@@ -131,7 +132,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
         } returns Try.Success(arbeidsforhold_uten_sluttdato_avtaler)
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk())
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk(), mockk(relaxed = true))
                 .finnArbeidstakerarbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
@@ -161,7 +162,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnHistoriskeArbeidsavtaler(arbeidsforholdID_for_arbeidsforhold_1)
         } returns Try.Success(arbeidsforhold_med_person_som_arbeidsgiver_avtaler)
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk())
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk(), mockk(relaxed = true))
                 .finnArbeidstakerarbeidsforhold(aktørId, fom, tom)
 
         when (actual) {
@@ -177,7 +178,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
         } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning("Fault", Sikkerhetsbegrensning()))
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidstakerarbeidsforhold(
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk(), mockk()).finnArbeidstakerarbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
@@ -193,7 +194,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
         } returns Try.Failure(FinnArbeidsforholdPrArbeidstakerUgyldigInput("Fault", UgyldigInput()))
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidstakerarbeidsforhold(
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk(), mockk()).finnArbeidstakerarbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {
@@ -209,7 +210,7 @@ class ArbeidsforholdServiceTest {
             arbeidsforholdClient.finnArbeidsforhold(any(), any(), any())
         } returns Try.Failure(Exception("Fault"))
 
-        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk()).finnArbeidstakerarbeidsforhold(
+        val actual = ArbeidsforholdService(arbeidsforholdClient, mockk(), mockk()).finnArbeidstakerarbeidsforhold(
                 AktørId("11987654321"), LocalDate.now(), LocalDate.now())
 
         when (actual) {

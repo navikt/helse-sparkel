@@ -259,7 +259,8 @@ class ArbeidsforholdComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 arbeidsforholdService = ArbeidsforholdService(
                         arbeidsforholdClient = ArbeidsforholdClient(arbeidsforholdV3),
-                        inntektClient = InntektClient(mockk())
+                        inntektClient = InntektClient(mockk()),
+                        datakvalitetProbe = mockk(relaxed = true)
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/arbeidsforhold/${aktørId.aktor}?fom=2017-01-01&tom=2019-01-01") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
