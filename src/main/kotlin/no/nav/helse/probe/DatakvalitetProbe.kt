@@ -77,10 +77,9 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
     }
 
     enum class Observasjonstype {
-        ProsentMindreEnnNull,
-        ProsentStørreEnnHundre,
+        ErStørreEnnHundre,
         DatoStørreEnn,
-        NullVerdi,
+        VerdiMangler,
         TomVerdi,
         TomListe,
         FlereGjeldendeArbeidsavtaler,
@@ -238,7 +237,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     private fun sjekkOmFeltErNull(objekt: Any, felt: String, value: Any?) {
         if (value == null) {
-            sendDatakvalitetEvent(objekt, felt, Observasjonstype.NullVerdi, "felt manger: $felt er null")
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.VerdiMangler, "felt manger: $felt er null")
         }
     }
 
@@ -250,11 +249,11 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     private fun sjekkProsent(objekt: Any, felt: String, percent: BigDecimal) {
         if (percent < BigDecimal.ZERO) {
-            sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentMindreEnnNull, "ugyldig prosent: $percent % er mindre enn 0 %")
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.ErMindreEnnNull, "ugyldig prosent: $percent % er mindre enn 0 %")
         }
 
         if (percent > BigDecimal(100)) {
-            sendDatakvalitetEvent(objekt, felt, Observasjonstype.ProsentStørreEnnHundre, "ugyldig prosent: $percent % er større enn 100 %")
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.ErStørreEnnHundre, "ugyldig prosent: $percent % er større enn 100 %")
         }
     }
 
