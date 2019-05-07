@@ -62,27 +62,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 finnMuligeArbeidsforholdForInntekt(inntekt, arbeidsforholdliste).map { muligeArbeidsforhold ->
                     inntekt to muligeArbeidsforhold
                 }
-            }.sequenceU().also { either ->
-                either.map { inntekterMedMuligeArbeidsforhold ->
-                    inntekterMedMuligeArbeidsforhold.onEach { (_, arbeidsforhold) ->
-                        datakvalitetProbe.tellArbeidsforholdPerInntekt(arbeidsforhold)
-                    }.filter { (_, arbeidsforhold) ->
-                        arbeidsforhold.isEmpty()
-                    }.map { (inntekt, _) ->
-                        inntekt
-                    }.let { inntekterUtenArbeidsforhold ->
-                        datakvalitetProbe.tellAvvikPåInntekter(inntekterUtenArbeidsforhold)
-                    }
-
-                    arbeidsforholdliste.filterNot { arbeidsforhold ->
-                        inntekterMedMuligeArbeidsforhold.any { (_, muligeArbeidsforhold) ->
-                            muligeArbeidsforhold.any { it == arbeidsforhold }
-                        }
-                    }.let { arbeidsforholdUtenInntekter ->
-                        datakvalitetProbe.tellAvvikPåArbeidsforhold(arbeidsforholdUtenInntekter)
-                    }
-                }
-            }
+            }.sequenceU()
 
     private fun finnMuligeArbeidsforholdForInntekt(inntekt: Inntekt.Lønn, arbeidsforholdliste: List<Arbeidsforhold>) =
             when (inntekt.virksomhet) {

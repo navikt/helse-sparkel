@@ -88,6 +88,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         FlereGjeldendeArbeidsavtaler,
         FlereArbeidsforholdPerInntekt,
         ArbeidsforholdISammeVirksomhet,
+        IngenArbeidsforholdForInntekt,
         ErMindreEnnNull,
         InntektGjelderEnAnnenAktør
     }
@@ -130,11 +131,8 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
             arbeidsforholdISammeVirksomhetCounter.inc(arbeidsforholdISammeVirksomhet.toDouble())
         }
 
-        arbeidInntektYtelse.lønnsinntekter.forEach { inntekt ->
-            if (inntekt.second.size > 1) {
-                sendDatakvalitetEvent(arbeidInntektYtelse, "lønnsinntekter", Observasjonstype.FlereArbeidsforholdPerInntekt, "det er ${inntekt.second.size} potensielle arbeidsforhold for inntekt")
-            }
-        }
+        tellAvvikPåInntekter(arbeidInntektYtelse)
+        tellAvvikPåArbeidsforhold(arbeidInntektYtelse)
     }
 
     fun inspiserFrilans(arbeidsforhold: Arbeidsforhold.Frilans) {
@@ -194,23 +192,30 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         }).inc()
     }
 
-    fun tellArbeidsforholdPerInntekt(arbeidsforholdliste: List<Arbeidsforhold>) {
-        arbeidsforholdPerInntektHistogram.observe(arbeidsforholdliste.size.toDouble())
-    }
-
-    fun tellAvvikPåArbeidsforhold(arbeidsforholdliste: List<Arbeidsforhold>) {
-        if (arbeidsforholdliste.isNotEmpty()) {
-            arbeidsforholdliste.forEach { arbeidsforhold ->
+    private fun tellAvvikPåArbeidsforhold(arbeidInntektYtelse: ArbeidInntektYtelse) {
+        arbeidInntektYtelse.arbeidsforhold.filterNot { arbeidsforhold ->
+            arbeidInntektYtelse.lønnsinntekter.any { (_, muligeArbeidsforhold) ->
+                muligeArbeidsforhold.any { it == arbeidsforhold }
+            }
+        }.let { arbeidsforholdUtenInntekter ->
+            arbeidsforholdUtenInntekter.forEach { arbeidsforhold ->
                 arbeidsforholdAvviksCounter.labels(arbeidsforhold.type()).inc()
                 log.info("did not find inntekter for arbeidsforhold (${arbeidsforhold.type()}) with arbeidsgiver=${arbeidsforhold.arbeidsgiver}")
             }
         }
     }
 
-    fun tellAvvikPåInntekter(inntekter: List<Inntekt.Lønn>) {
-        if (inntekter.isNotEmpty()) {
-            inntektAvviksCounter.inc(inntekter.size.toDouble())
-            log.info("did not find arbeidsforhold for ${inntekter.size} inntekter: ${inntekter.joinToString { "${it.type()} - ${it.virksomhet}" }}")
+    private fun tellAvvikPåInntekter(arbeidInntektYtelse: ArbeidInntektYtelse) {
+        arbeidInntektYtelse.lønnsinntekter.forEach { (inntekt, muligeArbeidsforhold) ->
+            arbeidsforholdPerInntektHistogram.observe(muligeArbeidsforhold.size.toDouble())
+
+            if (muligeArbeidsforhold.size > 1) {
+                sendDatakvalitetEvent(arbeidInntektYtelse, "lønnsinntekter", Observasjonstype.FlereArbeidsforholdPerInntekt, "det er ${muligeArbeidsforhold.size} potensielle arbeidsforhold for inntekt")
+            } else if (muligeArbeidsforhold.isEmpty()) {
+                sendDatakvalitetEvent(arbeidInntektYtelse, "lønnsinntekter", Observasjonstype.IngenArbeidsforholdForInntekt, "det er ingen potensielle arbeidsforhold for inntekt")
+                inntektAvviksCounter.inc()
+                log.info("did not find arbeidsforhold for inntekt: ${inntekt.type()} - ${inntekt.virksomhet}")
+            }
         }
     }
 

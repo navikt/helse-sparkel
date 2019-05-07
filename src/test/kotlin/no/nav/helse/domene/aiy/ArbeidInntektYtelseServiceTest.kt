@@ -3,7 +3,6 @@ package no.nav.helse.domene.aiy
 import arrow.core.Either
 import io.mockk.every
 import io.mockk.mockk
-import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
@@ -36,12 +35,6 @@ class ArbeidInntektYtelseServiceTest {
 
     lateinit var aktiveArbeidsforholdService: ArbeidInntektYtelseService
 
-    var arbeidsforholdAvviksCounterBefore = 0.0
-    var inntektAvviksCounterBefore = 0.0
-
-    val arbeidsforholdAvviksCounterAfter get() = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-    val inntektAvviksCounterAfter get() = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
-
     val aktørId = AktørId("123456789")
     val fom = LocalDate.parse("2019-01-01")
     val tom = LocalDate.parse("2019-03-01")
@@ -53,9 +46,6 @@ class ArbeidInntektYtelseServiceTest {
         organisasjonService = mockk()
 
         aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, inntektService, organisasjonService, DatakvalitetProbe(mockk(relaxed = true)))
-
-        arbeidsforholdAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_avvik_totals", arrayOf("type"), arrayOf("Arbeidstaker")) ?: 0.0
-        inntektAvviksCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("inntekt_avvik_totals")
     }
 
     @Test
@@ -78,9 +68,6 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Right(Organisasjon.Virksomhet(virksomhet1.organisasjonsnummer))
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_virksomhetsnummer, actual.b)
@@ -106,9 +93,6 @@ class ArbeidInntektYtelseServiceTest {
         ))
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_personnummer, actual.b)
@@ -136,15 +120,7 @@ class ArbeidInntektYtelseServiceTest {
             organisasjonService.hentOrganisasjon(virksomhet1.organisasjonsnummer)
         } returns Either.Right(Organisasjon.Virksomhet(virksomhet1.organisasjonsnummer))
 
-        val arbeidsforholdISammeVirksomhetCounterBefore = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
-
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
-        val arbeidsforholdISammeVirksomhetCounterAfter = CollectorRegistry.defaultRegistry.getSampleValue("arbeidsforhold_i_samme_virksomhet_totals") ?: 0.0
-        assertEquals(1.0, arbeidsforholdISammeVirksomhetCounterAfter - arbeidsforholdISammeVirksomhetCounterBefore)
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_virksomhetsnummer_med_flere_arbeidsforhold_i_samme, actual.b)
@@ -176,9 +152,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_virksomhetsnummer_med_frilans_på_juridisk_nummer, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -208,9 +181,6 @@ class ArbeidInntektYtelseServiceTest {
         )))
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_juridisk_nummer, actual.b)
@@ -242,9 +212,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_juridisk_nummer, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -274,9 +241,6 @@ class ArbeidInntektYtelseServiceTest {
         )))
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_juridisk_nummer_med_arbeidstaker_og_frilans, actual.b)
@@ -312,9 +276,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_uten_avvik, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -346,9 +307,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_med_flere_arbeidsforhold_i_samme_virksomhet, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -369,73 +327,6 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_med_ytelser_og_trygd, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal telle inntekter som ikke har et tilhørende arbeidsforhold`() {
-        every {
-            arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Either.Right(listOf(
-                aktivt_arbeidstakerforhold
-        ))
-
-        every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
-        } returns Either.Right(inntekter_fra_tre_virksomheter)
-
-        every {
-            organisasjonService.hentOrganisasjon(virksomhet1.organisasjonsnummer)
-        } returns Either.Right(Organisasjon.Virksomhet(virksomhet1.organisasjonsnummer))
-
-        every {
-            organisasjonService.hentOrganisasjon(virksomhet2.organisasjonsnummer)
-        } returns Either.Right(Organisasjon.JuridiskEnhet(virksomhet2.organisasjonsnummer))
-
-        every {
-            organisasjonService.hentOrganisasjon(virksomhet3.organisasjonsnummer)
-        } returns Either.Right(Organisasjon.JuridiskEnhet(virksomhet3.organisasjonsnummer))
-
-        val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(4.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
-        when (actual) {
-            is Either.Right -> assertEquals(forventet_resultat_med_inntekter_uten_arbeidsforhold, actual.b)
-            is Either.Left -> fail { "Expected Either.Right to be returned" }
-        }
-    }
-
-    @Test
-    fun `skal telle arbeidsforhold som ikke har tilhørende inntekter`() {
-        every {
-            arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom)
-        } returns Either.Right(listOf(
-                aktivt_arbeidstakerforhold,
-                avsluttet_arbeidstakerforhold
-        ))
-
-        every {
-            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
-        } returns Either.Right(listOf(
-                lønn_virksomhet2_oktober,
-                lønn_virksomhet2_november,
-                lønn_virksomhet2_desember
-        ))
-
-        every {
-            organisasjonService.hentOrganisasjon(virksomhet2.organisasjonsnummer)
-        } returns Either.Right(Organisasjon.Virksomhet(virksomhet2.organisasjonsnummer))
-
-        val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(1.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
-        when (actual) {
-            is Either.Right -> assertEquals(forventet_resultat_med_arbeidsforhold_uten_inntekter, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -476,9 +367,6 @@ class ArbeidInntektYtelseServiceTest {
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
 
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
-
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_slått_sammen_med_arbeidsforhold, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
@@ -506,9 +394,6 @@ class ArbeidInntektYtelseServiceTest {
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
         val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
-
-        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
-        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)
@@ -772,38 +657,6 @@ private val forventet_resultat_med_ytelser_og_trygd = ArbeidInntektYtelse(
                 Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 10), BigDecimal(15000), "ufoerepensjonFraAndreEnnFolketrygden"),
                 Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 11), BigDecimal(16000), "ufoerepensjonFraAndreEnnFolketrygden")
         )
-)
-
-private val forventet_resultat_med_inntekter_uten_arbeidsforhold = ArbeidInntektYtelse(
-        arbeidsforhold = listOf(
-                aktivt_arbeidstakerforhold
-        ),
-        lønnsinntekter = listOf(
-                lønn_virksomhet1_januar to listOf(aktivt_arbeidstakerforhold),
-                lønn_virksomhet1_februar to listOf(aktivt_arbeidstakerforhold),
-                lønn_virksomhet2_oktober to emptyList(),
-                lønn_virksomhet2_november to emptyList(),
-                lønn_virksomhet2_desember to emptyList(),
-                lønn_virksomhet3_februar to emptyList()
-        ),
-        ytelser = emptyList(),
-        pensjonEllerTrygd = emptyList(),
-        næringsinntekt = emptyList()
-)
-
-private val forventet_resultat_med_arbeidsforhold_uten_inntekter = ArbeidInntektYtelse(
-        arbeidsforhold = listOf(
-                aktivt_arbeidstakerforhold,
-                avsluttet_arbeidstakerforhold
-        ),
-          lønnsinntekter = listOf(
-                  lønn_virksomhet2_oktober to listOf(avsluttet_arbeidstakerforhold),
-                  lønn_virksomhet2_november to listOf(avsluttet_arbeidstakerforhold),
-                  lønn_virksomhet2_desember to listOf(avsluttet_arbeidstakerforhold)
-        ),
-        ytelser = emptyList(),
-        pensjonEllerTrygd = emptyList(),
-        næringsinntekt = emptyList()
 )
 
 private val forventet_resultat_inntekter_slått_sammen_med_arbeidsforhold = ArbeidInntektYtelse(
