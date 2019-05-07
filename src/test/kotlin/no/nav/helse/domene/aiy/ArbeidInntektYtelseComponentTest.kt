@@ -13,8 +13,8 @@ import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.arbeid.ArbeidsforholdService
-import no.nav.helse.domene.inntekt.InntektService
 import no.nav.helse.domene.organisasjon.OrganisasjonService
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.oppslag.inntekt.InntektClient
@@ -261,7 +261,7 @@ class ArbeidInntektYtelseComponentTest {
                 inntektClient = inntektClient,
                 datakvalitetProbe = mockk(relaxed = true)
         )
-        val inntektService = InntektService(
+        val inntektService = UtbetalingOgTrekkService(
                 inntektClient = inntektClient,
                 datakvalitetProbe = mockk(relaxed = true)
         )
@@ -274,7 +274,7 @@ class ArbeidInntektYtelseComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 arbeidInntektYtelseService = ArbeidInntektYtelseService(
                         arbeidsforholdService = arbeidsforholdService,
-                        inntektService = inntektService,
+                        utbetalingOgTrekkService = inntektService,
                         organisasjonService = organisasjonService,
                         datakvalitetProbe = mockk(relaxed = true)
                 ))}) {

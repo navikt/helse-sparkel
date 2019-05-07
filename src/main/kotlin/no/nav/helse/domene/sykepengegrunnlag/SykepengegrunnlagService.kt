@@ -4,15 +4,15 @@ import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.inntekt.InntektService
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
-class SykepengegrunnlagService(private val inntektService: InntektService, private val organisasjonService: OrganisasjonService) {
+class SykepengegrunnlagService(private val utbetalingOgTrekkService: UtbetalingOgTrekkService, private val organisasjonService: OrganisasjonService) {
 
     companion object {
         private val log = LoggerFactory.getLogger(SykepengegrunnlagService::class.java)
@@ -25,7 +25,7 @@ class SykepengegrunnlagService(private val inntektService: InntektService, priva
             organisasjonService.hentOrganisasjon(virksomhetsnummer).flatMap { organisasjon ->
                 when (organisasjon) {
                     is Organisasjon.Virksomhet -> {
-                        inntektService.hentInntekter(aktørId, fom, tom, Beregningsgrunnlagfilter).map { inntekter ->
+                        utbetalingOgTrekkService.hentUtbetalingerOgTrekk(aktørId, fom, tom, Beregningsgrunnlagfilter).map { inntekter ->
                             inntekter.filter { inntekt ->
                                 inntekt.virksomhet is Virksomhet.Organisasjon
                             }
@@ -46,5 +46,5 @@ class SykepengegrunnlagService(private val inntektService: InntektService, priva
             }
 
     fun hentSammenligningsgrunnlag(aktørId: AktørId, fom: YearMonth, tom: YearMonth) =
-            inntektService.hentInntekter(aktørId, fom, tom, Sammenligningsgrunnlagfilter)
+            utbetalingOgTrekkService.hentUtbetalingerOgTrekk(aktørId, fom, tom, Sammenligningsgrunnlagfilter)
 }

@@ -4,17 +4,14 @@ import arrow.core.Either
 import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import io.prometheus.client.CollectorRegistry
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.arbeid.domain.Permisjon
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
-import no.nav.helse.oppslag.inntekt.InntektClient
-import no.nav.helse.probe.DatakvalitetProbe
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
@@ -27,7 +24,6 @@ import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.YearMonth
 
 class ArbeidsforholdServiceTest {
 

@@ -1,4 +1,4 @@
-package no.nav.helse.domene.inntekt.domain
+package no.nav.helse.domene.utbetaling.domain
 
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 

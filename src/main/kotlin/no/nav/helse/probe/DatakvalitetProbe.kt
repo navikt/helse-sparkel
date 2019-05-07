@@ -7,7 +7,7 @@ import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
 import no.nav.helse.domene.arbeid.domain.Permisjon
-import no.nav.helse.domene.inntekt.domain.Inntekt
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -113,9 +113,9 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         }
     }
 
-    fun inspiserInntekt(inntekt: Inntekt) {
-        if (inntekt.beløp < BigDecimal.ZERO) {
-            beløpErMindreEnnNull(inntekt, "beløp", inntekt.beløp)
+    fun inspiserUtbetalingEllerTrekk(utbetalingEllerTrekk: UtbetalingEllerTrekk) {
+        if (utbetalingEllerTrekk.beløp < BigDecimal.ZERO) {
+            beløpErMindreEnnNull(utbetalingEllerTrekk, "beløp", utbetalingEllerTrekk.beløp)
         }
     }
 

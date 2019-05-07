@@ -7,7 +7,7 @@ import no.nav.helse.domene.arbeid.dto.ArbeidsavtaleDTO
 import no.nav.helse.domene.arbeid.dto.ArbeidsforholdDTO
 import no.nav.helse.domene.arbeid.dto.ArbeidsgiverDTO
 import no.nav.helse.domene.arbeid.dto.PermisjonDTO
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 
 object ArbeidDtoMapper {
 

@@ -2,7 +2,7 @@ package no.nav.helse.domene.arbeid
 
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AapenPeriode
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsforholdFrilanser

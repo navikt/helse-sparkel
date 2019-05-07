@@ -1,4 +1,4 @@
-package no.nav.helse.domene.inntekt
+package no.nav.helse.domene.utbetaling
 
 import arrow.core.Either
 import arrow.core.Try
@@ -7,8 +7,8 @@ import io.mockk.mockk
 import no.nav.helse.Feilårsak
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.inntekt.domain.Inntekt
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.helse.oppslag.inntekt.SikkerhetsavvikException
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.fail
 import java.math.BigDecimal
 import java.time.YearMonth
 
-class InntektServiceTest {
+class UtbetalingOgTrekkServiceTest {
 
     @Test
     fun `skal gi feil når oppslag gir feil`() {
@@ -35,7 +35,7 @@ class InntektServiceTest {
             inntektClient.hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
         } returns Try.Failure(Exception("SOAP fault"))
 
-        val actual = InntektService(inntektClient, mockk()).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
+        val actual = UtbetalingOgTrekkService(inntektClient, mockk()).hentUtbetalingerOgTrekk(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Left -> assertTrue(actual.a is Feilårsak.UkjentFeil)
@@ -51,13 +51,13 @@ class InntektServiceTest {
         val tom = YearMonth.parse("2019-02")
 
         val expected = listOf(
-                Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                UtbetalingEllerTrekk.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500)),
-                Inntekt.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                UtbetalingEllerTrekk.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(500), "barnetrygd"),
-                Inntekt.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                UtbetalingEllerTrekk.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(1500), "næringsinntekt"),
-                Inntekt.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                UtbetalingEllerTrekk.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(3000), "alderspensjon")
         )
 
@@ -134,7 +134,7 @@ class InntektServiceTest {
             Try.Success(it.arbeidsInntektIdentListe)
         }
 
-        val actual = InntektService(inntektClient, mockk(relaxed = true)).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
+        val actual = UtbetalingOgTrekkService(inntektClient, mockk(relaxed = true)).hentUtbetalingerOgTrekk(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Right -> {
@@ -171,7 +171,7 @@ class InntektServiceTest {
             Try.Failure(SikkerhetsavvikException("en feil nr 1, en feil nr 2"))
         }
 
-        val actual = InntektService(inntektClient, mockk()).hentInntekter(aktør, fom, tom, "ForeldrepengerA-inntekt")
+        val actual = UtbetalingOgTrekkService(inntektClient, mockk()).hentUtbetalingerOgTrekk(aktør, fom, tom, "ForeldrepengerA-inntekt")
 
         when (actual) {
             is Either.Left -> assertEquals(Feilårsak.FeilFraTjeneste, actual.a)

@@ -1,14 +1,14 @@
-package no.nav.helse.domene.inntekt
+package no.nav.helse.domene.utbetaling
 
-import no.nav.helse.domene.inntekt.domain.Inntekt
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.time.YearMonth
 
-object InntektMapper {
-    private val log = LoggerFactory.getLogger("InntektMapper")
+object UtbetalingEllerTrekkMapper {
+    private val log = LoggerFactory.getLogger(UtbetalingEllerTrekkMapper::class.java)
 
     fun mapToVirksomhet(aktør: Aktoer) =
             when (aktør) {
@@ -21,34 +21,34 @@ object InntektMapper {
                 }
             }
 
-    fun mapToIntekt(inntekt: no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Inntekt) =
+    fun mapToUtbetalingEllerTrekk(inntekt: Inntekt) =
             mapToVirksomhet(inntekt.virksomhet)?.let { virksomhet ->
                 val utbetalingsperiode = YearMonth.of(inntekt.utbetaltIPeriode.year, inntekt.utbetaltIPeriode.month)
 
                 when (inntekt) {
                     is YtelseFraOffentlige -> {
-                        Inntekt.Ytelse(
+                        UtbetalingEllerTrekk.Ytelse(
                                 virksomhet = virksomhet,
                                 utbetalingsperiode = utbetalingsperiode,
                                 beløp = inntekt.beloep,
                                 kode = inntekt.beskrivelse.value)
                     }
                     is PensjonEllerTrygd -> {
-                        Inntekt.PensjonEllerTrygd(
+                        UtbetalingEllerTrekk.PensjonEllerTrygd(
                                 virksomhet = virksomhet,
                                 utbetalingsperiode = utbetalingsperiode,
                                 beløp = inntekt.beloep,
                                 kode = inntekt.beskrivelse.value)
                     }
                     is Naeringsinntekt -> {
-                        Inntekt.Næring(
+                        UtbetalingEllerTrekk.Næring(
                                 virksomhet = virksomhet,
                                 utbetalingsperiode = utbetalingsperiode,
                                 beløp = inntekt.beloep,
                                 kode = inntekt.beskrivelse.value)
                     }
                     is Loennsinntekt -> {
-                        Inntekt.Lønn(
+                        UtbetalingEllerTrekk.Lønn(
                                 virksomhet = virksomhet,
                                 utbetalingsperiode = utbetalingsperiode,
                                 beløp = inntekt.beloep)

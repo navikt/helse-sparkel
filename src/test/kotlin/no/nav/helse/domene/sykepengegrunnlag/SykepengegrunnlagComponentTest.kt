@@ -12,7 +12,7 @@ import no.nav.helse.JwtStub
 import no.nav.helse.assertJsonEquals
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.inntekt.InntektService
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.mockedSparkel
@@ -185,7 +185,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3), mockk(relaxed = true)),
+                        utbetalingOgTrekkService = UtbetalingOgTrekkService(InntektClient(inntektV3), mockk(relaxed = true)),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=2019-03") {
@@ -219,7 +219,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3), mockk()),
+                        utbetalingOgTrekkService = UtbetalingOgTrekkService(InntektClient(inntektV3), mockk()),
                         organisasjonService = OrganisasjonService(OrganisasjonClient(organisasjonV5))
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/beregningsgrunnlag/${virksomhetsnummer.value}?fom=2019-01&tom=2019-02") {
@@ -460,7 +460,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3), mockk(relaxed = true)),
+                        utbetalingOgTrekkService = UtbetalingOgTrekkService(InntektClient(inntektV3), mockk(relaxed = true)),
                         organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-03") {
@@ -492,7 +492,7 @@ class SykepengegrunnlagComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengegrunnlagService = SykepengegrunnlagService(
-                        inntektService = InntektService(InntektClient(inntektV3), mockk()),
+                        utbetalingOgTrekkService = UtbetalingOgTrekkService(InntektClient(inntektV3), mockk()),
                         organisasjonService = mockk()
                 ))}) {
             handleRequest(HttpMethod.Get, "/api/inntekt/${aktørId.aktor}/sammenligningsgrunnlag?fom=2019-01&tom=2019-02") {

@@ -9,13 +9,13 @@ import io.ktor.routing.get
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.helse.Feilårsak
 import no.nav.helse.HttpFeil
+import no.nav.helse.domene.AktørId
+import no.nav.helse.domene.utbetaling.UtbetalingEllerTrekkDtoMapper
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.dto.UtbetalingerEllerTrekkResponse
+import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
-import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.inntekt.InntektDtoMapper
-import no.nav.helse.domene.inntekt.domain.Inntekt
-import no.nav.helse.domene.inntekt.dto.InntektResponse
-import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import java.time.YearMonth
 import java.time.format.DateTimeParseException
 
@@ -34,7 +34,7 @@ fun Route.sykepengegrunnlag(sykepengegrunnlagService: SykepengegrunnlagService) 
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (AktørId, YearMonth, YearMonth) -> Either<Feilårsak, List<Inntekt>>) {
+private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (AktørId, YearMonth, YearMonth) -> Either<Feilårsak, List<UtbetalingEllerTrekk>>) {
     if (!call.request.queryParameters.contains("fom") || !call.request.queryParameters.contains("tom")) {
         call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "you need to supply query parameter fom and tom"))
     } else {
@@ -52,9 +52,9 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.hentInntekt(f: (Aktø
         }
 
         f(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
-            it.map(InntektDtoMapper::toDto)
+            it.map(UtbetalingEllerTrekkDtoMapper::toDto)
         }.map {
-            InntektResponse(it)
+            UtbetalingerEllerTrekkResponse(it)
         }.respond(call)
     }
 }

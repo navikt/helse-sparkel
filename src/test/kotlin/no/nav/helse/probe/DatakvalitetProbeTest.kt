@@ -5,8 +5,8 @@ import io.prometheus.client.CollectorRegistry
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
-import no.nav.helse.domene.inntekt.domain.Inntekt
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -169,19 +169,19 @@ private val oktober_2018 = YearMonth.of(2018, Month.OCTOBER)
 private val november_2018 = YearMonth.of(2018, Month.NOVEMBER)
 private val desember_2018 = YearMonth.of(2018, Month.DECEMBER)
 
-private val lønn_virksomhet1_januar = Inntekt.Lønn(virksomhet1, januar_2019, BigDecimal(20000))
-private val lønn_virksomhet1_februar = Inntekt.Lønn(virksomhet1, februar_2019, BigDecimal(25000))
-private val lønn_virksomhet1_oktober = Inntekt.Lønn(virksomhet1, oktober_2018, BigDecimal(15000))
-private val lønn_virksomhet2_oktober = Inntekt.Lønn(virksomhet2, oktober_2018, BigDecimal(15000))
-private val lønn_virksomhet2_november = Inntekt.Lønn(virksomhet2, november_2018, BigDecimal(16000))
-private val lønn_virksomhet2_desember = Inntekt.Lønn(virksomhet2, desember_2018, BigDecimal(17000))
-private val lønn_virksomhet3_desember = Inntekt.Lønn(virksomhet3, desember_2018, BigDecimal(18000))
-private val lønn_virksomhet4_desember = Inntekt.Lønn(virksomhet4, desember_2018, BigDecimal(18000))
-private val lønn_virksomhet3_februar = Inntekt.Lønn(virksomhet3, februar_2019, BigDecimal(30000))
+private val lønn_virksomhet1_januar = UtbetalingEllerTrekk.Lønn(virksomhet1, januar_2019, BigDecimal(20000))
+private val lønn_virksomhet1_februar = UtbetalingEllerTrekk.Lønn(virksomhet1, februar_2019, BigDecimal(25000))
+private val lønn_virksomhet1_oktober = UtbetalingEllerTrekk.Lønn(virksomhet1, oktober_2018, BigDecimal(15000))
+private val lønn_virksomhet2_oktober = UtbetalingEllerTrekk.Lønn(virksomhet2, oktober_2018, BigDecimal(15000))
+private val lønn_virksomhet2_november = UtbetalingEllerTrekk.Lønn(virksomhet2, november_2018, BigDecimal(16000))
+private val lønn_virksomhet2_desember = UtbetalingEllerTrekk.Lønn(virksomhet2, desember_2018, BigDecimal(17000))
+private val lønn_virksomhet3_desember = UtbetalingEllerTrekk.Lønn(virksomhet3, desember_2018, BigDecimal(18000))
+private val lønn_virksomhet4_desember = UtbetalingEllerTrekk.Lønn(virksomhet4, desember_2018, BigDecimal(18000))
+private val lønn_virksomhet3_februar = UtbetalingEllerTrekk.Lønn(virksomhet3, februar_2019, BigDecimal(30000))
 
-private val lønn_person1_januar = Inntekt.Lønn(person1, januar_2019, BigDecimal(1000))
-private val lønn_person1_februar = Inntekt.Lønn(person1, februar_2019, BigDecimal(500))
-private val lønn_person2_februar = Inntekt.Lønn(person2, februar_2019, BigDecimal(1500))
+private val lønn_person1_januar = UtbetalingEllerTrekk.Lønn(person1, januar_2019, BigDecimal(1000))
+private val lønn_person1_februar = UtbetalingEllerTrekk.Lønn(person1, februar_2019, BigDecimal(500))
+private val lønn_person2_februar = UtbetalingEllerTrekk.Lønn(person2, februar_2019, BigDecimal(1500))
 
 private val inntekter_fra_tre_virksomheter = listOf(
         lønn_virksomhet1_januar,
@@ -192,8 +192,8 @@ private val inntekter_fra_tre_virksomheter = listOf(
         lønn_virksomhet3_februar
 )
 
-private val lønn_virksomhet1_mars = Inntekt.Lønn(virksomhet1, mars_2019, BigDecimal(30000))
-private val lønn_virksomhet2_mars = Inntekt.Lønn(virksomhet2, mars_2019, BigDecimal(30000))
+private val lønn_virksomhet1_mars = UtbetalingEllerTrekk.Lønn(virksomhet1, mars_2019, BigDecimal(30000))
+private val lønn_virksomhet2_mars = UtbetalingEllerTrekk.Lønn(virksomhet2, mars_2019, BigDecimal(30000))
 
 private val inntekter_fra_samme_virksomhet_med_juridisk_nummer = listOf(
         lønn_virksomhet1_januar,
@@ -202,10 +202,10 @@ private val inntekter_fra_samme_virksomhet_med_juridisk_nummer = listOf(
 )
 
 private val inntekter_med_ytelser_og_trygd = listOf(
-        Inntekt.Ytelse(virksomhet1, YearMonth.of(2019, 1), BigDecimal(20000), "foreldrepenger"),
-        Inntekt.Ytelse(virksomhet1, YearMonth.of(2019, 2), BigDecimal(25000), "sykepenger"),
-        Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 10), BigDecimal(15000), "ufoerepensjonFraAndreEnnFolketrygden"),
-        Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 11), BigDecimal(16000), "ufoerepensjonFraAndreEnnFolketrygden")
+        UtbetalingEllerTrekk.Ytelse(virksomhet1, YearMonth.of(2019, 1), BigDecimal(20000), "foreldrepenger"),
+        UtbetalingEllerTrekk.Ytelse(virksomhet1, YearMonth.of(2019, 2), BigDecimal(25000), "sykepenger"),
+        UtbetalingEllerTrekk.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 10), BigDecimal(15000), "ufoerepensjonFraAndreEnnFolketrygden"),
+        UtbetalingEllerTrekk.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 11), BigDecimal(16000), "ufoerepensjonFraAndreEnnFolketrygden")
 )
 
 private val forventet_resultat_inntekter_på_personnummer = ArbeidInntektYtelse(
@@ -328,12 +328,12 @@ private val forventet_resultat_med_flere_arbeidsforhold_i_samme_virksomhet = Arb
 
 private val forventet_resultat_med_ytelser_og_trygd = ArbeidInntektYtelse(
         ytelser = listOf(
-                Inntekt.Ytelse(virksomhet1, YearMonth.of(2019, 1), BigDecimal(20000), "foreldrepenger"),
-                Inntekt.Ytelse(virksomhet1, YearMonth.of(2019, 2), BigDecimal(25000), "sykepenger")
+                UtbetalingEllerTrekk.Ytelse(virksomhet1, YearMonth.of(2019, 1), BigDecimal(20000), "foreldrepenger"),
+                UtbetalingEllerTrekk.Ytelse(virksomhet1, YearMonth.of(2019, 2), BigDecimal(25000), "sykepenger")
         ),
         pensjonEllerTrygd = listOf(
-                Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 10), BigDecimal(15000), "ufoerepensjonFraAndreEnnFolketrygden"),
-                Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 11), BigDecimal(16000), "ufoerepensjonFraAndreEnnFolketrygden")
+                UtbetalingEllerTrekk.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 10), BigDecimal(15000), "ufoerepensjonFraAndreEnnFolketrygden"),
+                UtbetalingEllerTrekk.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 11), BigDecimal(16000), "ufoerepensjonFraAndreEnnFolketrygden")
         )
 )
 

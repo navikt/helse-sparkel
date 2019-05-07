@@ -1,9 +1,9 @@
-package no.nav.helse.domene.inntekt
+package no.nav.helse.domene.utbetaling
 
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.inntekt.domain.Inntekt
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.YearMonth
 
-class InntektMapperTest {
+class UtbetalingEllerTrekkMapperTest {
 
     @Test
     fun `skal mappe forskjellige inntektstyper`() {
@@ -20,13 +20,13 @@ class InntektMapperTest {
         val fom = tom.minusMonths(1)
 
         val expected = listOf(
-                Inntekt.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                UtbetalingEllerTrekk.Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500)),
-                Inntekt.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                UtbetalingEllerTrekk.Ytelse(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(500), "barnetrygd"),
-                Inntekt.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                UtbetalingEllerTrekk.Næring(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(1500), "næringsinntekt"),
-                Inntekt.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
+                UtbetalingEllerTrekk.PensjonEllerTrygd(Virksomhet.Organisasjon(Organisasjonsnummer("995277670")),
                         fom, BigDecimal.valueOf(3000), "alderspensjon")
         )
 
@@ -78,7 +78,7 @@ class InntektMapperTest {
         })
 
         val actual = given.map { givenInntekt ->
-            InntektMapper.mapToIntekt(givenInntekt)
+            UtbetalingEllerTrekkMapper.mapToUtbetalingEllerTrekk(givenInntekt)
         }
 
         assertEquals(expected.size, actual.size)

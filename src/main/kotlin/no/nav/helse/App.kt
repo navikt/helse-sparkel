@@ -31,7 +31,7 @@ import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.domene.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.domene.infotrygd.infotrygdBeregningsgrunnlag
-import no.nav.helse.domene.inntekt.InntektService
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.organisasjon
 import no.nav.helse.domene.person.PersonService
@@ -79,7 +79,7 @@ fun main() {
         val datakvalitetProbe = DatakvalitetProbe(sensuClient)
 
         val inntektClient = wsClients.inntekt(env.inntektEndpointUrl)
-        val inntektService = InntektService(inntektClient, datakvalitetProbe)
+        val inntektService = UtbetalingOgTrekkService(inntektClient, datakvalitetProbe)
 
         val personService = PersonService(wsClients.person(env.personEndpointUrl))
 
@@ -102,7 +102,7 @@ fun main() {
 
         val arbeidsforholdMedInntektService = ArbeidInntektYtelseService(
                 arbeidsforholdService = arbeidsforholdService,
-                inntektService = inntektService,
+                utbetalingOgTrekkService = inntektService,
                 organisasjonService = organisasjonService,
                 datakvalitetProbe = datakvalitetProbe
         )

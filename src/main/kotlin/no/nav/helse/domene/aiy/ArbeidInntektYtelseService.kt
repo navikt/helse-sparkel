@@ -9,9 +9,9 @@ import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.ArbeidsforholdService
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
-import no.nav.helse.domene.inntekt.InntektService
-import no.nav.helse.domene.inntekt.domain.Inntekt
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.probe.DatakvalitetProbe
@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 class ArbeidInntektYtelseService(private val arbeidsforholdService: ArbeidsforholdService,
-                                 private val inntektService: InntektService,
+                                 private val utbetalingOgTrekkService: UtbetalingOgTrekkService,
                                  private val organisasjonService: OrganisasjonService,
                                  private val datakvalitetProbe: DatakvalitetProbe) {
 
@@ -28,9 +28,9 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
     }
 
     fun finnArbeidInntekterOgYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
-            finnInntekterOgFordelEtterType(aktørId, YearMonth.from(fom), YearMonth.from(tom)) { lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter ->
+            hentUtbetalingerEllerTrekkOgFordelEtterType(aktørId, YearMonth.from(fom), YearMonth.from(tom)) { lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter ->
                 arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom).flatMap { kombinertArbeidsforholdliste ->
-                    finnMuligeArbeidsforholdForInntekter(lønnsinntekter, kombinertArbeidsforholdliste).map { inntekterMedMuligeArbeidsforhold ->
+                    finnMuligeArbeidsforholdForLønnsutbetalinger(lønnsinntekter, kombinertArbeidsforholdliste).map { inntekterMedMuligeArbeidsforhold ->
                         ArbeidInntektYtelse(inntekterMedMuligeArbeidsforhold, kombinertArbeidsforholdliste, ytelser, pensjonEllerTrygd, næringsinntekter).also {
                             datakvalitetProbe.inspiserArbeidInntektYtelse(it)
                         }
@@ -38,45 +38,45 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                 }
             }
 
-    private fun <R> finnInntekterOgFordelEtterType(aktørId: AktørId, fom: YearMonth, tom: YearMonth, callback: ArbeidInntektYtelseService.(List<Inntekt.Lønn>, List<Inntekt.Ytelse>, List<Inntekt.PensjonEllerTrygd>, List<Inntekt.Næring>) -> Either<Feilårsak, R>) =
-            inntektService.hentInntekter(aktørId, fom, tom, inntektfilter).flatMap { inntekter ->
-                val lønnsinntekter = mutableListOf<Inntekt.Lønn>()
-                val ytelser = mutableListOf<Inntekt.Ytelse>()
-                val pensjonEllerTrygd = mutableListOf<Inntekt.PensjonEllerTrygd>()
-                val næringsinntekter = mutableListOf<Inntekt.Næring>()
+    private fun <R> hentUtbetalingerEllerTrekkOgFordelEtterType(aktørId: AktørId, fom: YearMonth, tom: YearMonth, callback: ArbeidInntektYtelseService.(List<UtbetalingEllerTrekk.Lønn>, List<UtbetalingEllerTrekk.Ytelse>, List<UtbetalingEllerTrekk.PensjonEllerTrygd>, List<UtbetalingEllerTrekk.Næring>) -> Either<Feilårsak, R>) =
+            utbetalingOgTrekkService.hentUtbetalingerOgTrekk(aktørId, fom, tom, inntektfilter).flatMap { inntekter ->
+                val lønnsinntekter = mutableListOf<UtbetalingEllerTrekk.Lønn>()
+                val ytelser = mutableListOf<UtbetalingEllerTrekk.Ytelse>()
+                val pensjonEllerTrygd = mutableListOf<UtbetalingEllerTrekk.PensjonEllerTrygd>()
+                val næringsinntekter = mutableListOf<UtbetalingEllerTrekk.Næring>()
 
                 inntekter.forEach { inntekt ->
                     when (inntekt) {
-                        is Inntekt.Lønn -> lønnsinntekter.add(inntekt)
-                        is Inntekt.Ytelse -> ytelser.add(inntekt)
-                        is Inntekt.PensjonEllerTrygd -> pensjonEllerTrygd.add(inntekt)
-                        is Inntekt.Næring -> næringsinntekter.add(inntekt)
+                        is UtbetalingEllerTrekk.Lønn -> lønnsinntekter.add(inntekt)
+                        is UtbetalingEllerTrekk.Ytelse -> ytelser.add(inntekt)
+                        is UtbetalingEllerTrekk.PensjonEllerTrygd -> pensjonEllerTrygd.add(inntekt)
+                        is UtbetalingEllerTrekk.Næring -> næringsinntekter.add(inntekt)
                     }
                 }
 
                 this.callback(lønnsinntekter, ytelser, pensjonEllerTrygd, næringsinntekter)
             }
 
-    private fun finnMuligeArbeidsforholdForInntekter(lønnsinntekter: List<Inntekt.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
+    private fun finnMuligeArbeidsforholdForLønnsutbetalinger(lønnsinntekter: List<UtbetalingEllerTrekk.Lønn>, arbeidsforholdliste: List<Arbeidsforhold>) =
             lønnsinntekter.map { inntekt ->
-                finnMuligeArbeidsforholdForInntekt(inntekt, arbeidsforholdliste).map { muligeArbeidsforhold ->
+                finnMuligeArbeidsforholdForLønnsutbetaling(inntekt, arbeidsforholdliste).map { muligeArbeidsforhold ->
                     inntekt to muligeArbeidsforhold
                 }
             }.sequenceU()
 
-    private fun finnMuligeArbeidsforholdForInntekt(inntekt: Inntekt.Lønn, arbeidsforholdliste: List<Arbeidsforhold>) =
-            when (inntekt.virksomhet) {
+    private fun finnMuligeArbeidsforholdForLønnsutbetaling(utbetalingEllerTrekk: UtbetalingEllerTrekk.Lønn, arbeidsforholdliste: List<Arbeidsforhold>) =
+            when (utbetalingEllerTrekk.virksomhet) {
                 is Virksomhet.Person -> arbeidsforholdliste.filter {
                     it.arbeidsgiver is Virksomhet.Person
                 }.filter {
-                    (it.arbeidsgiver as Virksomhet.Person).personnummer == inntekt.virksomhet.personnummer
+                    (it.arbeidsgiver as Virksomhet.Person).personnummer == utbetalingEllerTrekk.virksomhet.personnummer
                 }.right()
-                is Virksomhet.Organisasjon -> organisasjonService.hentOrganisasjon(inntekt.virksomhet.organisasjonsnummer).map { organisasjon ->
+                is Virksomhet.Organisasjon -> organisasjonService.hentOrganisasjon(utbetalingEllerTrekk.virksomhet.organisasjonsnummer).map { organisasjon ->
                     when (organisasjon) {
                         is Organisasjon.Virksomhet -> arbeidsforholdliste.filter {
                             it.arbeidsgiver is Virksomhet.Organisasjon
                         }.filter {
-                            it.arbeidsgiver == inntekt.virksomhet || organisasjon.inngårIJuridiskEnhet.any { inngårIJuridiskEnhet ->
+                            it.arbeidsgiver == utbetalingEllerTrekk.virksomhet || organisasjon.inngårIJuridiskEnhet.any { inngårIJuridiskEnhet ->
                                 when (it.arbeidsgiver) {
                                     is Virksomhet.Organisasjon -> inngårIJuridiskEnhet.organisasjonsnummer == (it.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
                                     else -> false
@@ -85,7 +85,7 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         }
                         is Organisasjon.JuridiskEnhet -> {
                             arbeidsforholdliste.filter { arbeidsforhold ->
-                                arbeidsforhold.arbeidsgiver == inntekt.virksomhet || organisasjon.virksomheter.any { driverVirksomhet ->
+                                arbeidsforhold.arbeidsgiver == utbetalingEllerTrekk.virksomhet || organisasjon.virksomheter.any { driverVirksomhet ->
                                     driverVirksomhet.virksomhet.orgnr == (arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
                                 }
                             }
@@ -95,6 +95,6 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         }
                     }
                 }
-                else -> throw NotImplementedError("har ikke implementert støtte for virksomhetstype ${inntekt.virksomhet.type()}")
+                else -> throw NotImplementedError("har ikke implementert støtte for virksomhetstype ${utbetalingEllerTrekk.virksomhet.type()}")
         }
 }

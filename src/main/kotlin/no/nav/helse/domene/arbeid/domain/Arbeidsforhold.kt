@@ -1,6 +1,6 @@
 package no.nav.helse.domene.arbeid.domain
 
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import java.time.LocalDate
 
 sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdato: LocalDate, open val sluttdato: LocalDate?) {

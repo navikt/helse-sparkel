@@ -5,9 +5,9 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.inntekt.InntektService
-import no.nav.helse.domene.inntekt.domain.Inntekt.Lønn
-import no.nav.helse.domene.inntekt.domain.Virksomhet
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk.Lønn
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.domain.InngårIJuridiskEnhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
@@ -36,7 +36,7 @@ class SykepengegrunnlagServiceTest {
             organisasjonService.hentOrganisasjon(virksomhetsnummer)
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
-        val inntektService = mockk<InntektService>()
+        val inntektService = mockk<UtbetalingOgTrekkService>()
 
         val actual = SykepengegrunnlagService(inntektService, organisasjonService)
                 .hentBeregningsgrunnlag(aktør, virksomhetsnummer, fom, tom)
@@ -61,7 +61,7 @@ class SykepengegrunnlagServiceTest {
             organisasjonService.hentOrganisasjon(virksomhetsnummer)
         } returns Either.Right(Organisasjon.JuridiskEnhet(virksomhetsnummer))
 
-        val inntektService = mockk<InntektService>()
+        val inntektService = mockk<UtbetalingOgTrekkService>()
 
         val actual = SykepengegrunnlagService(inntektService, organisasjonService)
                 .hentBeregningsgrunnlag(aktør, virksomhetsnummer, fom, tom)
@@ -93,9 +93,9 @@ class SykepengegrunnlagServiceTest {
             organisasjonService.hentOrganisasjon(virksomhetsnummer)
         } returns Either.Right(Organisasjon.Virksomhet(virksomhetsnummer, null, listOf(InngårIJuridiskEnhet(juridiskNummer, LocalDate.now(), null))))
 
-        val inntektService = mockk<InntektService>()
+        val inntektService = mockk<UtbetalingOgTrekkService>()
         every {
-            inntektService.hentInntekter(aktør, fom, tom, "8-28")
+            inntektService.hentUtbetalingerOgTrekk(aktør, fom, tom, "8-28")
         } returns Either.Right(listOf(
                 Lønn(Virksomhet.Organisasjon(virksomhetsnummer), fom, BigDecimal.valueOf(2500)),
                 Lønn(Virksomhet.Organisasjon(juridiskNummer), fom, BigDecimal.valueOf(500)),
@@ -117,9 +117,9 @@ class SykepengegrunnlagServiceTest {
         val fom = YearMonth.parse("2019-01")
         val tom = YearMonth.parse("2019-02")
 
-        val inntektService = mockk<InntektService>()
+        val inntektService = mockk<UtbetalingOgTrekkService>()
         every {
-            inntektService.hentInntekter(aktør, fom, tom, "8-30")
+            inntektService.hentUtbetalingerOgTrekk(aktør, fom, tom, "8-30")
         } returns Either.Left(Feilårsak.FeilFraTjeneste)
 
         val actual = SykepengegrunnlagService(inntektService, mockk())
@@ -143,9 +143,9 @@ class SykepengegrunnlagServiceTest {
                         fom, BigDecimal.valueOf(2500))
         )
 
-        val inntektService = mockk<InntektService>()
+        val inntektService = mockk<UtbetalingOgTrekkService>()
         every {
-            inntektService.hentInntekter(aktør, fom, tom, "8-30")
+            inntektService.hentUtbetalingerOgTrekk(aktør, fom, tom, "8-30")
         } returns Either.Right(listOf(
                 Lønn(Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
                         fom, BigDecimal.valueOf(2500))
