@@ -89,6 +89,34 @@ class ArbeidInntektYtelseServiceTest {
     }
 
     @Test
+    fun `inntekt på personnummer skal matche arbeidsforhold på samme personnummer`() {
+        every {
+            arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom)
+        } returns Either.Right(listOf(
+                aktivt_frilansforhold_privat,
+                aktivt_arbeidstakerforhold_privat
+        ))
+
+        every {
+            inntektService.hentInntekter(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
+        } returns Either.Right(listOf(
+                lønn_person1_januar,
+                lønn_person1_februar,
+                lønn_person2_februar
+        ))
+
+        val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
+
+        assertEquals(0.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+        assertEquals(0.0, inntektAvviksCounterAfter - inntektAvviksCounterBefore)
+
+        when (actual) {
+            is Either.Right -> assertEquals(forventet_resultat_inntekter_på_personnummer, actual.b)
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
+    }
+
+    @Test
     fun `inntekt på virksomhetsnummer skal matche flere arbeidsforhold på samme virksomhetsnummer`() {
         every {
             arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom)
@@ -499,9 +527,13 @@ private val virksomhet2 = Virksomhet.Organisasjon(orgnr2)
 private val virksomhet3 = Virksomhet.Organisasjon(orgnr3)
 private val virksomhet4 = Virksomhet.Organisasjon(orgnr4)
 
+private val person1 = Virksomhet.Person("12345678911")
+private val person2 = Virksomhet.Person("98765432199")
+
 private val arbeidsforholdId1 = 1234L
 private val arbeidsforholdId2 = 5678L
 private val arbeidsforholdId3 = 4321L
+private val arbeidsforholdId4 = 1122L
 
 private val aktivt_arbeidstakerforhold_startdato = LocalDate.parse("2019-01-01")
 private val
@@ -549,6 +581,24 @@ private val aktivt_frilansforhold = Arbeidsforhold.Frilans(
         sluttdato = null,
         yrke = "Butikkmedarbeider")
 
+private val aktivt_frilansforhold_privat = Arbeidsforhold.Frilans(
+        arbeidsgiver = person1,
+        startdato = LocalDate.now(),
+        sluttdato = null,
+        yrke = ""
+)
+
+private val aktivt_arbeidstakerforhold_privat = Arbeidsforhold.Arbeidstaker(
+        arbeidsgiver = person2,
+        startdato = LocalDate.now(),
+        sluttdato = null,
+        arbeidsforholdId = arbeidsforholdId4,
+        permisjon = emptyList(),
+        arbeidsavtaler = listOf(
+                Arbeidsavtale("ALTMULIGMANN", null, LocalDate.now(), null)
+        )
+)
+
 private val januar_2019 = YearMonth.of(2019, JANUARY)
 private val februar_2019 = YearMonth.of(2019, FEBRUARY)
 private val mars_2019 = YearMonth.of(2019, MARCH)
@@ -565,6 +615,10 @@ private val lønn_virksomhet2_desember = Inntekt.Lønn(virksomhet2, desember_201
 private val lønn_virksomhet3_desember = Inntekt.Lønn(virksomhet3, desember_2018, BigDecimal(18000))
 private val lønn_virksomhet4_desember = Inntekt.Lønn(virksomhet4, desember_2018, BigDecimal(18000))
 private val lønn_virksomhet3_februar = Inntekt.Lønn(virksomhet3, februar_2019, BigDecimal(30000))
+
+private val lønn_person1_januar = Inntekt.Lønn(person1, januar_2019, BigDecimal(1000))
+private val lønn_person1_februar = Inntekt.Lønn(person1, februar_2019, BigDecimal(500))
+private val lønn_person2_februar = Inntekt.Lønn(person2, februar_2019, BigDecimal(1500))
 
 private val inntekter_fra_tre_virksomheter = listOf(
         lønn_virksomhet1_januar,
@@ -589,6 +643,21 @@ private val inntekter_med_ytelser_og_trygd = listOf(
         Inntekt.Ytelse(virksomhet1, YearMonth.of(2019, 2), BigDecimal(25000), "sykepenger"),
         Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 10), BigDecimal(15000), "ufoerepensjonFraAndreEnnFolketrygden"),
         Inntekt.PensjonEllerTrygd(virksomhet2, YearMonth.of(2018, 11), BigDecimal(16000), "ufoerepensjonFraAndreEnnFolketrygden")
+)
+
+private val forventet_resultat_inntekter_på_personnummer = ArbeidInntektYtelse(
+        arbeidsforhold = listOf(
+                aktivt_frilansforhold_privat,
+                aktivt_arbeidstakerforhold_privat
+        ),
+        lønnsinntekter = listOf(
+                lønn_person1_januar to listOf(aktivt_frilansforhold_privat),
+                lønn_person1_februar to listOf(aktivt_frilansforhold_privat),
+                lønn_person2_februar to listOf(aktivt_arbeidstakerforhold_privat)
+        ),
+        ytelser = emptyList(),
+        pensjonEllerTrygd = emptyList(),
+        næringsinntekt = emptyList()
 )
 
 private val forventet_resultat_inntekter_på_virksomhetsnummer = ArbeidInntektYtelse(
