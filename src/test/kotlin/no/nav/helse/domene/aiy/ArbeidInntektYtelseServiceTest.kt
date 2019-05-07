@@ -9,14 +9,14 @@ import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.ArbeidsforholdService
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
-import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
-import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
-import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.domain.DriverVirksomhet
 import no.nav.helse.domene.organisasjon.domain.InngårIJuridiskEnhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
+import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.probe.DatakvalitetProbe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -96,6 +96,37 @@ class ArbeidInntektYtelseServiceTest {
 
         when (actual) {
             is Either.Right -> assertEquals(forventet_resultat_inntekter_på_personnummer, actual.b)
+            is Either.Left -> fail { "Expected Either.Right to be returned" }
+        }
+    }
+
+    @Test
+    fun `inntekt på personnummer og juridisk nummer skal matche arbeidsforhold rapportert på samme nummer`() {
+        every {
+            arbeidsforholdService.finnArbeidsforhold(aktørId, fom, tom)
+        } returns Either.Right(listOf(
+                aktivt_arbeidstakerforhold,
+                aktivt_arbeidstakerforhold_privat
+        ))
+
+        every {
+            utbetalingOgTrekkService.hentUtbetalingerOgTrekk(aktørId, YearMonth.from(fom), YearMonth.from(tom), "ForeldrepengerA-Inntekt")
+        } returns Either.Right(listOf(
+                lønn_virksomhet2_oktober,
+                lønn_virksomhet2_november,
+                lønn_person2_februar
+        ))
+
+        every {
+            organisasjonService.hentOrganisasjon(virksomhet2.organisasjonsnummer)
+        } returns Either.Right(Organisasjon.JuridiskEnhet(virksomhet2.organisasjonsnummer, null, listOf(
+                DriverVirksomhet(Organisasjon.Virksomhet(virksomhet1.organisasjonsnummer), LocalDate.now(), null)
+        )))
+
+        val actual = aktiveArbeidsforholdService.finnArbeidInntekterOgYtelser(aktørId, fom, tom)
+
+        when (actual) {
+            is Either.Right -> assertEquals(forventet_resultat_inntekter_på_personnummer_og_orgnummer, actual.b)
             is Either.Left -> fail { "Expected Either.Right to be returned" }
         }
     }
@@ -538,6 +569,21 @@ private val forventet_resultat_inntekter_på_personnummer = ArbeidInntektYtelse(
         lønnsinntekter = listOf(
                 lønn_person1_januar to listOf(aktivt_frilansforhold_privat),
                 lønn_person1_februar to listOf(aktivt_frilansforhold_privat),
+                lønn_person2_februar to listOf(aktivt_arbeidstakerforhold_privat)
+        ),
+        ytelser = emptyList(),
+        pensjonEllerTrygd = emptyList(),
+        næringsinntekt = emptyList()
+)
+
+private val forventet_resultat_inntekter_på_personnummer_og_orgnummer = ArbeidInntektYtelse(
+        arbeidsforhold = listOf(
+                aktivt_arbeidstakerforhold,
+                aktivt_arbeidstakerforhold_privat
+        ),
+        lønnsinntekter = listOf(
+                lønn_virksomhet2_oktober to listOf(aktivt_arbeidstakerforhold),
+                lønn_virksomhet2_november to listOf(aktivt_arbeidstakerforhold),
                 lønn_person2_februar to listOf(aktivt_arbeidstakerforhold_privat)
         ),
         ytelser = emptyList(),

@@ -9,11 +9,11 @@ import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.ArbeidsforholdService
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
+import no.nav.helse.domene.organisasjon.OrganisasjonService
+import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
 import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
 import no.nav.helse.domene.utbetaling.domain.Virksomhet
-import no.nav.helse.domene.organisasjon.OrganisasjonService
-import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.probe.DatakvalitetProbe
 import java.time.LocalDate
 import java.time.YearMonth
@@ -85,6 +85,8 @@ class ArbeidInntektYtelseService(private val arbeidsforholdService: Arbeidsforho
                         }
                         is Organisasjon.JuridiskEnhet -> {
                             arbeidsforholdliste.filter { arbeidsforhold ->
+                                arbeidsforhold.arbeidsgiver is Virksomhet.Organisasjon
+                            }.filter { arbeidsforhold ->
                                 arbeidsforhold.arbeidsgiver == utbetalingEllerTrekk.virksomhet || organisasjon.virksomheter.any { driverVirksomhet ->
                                     driverVirksomhet.virksomhet.orgnr == (arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer
                                 }
