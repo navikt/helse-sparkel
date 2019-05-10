@@ -36,7 +36,7 @@ spec:
     path: /metrics
   secrets: true
   secureLogs:
-    enabled: false
+    enabled: true
   env:
     - name: JWKS_URL
       value: http://security-token-service/rest/v1/sts/jwks
