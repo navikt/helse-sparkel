@@ -146,6 +146,7 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
     fun inspiserFrilans(arbeidsforhold: Arbeidsforhold.Frilans) {
         sjekkOmStartdatoErStørreEnnSluttdato(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
+        sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
         sjekkOmFeltErBlank(arbeidsforhold, "yrke", arbeidsforhold.yrke)
     }
 
