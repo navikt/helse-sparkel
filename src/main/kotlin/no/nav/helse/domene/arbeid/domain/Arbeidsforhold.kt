@@ -15,7 +15,14 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
                             override val startdato: LocalDate,
                             override val sluttdato: LocalDate? = null,
                             val permisjon: List<Permisjon> = emptyList(),
-                            val arbeidsavtaler: List<Arbeidsavtale> = emptyList()): Arbeidsforhold(arbeidsgiver, startdato, sluttdato)
+                            val arbeidsavtaler: List<Arbeidsavtale> = emptyList()): Arbeidsforhold(arbeidsgiver, startdato, sluttdato) {
+
+        fun yrke() = gjeldendeArbeidsavtale().yrke
+
+        fun gjeldendeArbeidsavtale() = arbeidsavtaler.first {
+            it.tom == null
+        }
+    }
 
     data class Frilans(
             override val arbeidsgiver: Virksomhet,

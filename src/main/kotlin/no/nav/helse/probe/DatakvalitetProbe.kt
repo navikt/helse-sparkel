@@ -91,7 +91,9 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         IngenArbeidsforholdForInntekt,
         ErMindreEnnNull,
         InntektGjelderEnAnnenAktør,
-        UlikeYrkerForArbeidsforhold
+        UlikeYrkerForArbeidsforhold,
+        UlikeArbeidsforholdMedSammeYrke,
+        UlikeArbeidsforholdMedUlikYrke
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -138,6 +140,32 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
         if (arbeidsforholdISammeVirksomhet > 0) {
             arbeidsforholdISammeVirksomhetCounter.inc(arbeidsforholdISammeVirksomhet.toDouble())
+
+            arbeidInntektYtelse.arbeidsforhold.groupBy {
+                it.arbeidsgiver
+            }.filter {
+                it.value.size > 1
+            }.forEach {
+                val arbeidsforholdEtterYrke = it.value.filter {
+                    it is Arbeidsforhold.Arbeidstaker
+                }.groupBy {
+                    (it as Arbeidsforhold.Arbeidstaker).yrke()
+                }
+
+                if (arbeidsforholdEtterYrke.size > 1) {
+                    sendDatakvalitetEvent(arbeidInntektYtelse, "arbeidsforhold", Observasjonstype.UlikeArbeidsforholdMedUlikYrke, "søker har ${arbeidsforholdEtterYrke.size} ulike yrker i samme virksomhet")
+                }
+
+                val ulikeArbeidsforholdMedSammeYrke = arbeidsforholdEtterYrke.filter {
+                    it.value.size > 1
+                }.flatMap {
+                    it.value
+                }.size
+
+                if (ulikeArbeidsforholdMedSammeYrke > 0) {
+                    sendDatakvalitetEvent(arbeidInntektYtelse, "arbeidsforhold", Observasjonstype.UlikeArbeidsforholdMedSammeYrke, "søker har $ulikeArbeidsforholdMedSammeYrke ulike arbeidsforhold i samme virksomhet, med samme yrkeskode")
+                }
+            }
         }
 
         tellAvvikPåInntekter(arbeidInntektYtelse)
