@@ -90,7 +90,8 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         ArbeidsforholdISammeVirksomhet,
         IngenArbeidsforholdForInntekt,
         ErMindreEnnNull,
-        InntektGjelderEnAnnenAktør
+        InntektGjelderEnAnnenAktør,
+        UlikeYrkerForArbeidsforhold
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -110,6 +111,14 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
 
         arbeidsforhold.arbeidsavtaler.forEach { arbeidsavtale ->
             inspiserArbeidsavtale(arbeidsavtale)
+        }
+
+        val ulikeYrkerForArbeidsforhold = arbeidsforhold.arbeidsavtaler.distinctBy { arbeidsavtale ->
+            arbeidsavtale.yrke
+        }.size
+
+        if (ulikeYrkerForArbeidsforhold > 1) {
+            sendDatakvalitetEvent(arbeidsforhold, "arbeidsavtale", Observasjonstype.UlikeYrkerForArbeidsforhold, "arbeidsforhold har $ulikeYrkerForArbeidsforhold forskjellige yrkeskoder")
         }
     }
 
