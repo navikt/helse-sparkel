@@ -109,6 +109,7 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
         sjekkOmStartdatoErStørreEnnSluttdato(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
         sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
+        sjekkArbeidsgiver(arbeidsforhold)
 
         arbeidsforhold.permisjon.forEach { permisjon ->
             inspiserPermisjon(permisjon)
@@ -208,6 +209,25 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         sjekkOmStartdatoErStørreEnnSluttdato(arbeidsforhold, "startdato,sluttdato", arbeidsforhold.startdato, arbeidsforhold.sluttdato)
         sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
         sjekkOmFeltErBlank(arbeidsforhold, "yrke", arbeidsforhold.yrke)
+        sjekkArbeidsgiver(arbeidsforhold)
+    }
+
+    private fun sjekkArbeidsgiver(arbeidsforhold: Arbeidsforhold) {
+        when (arbeidsforhold.arbeidsgiver) {
+            is Virksomhet.NavAktør -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.VirksomhetErNavAktør, "arbeidsgiver er en NavAktør")
+            is Virksomhet.Person -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.VirksomhetErPerson, "arbeidsgiver er en person")
+            is Virksomhet.Organisasjon -> {
+                sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.VirksomhetErOrganisasjon, "arbeidsgiver er en organisasjon")
+
+                organisasjonService.hentOrganisasjon((arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer).map { organisasjon ->
+                    when (organisasjon) {
+                        is JuridiskEnhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErJuridiskEnhet, "arbeidsgiver er en juridisk enhet")
+                        is Virksomhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErVirksomhet, "arbeidsgiver er en virksomhet")
+                        is Organisasjonsledd -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErOrganisasjonsledd, "arbeidsgiver er et organisasjonsledd")
+                    }
+                }
+            }
+        }
     }
 
     private fun inspiserArbeidsavtale(arbeidsavtale: Arbeidsavtale) {
