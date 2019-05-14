@@ -146,13 +146,15 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             is Virksomhet.Organisasjon -> {
                 tellHvilkenVirksomhetstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.VirksomhetErOrganisasjon, "utbetaling er gjort av en organisasjon")
 
-                organisasjonService.hentOrganisasjon((utbetalingEllerTrekk.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer).map { organisasjon ->
+                organisasjonService.hentOrganisasjon((utbetalingEllerTrekk.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer).fold({ feil ->
+                    log.info("feil ved henting av organisasjon ${(utbetalingEllerTrekk.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer}: $feil")
+                }, { organisasjon ->
                     when (organisasjon) {
                         is JuridiskEnhet -> tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.OrganisasjonErJuridiskEnhet, "utbetaling er gjort av en juridisk enhet")
                         is Virksomhet -> tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.OrganisasjonErVirksomhet, "utbetaling er gjort av en virksomhet")
                         is Organisasjonsledd -> tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.OrganisasjonErOrganisasjonsledd, "utbetaling er gjort av et organisasjonsledd")
                     }
-                }
+                })
             }
         }
     }
@@ -219,13 +221,15 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             is Virksomhet.Organisasjon -> {
                 sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.VirksomhetErOrganisasjon, "arbeidsgiver er en organisasjon")
 
-                organisasjonService.hentOrganisasjon((arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer).map { organisasjon ->
+                organisasjonService.hentOrganisasjon((arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer).fold({ feil ->
+                    log.info("feil ved henting av organisasjon ${(arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer}: $feil")
+                }, { organisasjon ->
                     when (organisasjon) {
                         is JuridiskEnhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErJuridiskEnhet, "arbeidsgiver er en juridisk enhet")
                         is Virksomhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErVirksomhet, "arbeidsgiver er en virksomhet")
                         is Organisasjonsledd -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErOrganisasjonsledd, "arbeidsgiver er et organisasjonsledd")
                     }
-                }
+                })
             }
         }
     }
