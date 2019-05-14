@@ -1,10 +1,15 @@
 package no.nav.helse.probe
 
+import arrow.core.right
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.prometheus.client.CollectorRegistry
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
+import no.nav.helse.domene.organisasjon.OrganisasjonService
+import no.nav.helse.domene.organisasjon.domain.Organisasjon
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
 import no.nav.helse.domene.utbetaling.domain.Virksomhet
@@ -77,6 +82,28 @@ class DatakvalitetProbeTest {
 
 
         assertEquals(1.0, arbeidsforholdAvviksCounterAfter - arbeidsforholdAvviksCounterBefore)
+    }
+
+    @Test
+    fun `skal telle organisasjonstype`() {
+        val organisasjonService = mockk<OrganisasjonService>()
+        val datakvalitetProbe = DatakvalitetProbe(mockk(relaxed = true), organisasjonService)
+
+        val utbetaling = UtbetalingEllerTrekk.Lønn(
+                virksomhet = Virksomhet.Organisasjon(Organisasjonsnummer("889640782")),
+                utbetalingsperiode = YearMonth.now(),
+                beløp = BigDecimal(500)
+        )
+
+        every {
+            organisasjonService.hentOrganisasjon((utbetaling.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer)
+        } returns Organisasjon.Virksomhet((utbetaling.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer).right()
+
+        datakvalitetProbe.inspiserUtbetalingEllerTrekk(utbetaling)
+
+        verify(exactly = 1) {
+            organisasjonService.hentOrganisasjon((utbetaling.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer)
+        }
     }
 }
 
