@@ -45,7 +45,7 @@ class ArbeidInntektYtelseServiceTest {
         utbetalingOgTrekkService = mockk()
         organisasjonService = mockk()
 
-        aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, utbetalingOgTrekkService, organisasjonService, DatakvalitetProbe(mockk(relaxed = true)))
+        aktiveArbeidsforholdService = ArbeidInntektYtelseService(arbeidsforholdService, utbetalingOgTrekkService, organisasjonService, DatakvalitetProbe(mockk(relaxed = true), mockk()))
     }
 
     @Test

@@ -7,13 +7,17 @@ import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
 import no.nav.helse.domene.arbeid.domain.Permisjon
+import no.nav.helse.domene.organisasjon.OrganisasjonService
+import no.nav.helse.domene.organisasjon.domain.Organisasjon.JuridiskEnhet
+import no.nav.helse.domene.organisasjon.domain.Organisasjon.Organisasjonsledd
 import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class DatakvalitetProbe(sensuClient: SensuClient) {
+class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonService: OrganisasjonService) {
 
     private val influxMetricReporter = InfluxMetricReporter(sensuClient, "sparkel-events", mapOf(
             "application" to (System.getenv("NAIS_APP_NAME") ?: "sparkel"),
@@ -93,7 +97,13 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         InntektGjelderEnAnnenAktør,
         UlikeYrkerForArbeidsforhold,
         UlikeArbeidsforholdMedSammeYrke,
-        UlikeArbeidsforholdMedUlikYrke
+        UlikeArbeidsforholdMedUlikYrke,
+        VirksomhetErNavAktør,
+        VirksomhetErPerson,
+        VirksomhetErOrganisasjon,
+        OrganisasjonErJuridiskEnhet,
+        OrganisasjonErVirksomhet,
+        OrganisasjonErOrganisasjonsledd
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -128,7 +138,29 @@ class DatakvalitetProbe(sensuClient: SensuClient) {
         if (utbetalingEllerTrekk.beløp < BigDecimal.ZERO) {
             beløpErMindreEnnNull(utbetalingEllerTrekk, "beløp", utbetalingEllerTrekk.beløp)
         }
+
+        when (utbetalingEllerTrekk.virksomhet) {
+            is Virksomhet.NavAktør -> tellHvilkenVirksomhetstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.VirksomhetErNavAktør, "utbetaling er gjort av en NavAktør")
+            is Virksomhet.Person -> tellHvilkenVirksomhetstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.VirksomhetErPerson, "utbetaling er gjort av en person")
+            is Virksomhet.Organisasjon -> {
+                tellHvilkenVirksomhetstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.VirksomhetErOrganisasjon, "utbetaling er gjort av en organisasjon")
+
+                organisasjonService.hentOrganisasjon((utbetalingEllerTrekk.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer).map { organisasjon ->
+                    when (organisasjon) {
+                        is JuridiskEnhet -> tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.OrganisasjonErJuridiskEnhet, "utbetaling er gjort av en juridisk enhet")
+                        is Virksomhet -> tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.OrganisasjonErVirksomhet, "utbetaling er gjort av en virksomhet")
+                        is Organisasjonsledd -> tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk, Observasjonstype.OrganisasjonErOrganisasjonsledd, "utbetaling er gjort av et organisasjonsledd")
+                    }
+                }
+            }
+        }
     }
+
+    private fun tellHvilkenOrganisasjonstypeUtbetalingErGjortAv(utbetalingEllerTrekk: UtbetalingEllerTrekk, observasjonstype: Observasjonstype, beskrivelse: String) =
+            sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", observasjonstype, beskrivelse)
+
+    private fun tellHvilkenVirksomhetstypeUtbetalingErGjortAv(utbetalingEllerTrekk: UtbetalingEllerTrekk, observasjonstype: Observasjonstype, beskrivelse: String) =
+            sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", observasjonstype, beskrivelse)
 
     fun inspiserArbeidInntektYtelse(arbeidInntektYtelse: ArbeidInntektYtelse) {
         arbeidsforholdHistogram.observe(arbeidInntektYtelse.arbeidsforhold.size.toDouble())
