@@ -28,31 +28,12 @@ class YtelseService(private val infotrygdBeregningsgrunnlagService: InfotrygdBer
     private fun finnYtelserFraInfotrygd(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             infotrygdBeregningsgrunnlagService.finnGrunnlagListe(aktørId, fom, tom)
                     .map { finnGrunnlagListeResponse ->
-                        val sykepenger = finnGrunnlagListeResponse.sykepengerListe.flatMap { sykepenger ->
-                            sykepenger.vedtakListe.map { vedtak ->
-                                YtelseMapper.fraInfotrygd("SYKEPENGER", vedtak)
-                            }
+                        with (finnGrunnlagListeResponse) {
+                            sykepengerListe.map(YtelseMapper::fraInfotrygd)
+                                    .plus(foreldrepengerListe.map(YtelseMapper::fraInfotrygd))
+                                    .plus(engangstoenadListe.map(YtelseMapper::fraInfotrygd))
+                                    .plus(paaroerendeSykdomListe.map(YtelseMapper::fraInfotrygd))
                         }
-
-                        val foreldrepenger = finnGrunnlagListeResponse.foreldrepengerListe.flatMap { foreldrepenger ->
-                            foreldrepenger.vedtakListe.map { vedtak ->
-                                YtelseMapper.fraInfotrygd("FORELDREPENGER", vedtak)
-                            }
-                        }
-
-                        val engangstønader = finnGrunnlagListeResponse.engangstoenadListe.flatMap { engangstønad ->
-                            engangstønad.vedtakListe.map { vedtak ->
-                                YtelseMapper.fraInfotrygd("ENGANGSTØNAD", vedtak)
-                            }
-                        }
-
-                        val pårørendeSykdom = finnGrunnlagListeResponse.paaroerendeSykdomListe.flatMap { paaroerendeSykdom ->
-                            paaroerendeSykdom.vedtakListe.map {vedtak ->
-                                YtelseMapper.fraInfotrygd("PÅRØRENDESYKDOM", vedtak)
-                            }
-                        }
-
-                        sykepenger + foreldrepenger + engangstønader + pårørendeSykdom
                     }
 
     private fun finnYtelserFraArena(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =

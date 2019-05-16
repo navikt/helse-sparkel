@@ -121,49 +121,33 @@ class YtelseServiceTest {
     private fun ytelserFraInfotrygd(fom: LocalDate, tom: LocalDate) = FinnGrunnlagListeResponse().apply {
         with (foreldrepengerListe) {
             add(Foreldrepenger().apply {
-                with (vedtakListe) {
-                    add(Vedtak().apply {
-                        anvistPeriode = Periode().apply {
-                            this.fom = fom.toXmlGregorianCalendar()
-                            this.tom = tom.toXmlGregorianCalendar()
-                        }
-                    })
+                periode = Periode().apply {
+                    this.fom = fom.toXmlGregorianCalendar()
+                    this.tom = tom.toXmlGregorianCalendar()
                 }
             })
         }
         with (sykepengerListe) {
             add(Sykepenger().apply {
-                with (vedtakListe) {
-                    add(Vedtak().apply {
-                        anvistPeriode = Periode().apply {
-                            this.fom = fom.toXmlGregorianCalendar()
-                            this.tom = tom.toXmlGregorianCalendar()
-                        }
-                    })
+                periode = Periode().apply {
+                    this.fom = fom.toXmlGregorianCalendar()
+                    this.tom = tom.toXmlGregorianCalendar()
                 }
             })
         }
         with (engangstoenadListe) {
             add(Engangsstoenad().apply {
-                with (vedtakListe) {
-                    add(Vedtak().apply {
-                        anvistPeriode = Periode().apply {
-                            this.fom = fom.toXmlGregorianCalendar()
-                            this.tom = tom.toXmlGregorianCalendar()
-                        }
-                    })
+                periode = Periode().apply {
+                    this.fom = fom.toXmlGregorianCalendar()
+                    this.tom = tom.toXmlGregorianCalendar()
                 }
             })
         }
         with (paaroerendeSykdomListe) {
             add(PaaroerendeSykdom().apply {
-                with (vedtakListe) {
-                    add(Vedtak().apply {
-                        anvistPeriode = Periode().apply {
-                            this.fom = fom.toXmlGregorianCalendar()
-                            this.tom = tom.toXmlGregorianCalendar()
-                        }
-                    })
+                periode = Periode().apply {
+                    this.fom = fom.toXmlGregorianCalendar()
+                    this.tom = tom.toXmlGregorianCalendar()
                 }
             })
         }
