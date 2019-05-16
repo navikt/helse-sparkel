@@ -40,6 +40,8 @@ import no.nav.helse.domene.sykepengegrunnlag.sykepengegrunnlag
 import no.nav.helse.domene.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.domene.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
+import no.nav.helse.domene.ytelse.YtelseService
+import no.nav.helse.domene.ytelse.ytelse
 import no.nav.helse.nais.nais
 import no.nav.helse.oppslag.WsClients
 import no.nav.helse.oppslag.sts.stsClient
@@ -118,6 +120,8 @@ fun main() {
 
         val sykepengehistorikkService = SykepengehistorikkService(infotrygdBeregningsgrunnlagService)
 
+        val ytelseService = YtelseService(infotrygdBeregningsgrunnlagService, wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl))
+
         sparkel(
                 env.jwtIssuer,
                 jwkProvider,
@@ -130,7 +134,8 @@ fun main() {
                 sykepengegrunnlagService,
                 infotrygdBeregningsgrunnlagService,
                 aktørregisterService,
-                sykepengehistorikkService
+                sykepengehistorikkService,
+                ytelseService
         )
     }
 
@@ -153,7 +158,8 @@ fun Application.sparkel(
         sykepengegrunnlagService: SykepengegrunnlagService,
         infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService,
         aktørregisterService: AktørregisterService,
-        sykepengehistorikkService: SykepengehistorikkService
+        sykepengehistorikkService: SykepengehistorikkService,
+        ytelseService: YtelseService
 ) {
     install(CallId) {
         header("Nav-Call-Id")
@@ -219,6 +225,8 @@ fun Application.sparkel(
             infotrygdBeregningsgrunnlag(infotrygdBeregningsgrunnlagService)
 
             sykepengehistorikk(sykepengehistorikkService)
+
+            ytelse(ytelseService)
         }
 
         nais(collectorRegistry)

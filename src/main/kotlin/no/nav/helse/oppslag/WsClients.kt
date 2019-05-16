@@ -1,20 +1,32 @@
 package no.nav.helse.oppslag
 
 import no.nav.helse.oppslag.aktør.AktørregisterClient
-import no.nav.helse.sts.StsRestClient
 import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingClient
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
 import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.helse.oppslag.organisasjon.OrganisasjonClient
 import no.nav.helse.oppslag.person.PersonClient
 import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
 import no.nav.helse.oppslag.sts.configureFor
+import no.nav.helse.sts.StsRestClient
 import org.apache.cxf.ws.security.trust.STSClient
 
 class WsClients(private val stsClientWs: STSClient, private val stsClientRest: StsRestClient, private val allowInsecureRequests: Boolean = false) {
 
     fun aktør(endpointUrl: String) = AktørregisterClient(endpointUrl, stsClientRest)
+
+    fun meldekortUtbetalingsgrunnlag(endpointUrl: String): MeldekortUtbetalingsgrunnlagClient {
+        val port = SoapPorts.MeldekortUtbetalingsgrunnlagV1(endpointUrl).apply {
+            if (allowInsecureRequests) {
+                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+            } else {
+                stsClientWs.configureFor(this)
+            }
+        }
+        return MeldekortUtbetalingsgrunnlagClient(port)
+    }
 
     fun organisasjon(endpointUrl: String): OrganisasjonClient {
         val port = SoapPorts.OrganisasjonV5(endpointUrl).apply {
