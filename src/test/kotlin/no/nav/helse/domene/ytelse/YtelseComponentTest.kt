@@ -179,31 +179,37 @@ private val expectedJson = """
 {
   "ytelser": [
     {
+      "kilde": "Arena",
       "tom": "2019-05-16",
       "tema": "AAP",
       "fom": "2019-04-16"
     },
     {
+      "kilde": "Arena",
       "tom": "2019-05-16",
       "tema": "DAG",
       "fom": "2019-04-16"
     },
     {
+      "kilde": "Infotrygd",
       "tom": "2019-05-16",
       "tema": "SYKEPENGER",
       "fom": "2019-04-16"
     },
     {
+      "kilde": "Infotrygd",
       "tom": "2019-05-16",
       "tema": "FORELDREPENGER",
       "fom": "2019-04-16"
     },
     {
+      "kilde": "Infotrygd",
       "tom": "2019-05-16",
       "tema": "ENGANGSTØNAD",
       "fom": "2019-04-16"
     },
     {
+      "kilde": "Infotrygd",
       "tom": "2019-05-16",
       "tema": "PÅRØRENDESYKDOM",
       "fom": "2019-04-16"

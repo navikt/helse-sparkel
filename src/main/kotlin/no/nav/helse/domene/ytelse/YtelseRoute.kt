@@ -6,6 +6,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
 import no.nav.helse.domene.AktørId
+import no.nav.helse.domene.ytelse.dto.YtelseDto
 import no.nav.helse.domene.ytelse.dto.YtelseResponse
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
@@ -31,6 +32,8 @@ fun Route.ytelse(ytelseService: YtelseService) {
             }
 
             ytelseService.finnYtelser(AktørId(call.parameters["aktorId"]!!), fom, tom).map {
+                it.map(YtelseDtoMapper::toDto)
+            }.map {
                 YtelseResponse(it)
             }.respond(call)
         }

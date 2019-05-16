@@ -2,10 +2,8 @@ package no.nav.helse.domene.ytelse
 
 import arrow.core.flatMap
 import no.nav.helse.Feilårsak
-import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
-import no.nav.helse.domene.ytelse.domain.Ytelse
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.FinnMeldekortUtbetalingsgrunnlagListeAktoerIkkeFunnet
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.FinnMeldekortUtbetalingsgrunnlagListeSikkerhetsbegrensning
@@ -32,41 +30,25 @@ class YtelseService(private val infotrygdBeregningsgrunnlagService: InfotrygdBer
                     .map { finnGrunnlagListeResponse ->
                         val sykepenger = finnGrunnlagListeResponse.sykepengerListe.flatMap { sykepenger ->
                             sykepenger.vedtakListe.map { vedtak ->
-                                Ytelse(
-                                        tema = "SYKEPENGER",
-                                        fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                                        tom = vedtak.anvistPeriode.tom.toLocalDate()
-                                )
+                                YtelseMapper.fraInfotrygd("SYKEPENGER", vedtak)
                             }
                         }
 
                         val foreldrepenger = finnGrunnlagListeResponse.foreldrepengerListe.flatMap { foreldrepenger ->
                             foreldrepenger.vedtakListe.map { vedtak ->
-                                Ytelse(
-                                        tema = "FORELDREPENGER",
-                                        fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                                        tom = vedtak.anvistPeriode.tom.toLocalDate()
-                                )
+                                YtelseMapper.fraInfotrygd("FORELDREPENGER", vedtak)
                             }
                         }
 
                         val engangstønader = finnGrunnlagListeResponse.engangstoenadListe.flatMap { engangstønad ->
                             engangstønad.vedtakListe.map { vedtak ->
-                                Ytelse(
-                                        tema = "ENGANGSTØNAD",
-                                        fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                                        tom = vedtak.anvistPeriode.tom.toLocalDate()
-                                )
+                                YtelseMapper.fraInfotrygd("ENGANGSTØNAD", vedtak)
                             }
                         }
 
                         val pårørendeSykdom = finnGrunnlagListeResponse.paaroerendeSykdomListe.flatMap { paaroerendeSykdom ->
                             paaroerendeSykdom.vedtakListe.map {vedtak ->
-                                Ytelse(
-                                        tema = "PÅRØRENDESYKDOM",
-                                        fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                                        tom = vedtak.anvistPeriode.tom.toLocalDate()
-                                )
+                                YtelseMapper.fraInfotrygd("PÅRØRENDESYKDOM", vedtak)
                             }
                         }
 
@@ -88,11 +70,7 @@ class YtelseService(private val infotrygdBeregningsgrunnlagService: InfotrygdBer
             }.map { saker ->
                 saker.flatMap { sak ->
                     sak.vedtakListe.map { vedtak ->
-                        Ytelse(
-                                tema = sak.tema.value,
-                                fom = vedtak.vedtaksperiode.fom.toLocalDate(),
-                                tom = vedtak.vedtaksperiode.tom.toLocalDate()
-                        )
+                        YtelseMapper.fraArena(sak, vedtak)
                     }
                 }
             }

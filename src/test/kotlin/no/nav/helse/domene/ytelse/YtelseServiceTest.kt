@@ -8,6 +8,7 @@ import io.mockk.mockk
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
+import no.nav.helse.domene.ytelse.domain.Kilde
 import no.nav.helse.domene.ytelse.domain.Ytelse
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
@@ -43,31 +44,37 @@ class YtelseServiceTest {
 
         val expected = listOf(
                 Ytelse(
+                        kilde = Kilde.Arena,
                         tema = "AAP",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
+                        kilde = Kilde.Arena,
                         tema = "DAG",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
+                        kilde = Kilde.Infotrygd,
                         tema = "SYKEPENGER",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
+                        kilde = Kilde.Infotrygd,
                         tema = "FORELDREPENGER",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
+                        kilde = Kilde.Infotrygd,
                         tema = "ENGANGSTØNAD",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
+                        kilde = Kilde.Infotrygd,
                         tema = "PÅRØRENDESYKDOM",
                         fom = fom,
                         tom = tom
