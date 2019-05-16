@@ -57,25 +57,25 @@ class YtelseServiceTest {
                 ),
                 Ytelse(
                         kilde = Kilde.Infotrygd,
-                        tema = "SYKEPENGER",
+                        tema = "SP",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
                         kilde = Kilde.Infotrygd,
-                        tema = "FORELDREPENGER",
+                        tema = "FP",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
                         kilde = Kilde.Infotrygd,
-                        tema = "ENGANGSTØNAD",
+                        tema = "FØ",
                         fom = fom,
                         tom = tom
                 ),
                 Ytelse(
                         kilde = Kilde.Infotrygd,
-                        tema = "PÅRØRENDESYKDOM",
+                        tema = "PN",
                         fom = fom,
                         tom = tom
                 )
@@ -125,6 +125,9 @@ class YtelseServiceTest {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
                 }
+                behandlingstema = Behandlingstema().apply {
+                    value = "FP"
+                }
             })
         }
         with (sykepengerListe) {
@@ -132,6 +135,9 @@ class YtelseServiceTest {
                 periode = Periode().apply {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
+                }
+                behandlingstema = Behandlingstema().apply {
+                    value = "SP"
                 }
             })
         }
@@ -141,6 +147,9 @@ class YtelseServiceTest {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
                 }
+                behandlingstema = Behandlingstema().apply {
+                    value = "FØ"
+                }
             })
         }
         with (paaroerendeSykdomListe) {
@@ -148,6 +157,9 @@ class YtelseServiceTest {
                 periode = Periode().apply {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
+                }
+                behandlingstema = Behandlingstema().apply {
+                    value = "PN"
                 }
             })
         }

@@ -130,6 +130,9 @@ class YtelseComponentTest {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
                 }
+                behandlingstema = Behandlingstema().apply {
+                    value = "FP"
+                }
             })
         }
         with (sykepengerListe) {
@@ -137,6 +140,9 @@ class YtelseComponentTest {
                 periode = Periode().apply {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
+                }
+                behandlingstema = Behandlingstema().apply {
+                    value = "SP"
                 }
             })
         }
@@ -146,6 +152,9 @@ class YtelseComponentTest {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
                 }
+                behandlingstema = Behandlingstema().apply {
+                    value = "FØ"
+                }
             })
         }
         with (paaroerendeSykdomListe) {
@@ -153,6 +162,9 @@ class YtelseComponentTest {
                 periode = Periode().apply {
                     this.fom = fom.toXmlGregorianCalendar()
                     this.tom = tom.toXmlGregorianCalendar()
+                }
+                behandlingstema = Behandlingstema().apply {
+                    value = "PN"
                 }
             })
         }
@@ -177,25 +189,25 @@ private val expectedJson = """
     {
       "kilde": "Infotrygd",
       "tom": "2019-05-16",
-      "tema": "SYKEPENGER",
+      "tema": "SP",
       "fom": "2019-04-16"
     },
     {
       "kilde": "Infotrygd",
       "tom": "2019-05-16",
-      "tema": "FORELDREPENGER",
+      "tema": "FP",
       "fom": "2019-04-16"
     },
     {
       "kilde": "Infotrygd",
       "tom": "2019-05-16",
-      "tema": "ENGANGSTØNAD",
+      "tema": "FØ",
       "fom": "2019-04-16"
     },
     {
       "kilde": "Infotrygd",
       "tom": "2019-05-16",
-      "tema": "PÅRØRENDESYKDOM",
+      "tema": "PN",
       "fom": "2019-04-16"
     }
   ]

@@ -5,6 +5,6 @@ import java.time.LocalDate
 data class YtelseDto(
         val kilde: String,
         val tema: String,
-        val fom: LocalDate,
-        val tom: LocalDate
+        val fom: LocalDate?,
+        val tom: LocalDate?
 )
