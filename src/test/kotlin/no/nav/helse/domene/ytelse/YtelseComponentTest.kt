@@ -16,13 +16,16 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
-import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
+import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.InfotrygdSakV1
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.meldinger.FinnSakListeResponse
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.AktoerId
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.Sak
@@ -38,17 +41,30 @@ class YtelseComponentTest {
     @Test
     fun `skal gi liste over ytelser`() {
         val infotrygdBeregningsgrunnlagV1 = mockk<InfotrygdBeregningsgrunnlagV1>()
+        val infotrygdSakV1 = mockk<InfotrygdSakV1>()
         val meldekortUtbetalingsgrunnlagV1 = mockk<MeldekortUtbetalingsgrunnlagV1>()
         val aktørregisterService = mockk<AktørregisterService>()
 
         val fnr = Fødselsnummer("11111111111")
         val aktørId = AktørId("123456789")
-        val fom = LocalDate.now().minusMonths(1)
-        val tom = LocalDate.now()
+        val identdatoSykepenger = LocalDate.of(2019, 5, 28)
+        val identdatoForeldrepenger = LocalDate.of(2019, 5, 14)
+        val identdatoEngangstønad = LocalDate.of(2019, 5, 7)
+        val identdatoPleiepenger = LocalDate.of(2019, 5, 1)
+        val fom = LocalDate.of(2019, 5, 1)
+        val tom = LocalDate.of(2019, 5, 31)
 
         every {
             aktørregisterService.fødselsnummerForAktør(aktørId)
         } returns fnr.value.right()
+
+        every {
+            infotrygdSakV1.finnSakListe(match { request ->
+                request.personident == fnr.value
+                        && request.periode.fom.toLocalDate() == fom
+                        && request.periode.tom.toLocalDate() == tom
+            })
+        } returns sakerFraInfotrygd(identdatoSykepenger, identdatoForeldrepenger, identdatoEngangstønad, identdatoPleiepenger)
 
         every {
             infotrygdBeregningsgrunnlagV1.finnGrunnlagListe(match { request ->
@@ -56,7 +72,7 @@ class YtelseComponentTest {
                         && request.fom.toLocalDate() == fom
                         && request.tom.toLocalDate() == tom
             })
-        } returns ytelserFraInfotrygd(fom, tom)
+        } returns ytelserFraInfotrygd(identdatoSykepenger, identdatoForeldrepenger, identdatoEngangstønad, identdatoPleiepenger, fom, tom)
 
         every {
             meldekortUtbetalingsgrunnlagV1.finnMeldekortUtbetalingsgrunnlagListe(match { request ->
@@ -75,10 +91,9 @@ class YtelseComponentTest {
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 ytelseService = YtelseService(
-                        infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(
-                                infotrygdClient = InfotrygdBeregningsgrunnlagListeClient(infotrygdBeregningsgrunnlagV1),
-                                aktørregisterService = aktørregisterService
-                        ),
+                        aktørregisterService = aktørregisterService,
+                        infotrygdBeregningsgrunnlagListeClient = InfotrygdBeregningsgrunnlagListeClient(infotrygdBeregningsgrunnlagV1),
+                        infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
                         meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1)
                 )
                 )}) {
@@ -123,7 +138,47 @@ class YtelseComponentTest {
         }
     }
 
-    private fun ytelserFraInfotrygd(fom: LocalDate, tom: LocalDate) = FinnGrunnlagListeResponse().apply {
+    private fun sakerFraInfotrygd(identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate) =
+            FinnSakListeResponse().apply {
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoSykepenger.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "SP"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "SP"
+                    }
+                })
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoForeldrepenger.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "FA"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "FØ"
+                    }
+                })
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoEngangstønad.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "FA"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "FE"
+                    }
+                })
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoPleiepenger.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "BS"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "PN"
+                    }
+                })
+            }
+
+    private fun ytelserFraInfotrygd(identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate, fom: LocalDate, tom: LocalDate) = FinnGrunnlagListeResponse().apply {
         with (foreldrepengerListe) {
             add(Foreldrepenger().apply {
                 periode = Periode().apply {
@@ -131,8 +186,9 @@ class YtelseComponentTest {
                     this.tom = tom.toXmlGregorianCalendar()
                 }
                 behandlingstema = Behandlingstema().apply {
-                    value = "FP"
+                    value = "FØ"
                 }
+                this.identdato = identdatoForeldrepenger.toXmlGregorianCalendar()
             })
         }
         with (sykepengerListe) {
@@ -144,6 +200,7 @@ class YtelseComponentTest {
                 behandlingstema = Behandlingstema().apply {
                     value = "SP"
                 }
+                this.identdato = identdatoSykepenger.toXmlGregorianCalendar()
             })
         }
         with (engangstoenadListe) {
@@ -153,8 +210,9 @@ class YtelseComponentTest {
                     this.tom = tom.toXmlGregorianCalendar()
                 }
                 behandlingstema = Behandlingstema().apply {
-                    value = "FØ"
+                    value = "FE"
                 }
+                this.identdato = identdatoEngangstønad.toXmlGregorianCalendar()
             })
         }
         with (paaroerendeSykdomListe) {
@@ -166,6 +224,7 @@ class YtelseComponentTest {
                 behandlingstema = Behandlingstema().apply {
                     value = "PN"
                 }
+                this.identdato = identdatoPleiepenger.toXmlGregorianCalendar()
             })
         }
     }
@@ -173,43 +232,89 @@ class YtelseComponentTest {
 
 private val expectedJson = """
 {
-  "ytelser": [
+  "arena": [
     {
       "kilde": "Arena",
-      "tom": "2019-05-16",
+      "tom": "2019-05-31",
       "tema": "AAP",
-      "fom": "2019-04-16"
+      "fom": "2019-05-01"
     },
     {
       "kilde": "Arena",
-      "tom": "2019-05-16",
+      "tom": "2019-05-31",
       "tema": "DAG",
-      "fom": "2019-04-16"
-    },
-    {
-      "kilde": "Infotrygd",
-      "tom": "2019-05-16",
-      "tema": "SP",
-      "fom": "2019-04-16"
-    },
-    {
-      "kilde": "Infotrygd",
-      "tom": "2019-05-16",
-      "tema": "FP",
-      "fom": "2019-04-16"
-    },
-    {
-      "kilde": "Infotrygd",
-      "tom": "2019-05-16",
-      "tema": "FØ",
-      "fom": "2019-04-16"
-    },
-    {
-      "kilde": "Infotrygd",
-      "tom": "2019-05-16",
-      "tema": "PN",
-      "fom": "2019-04-16"
+      "fom": "2019-05-01"
     }
-  ]
+  ],
+  "infotrygd": [
+      {
+        "sak": {
+          "tema": "Sykepenger",
+          "behandlingstema": "Sykepenger",
+          "iverksatt": "2019-05-28"
+        },
+        "grunnlag": [
+          {
+            "type": "Sykepenger",
+            "periodeTom": "2019-05-31",
+            "vedtak": [],
+            "behandlingstema": "Sykepenger",
+            "identdato": "2019-05-28",
+            "periodeFom": "2019-05-01"
+          }
+        ]
+      },
+      {
+        "sak": {
+          "tema": "Foreldrepenger",
+          "behandlingstema": "ForeldrepengerMedFødsel",
+          "iverksatt": "2019-05-14"
+        },
+        "grunnlag": [
+          {
+            "type": "Foreldrepenger",
+            "periodeTom": "2019-05-31",
+            "vedtak": [],
+            "behandlingstema": "ForeldrepengerMedFødsel",
+            "identdato": "2019-05-14",
+            "periodeFom": "2019-05-01"
+          }
+        ]
+      },
+      {
+        "sak": {
+          "tema": "Foreldrepenger",
+          "behandlingstema": "EngangstønadMedFødsel",
+          "iverksatt": "2019-05-07"
+        },
+        "grunnlag": [
+          {
+            "type": "Engangstønad",
+            "periodeTom": "2019-05-31",
+            "vedtak": [],
+            "behandlingstema": "EngangstønadMedFødsel",
+            "identdato": "2019-05-07",
+            "periodeFom": "2019-05-01"
+          }
+        ]
+      },
+      {
+        "sak": {
+          "tema": "PårørendeSykdom",
+          "behandlingstema": "Pleiepenger",
+          "iverksatt": "2019-05-01"
+        },
+        "grunnlag": [
+          {
+            "type": "PårørendeSykdom",
+            "periodeTom": "2019-05-31",
+            "vedtak": [],
+            "behandlingstema": "Pleiepenger",
+            "identdato": "2019-05-01",
+            "periodeFom": "2019-05-01"
+          }
+        ]
+      }
+    ]
 }
 """.trimIndent()

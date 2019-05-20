@@ -113,14 +113,19 @@ fun main() {
 
         val sykepengegrunnlagService = SykepengegrunnlagService(inntektService, organisasjonService)
 
+        val infotrygdBeregningsgrunnlagListeClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl)
         val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(
-                infotrygdClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl),
+                infotrygdClient = infotrygdBeregningsgrunnlagListeClient,
                 aktørregisterService = aktørregisterService
         )
 
         val sykepengehistorikkService = SykepengehistorikkService(infotrygdBeregningsgrunnlagService)
 
-        val ytelseService = YtelseService(infotrygdBeregningsgrunnlagService, wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl))
+        val ytelseService = YtelseService(
+                aktørregisterService = aktørregisterService,
+                infotrygdBeregningsgrunnlagListeClient = infotrygdBeregningsgrunnlagListeClient,
+                infotrygdSakClient = wsClients.infotrygdSak(env.infotrygdSakEndpoint),
+                meldekortUtbetalingsgrunnlagClient = wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl))
 
         sparkel(
                 env.jwtIssuer,

@@ -1,3 +1,3 @@
 package no.nav.helse.domene.ytelse.dto
 
-data class YtelseResponse(val ytelser: List<YtelseDto>)
+data class YtelseResponse(val arena: List<YtelseDto>, val infotrygd: List<InfotrygdSakOgGrunnlagDto>)

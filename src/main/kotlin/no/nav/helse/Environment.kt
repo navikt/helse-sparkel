@@ -18,6 +18,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
     val jwksUrl: String = envVar("JWKS_URL")
     val jwtIssuer: String = envVar("JWT_ISSUER")
     val aktørregisterUrl: String = envVar("AKTORREGISTER_URL")
+    val infotrygdSakEndpoint: String = envVar("INFOTRYGD_SAK_ENDPOINTURL")
 
     val stsRestUrl: String = envVar("SECURITY_TOKEN_SERVICE_REST_URL")
 
