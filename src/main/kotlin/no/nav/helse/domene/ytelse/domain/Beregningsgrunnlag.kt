@@ -113,4 +113,4 @@ sealed class Beregningsgrunnlag(val identdato: LocalDate,
 
 data class BeregningsgrunnlagVedtak(val fom: LocalDate,
                                     val tom: LocalDate,
-                                    val utbetalingsgrad: Int)
+                                    val utbetalingsgrad: Int?)
