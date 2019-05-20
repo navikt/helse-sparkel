@@ -16,7 +16,7 @@ class BehandlingstemaTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["FØ", "AP", "FU"])
+    @ValueSource(strings = ["FØ", "AP", "FU", "FP"])
     fun `kodeverkverdier for behandlingstema for foreldrepenger`(behandlingstema: String) {
         assertEquals(Foreldrepenger, fraKode(behandlingstema).tema)
     }
@@ -48,6 +48,7 @@ class BehandlingstemaTest {
     @Test
     fun `skal mappe til behandlingstema`() {
         val expected = mapOf(
+                "FP" to Behandlingstema.Foreldrepenger::class,
                 "FØ" to Behandlingstema.ForeldrepengerMedFødsel::class,
                 "FU" to Behandlingstema.ForeldrepengerMedFødselUtland::class,
                 "AP" to Behandlingstema.ForeldrepengerMedAdopsjon::class,

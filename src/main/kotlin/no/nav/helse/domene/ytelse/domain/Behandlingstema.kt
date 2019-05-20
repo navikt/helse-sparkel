@@ -2,6 +2,7 @@ package no.nav.helse.domene.ytelse.domain
 
 sealed class Behandlingstema(val kode: String, val tema: Tema) {
 
+    object Foreldrepenger: Behandlingstema("FP", Tema.Foreldrepenger)
     object ForeldrepengerMedFødsel: Behandlingstema("FØ", Tema.Foreldrepenger)
     object ForeldrepengerMedFødselUtland: Behandlingstema("FU", Tema.Foreldrepenger)
     object ForeldrepengerMedAdopsjon: Behandlingstema("AP", Tema.Foreldrepenger)
@@ -26,6 +27,7 @@ sealed class Behandlingstema(val kode: String, val tema: Tema) {
     class Ukjent(kode: String): Behandlingstema(kode, Tema.Ukjent)
 
     fun name() = when (this) {
+        is Foreldrepenger -> "Foreldrepenger"
         is ForeldrepengerMedFødsel -> "ForeldrepengerMedFødsel"
         is ForeldrepengerMedFødselUtland -> "ForeldrepengerMedFødselUtland"
         is ForeldrepengerMedAdopsjon -> "ForeldrepengerMedAdopsjon"
@@ -52,6 +54,7 @@ sealed class Behandlingstema(val kode: String, val tema: Tema) {
 
     companion object {
         fun fraKode(kode: String) = when (kode) {
+            Foreldrepenger.kode -> Foreldrepenger
             ForeldrepengerMedFødsel.kode -> ForeldrepengerMedFødsel
             ForeldrepengerMedFødselUtland.kode -> ForeldrepengerMedFødselUtland
             ForeldrepengerMedAdopsjon.kode -> ForeldrepengerMedAdopsjon
