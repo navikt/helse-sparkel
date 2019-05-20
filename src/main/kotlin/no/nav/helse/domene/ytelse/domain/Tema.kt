@@ -18,6 +18,10 @@ sealed class Tema {
         is Ukjent -> "Ukjent"
     }
 
+    override fun toString(): String {
+        return name()
+    }
+
     companion object {
         fun fraKode(tema: String) =
                 when (tema) {

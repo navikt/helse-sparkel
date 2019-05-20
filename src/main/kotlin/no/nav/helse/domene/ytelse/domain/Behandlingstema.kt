@@ -46,6 +46,10 @@ sealed class Behandlingstema(val kode: String, val tema: Tema) {
         is Ukjent -> "Ukjent"
     }
 
+    override fun toString(): String {
+        return "${name()}(kode='$kode', tema=$tema)"
+    }
+
     companion object {
         fun fraKode(kode: String) = when (kode) {
             ForeldrepengerMedFødsel.kode -> ForeldrepengerMedFødsel
