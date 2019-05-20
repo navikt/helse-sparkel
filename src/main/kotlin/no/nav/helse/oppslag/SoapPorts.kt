@@ -4,6 +4,7 @@ import no.nav.cxf.metrics.MetricFeature
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.ArbeidsfordelingV1
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.ArbeidsforholdV3
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.InfotrygdSakV1
 import no.nav.tjeneste.virksomhet.inntekt.v3.binding.InntektV3
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
@@ -76,6 +77,15 @@ object SoapPorts {
                 namespace = "http://nav.no/tjeneste/virksomhet/infotrygdBeregningsgrunnlag/v1/Binding",
                 svcName = "infotrygdBeregningsgrunnlag_v1",
                 portName = "infotrygdBeregningsgrunnlag_v1Port")
+    }
+
+    fun InfotrygdSakV1(serviceUrl: String): InfotrygdSakV1 {
+        return createServicePort(serviceUrl,
+                serviceClazz = InfotrygdSakV1::class.java,
+                wsdl = "wsdl/no/nav/tjeneste/virksomhet/infotrygdSak/v1/Binding.wsdl",
+                namespace = "http://nav.no/tjeneste/virksomhet/infotrygdSak/v1/Binding",
+                svcName = "InfotrygdSak_v1",
+                portName = "infotrygdSak_v1Port")
     }
 
     private fun <PORT_TYPE> createServicePort(serviceUrl: String, serviceClazz: Class<PORT_TYPE>, wsdl: String, namespace: String, svcName: String, portName: String): PORT_TYPE {

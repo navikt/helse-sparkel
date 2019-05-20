@@ -14,7 +14,7 @@ fun assertJsonEquals(expected: JSONObject, actual: JSONObject) {
         when(expectedValue) {
             is JSONObject -> assertJsonEquals(expectedValue, actual.get(it) as JSONObject)
             is JSONArray -> assertJsonEquals(expectedValue, actual.get(it) as JSONArray)
-            else -> Assertions.assertEquals(expectedValue, actual.get(it), "${actual.get(it)} does not match $expectedValue")
+            else -> Assertions.assertEquals(expectedValue, actual.get(it), "${actual.get(it)} does not match $expectedValue for field $it")
         }
     }
 }

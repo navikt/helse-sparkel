@@ -9,7 +9,6 @@ import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunn
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeUgyldigInput
-import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
@@ -29,13 +28,6 @@ class InfotrygdBeregningsgrunnlagService(private val infotrygdClient : Infotrygd
                         is FinnGrunnlagListeUgyldigInput -> Feilårsak.FeilFraTjeneste
                         is FinnGrunnlagListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
                         else -> Feilårsak.UkjentFeil
-                    }
-                }.map { response ->
-                    if (response == null) {
-                        log.info("FinnGrunnlagListeResponse er null")
-                        FinnGrunnlagListeResponse()
-                    } else {
-                        response
                     }
                 }
             }

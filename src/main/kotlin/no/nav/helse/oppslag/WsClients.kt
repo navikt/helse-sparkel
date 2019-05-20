@@ -4,6 +4,7 @@ import no.nav.helse.oppslag.aktør.AktørregisterClient
 import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingClient
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
+import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
 import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.helse.oppslag.organisasjon.OrganisasjonClient
@@ -95,4 +96,14 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
         return InfotrygdBeregningsgrunnlagListeClient(port)
     }
 
+    fun infotrygdSak(endpointUrl: String): InfotrygdSakClient {
+        val port = SoapPorts.InfotrygdSakV1(endpointUrl).apply {
+            if (allowInsecureRequests) {
+                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+            } else {
+                stsClientWs.configureFor(this)
+            }
+        }
+        return InfotrygdSakClient(port)
+    }
 }

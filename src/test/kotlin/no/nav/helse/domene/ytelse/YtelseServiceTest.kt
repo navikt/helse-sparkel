@@ -7,12 +7,17 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
-import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
-import no.nav.helse.domene.ytelse.domain.Kilde
-import no.nav.helse.domene.ytelse.domain.Ytelse
+import no.nav.helse.domene.Fødselsnummer
+import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.ytelse.domain.*
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
+import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
+import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.Behandlingstema
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.meldinger.FinnSakListeResponse
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.Sak
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.Tema
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.meldinger.FinnMeldekortUtbetalingsgrunnlagListeResponse
@@ -25,24 +30,43 @@ class YtelseServiceTest {
 
     @Test
     fun `skal sammenstille ytelser fra arena og infotrygd`() {
-        val infotrygdBeregningsgrunnlagService = mockk<InfotrygdBeregningsgrunnlagService>()
+        val aktørregisterService = mockk<AktørregisterService>()
+        val infotrygdBeregningsgrunnlagListeClient = mockk<InfotrygdBeregningsgrunnlagListeClient>()
+        val infotrygdSakClient = mockk<InfotrygdSakClient>()
         val meldekortUtbetalingsgrunnlagClient = mockk<MeldekortUtbetalingsgrunnlagClient>()
 
-        val ytelseService = YtelseService(infotrygdBeregningsgrunnlagService, meldekortUtbetalingsgrunnlagClient)
+        val ytelseService = YtelseService(
+                aktørregisterService = aktørregisterService,
+                infotrygdBeregningsgrunnlagListeClient = infotrygdBeregningsgrunnlagListeClient,
+                infotrygdSakClient = infotrygdSakClient,
+                meldekortUtbetalingsgrunnlagClient = meldekortUtbetalingsgrunnlagClient)
 
         val aktørId = AktørId("123456789")
+        val fødselsnummer = Fødselsnummer("11111111111")
+        val identdatoSykepenger = LocalDate.now().minusMonths(1)
+        val identdatoForeldrepenger = LocalDate.now().minusDays(28)
+        val identdatoEngangstønad = LocalDate.now().minusDays(14)
+        val identdatoPleiepenger = LocalDate.now().minusDays(7)
         val fom = LocalDate.now().minusMonths(1)
         val tom = LocalDate.now()
 
         every {
-            infotrygdBeregningsgrunnlagService.finnGrunnlagListe(aktørId, fom, tom)
-        } returns ytelserFraInfotrygd(fom, tom)
+            aktørregisterService.fødselsnummerForAktør(aktørId)
+        } returns fødselsnummer.value.right()
+
+        every {
+            infotrygdSakClient.finnSakListe(fødselsnummer.value, fom, tom)
+        } returns sakerFraInfotrygd(identdatoSykepenger, identdatoForeldrepenger, identdatoEngangstønad, identdatoPleiepenger)
+
+        every {
+            infotrygdBeregningsgrunnlagListeClient.finnGrunnlagListe(fødselsnummer, fom, tom)
+        } returns ytelserFraInfotrygd(identdatoSykepenger, identdatoForeldrepenger, identdatoEngangstønad, identdatoPleiepenger, fom, tom)
 
         every {
             meldekortUtbetalingsgrunnlagClient.finnMeldekortUtbetalingsgrunnlag(aktørId, fom, tom)
         } returns ytelserFraArena(fom, tom)
 
-        val expected = listOf(
+        val expectedArena = listOf(
                 Ytelse(
                         kilde = Kilde.Arena,
                         tema = "AAP",
@@ -54,37 +78,84 @@ class YtelseServiceTest {
                         tema = "DAG",
                         fom = fom,
                         tom = tom
+                )
+        )
+        val expectedInfotrygd = listOf(
+                InfotrygdSakOgGrunnlag(
+                        sak = InfotrygdSak(
+                                iverksatt = identdatoSykepenger,
+                                tema = no.nav.helse.domene.ytelse.domain.Tema.Sykepenger,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
+                                opphørerFom = null
+                        ),
+                        grunnlag = listOf(
+                                Beregningsgrunnlag.Sykepenger(
+                                        identdato = identdatoSykepenger,
+                                        periodeFom = fom,
+                                        periodeTom = tom,
+                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
+                                        vedtak = emptyList()
+                                )
+                        )
                 ),
-                Ytelse(
-                        kilde = Kilde.Infotrygd,
-                        tema = "SP",
-                        fom = fom,
-                        tom = tom
+                InfotrygdSakOgGrunnlag(
+                        sak = InfotrygdSak(
+                                iverksatt = identdatoForeldrepenger,
+                                tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
+                                opphørerFom = null
+                        ),
+                        grunnlag = listOf(
+                                Beregningsgrunnlag.Foreldrepenger(
+                                        identdato = identdatoForeldrepenger,
+                                        periodeFom = fom,
+                                        periodeTom = tom,
+                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
+                                        vedtak = emptyList()
+                                )
+                        )
                 ),
-                Ytelse(
-                        kilde = Kilde.Infotrygd,
-                        tema = "FP",
-                        fom = fom,
-                        tom = tom
+                InfotrygdSakOgGrunnlag(
+                        sak = InfotrygdSak(
+                                iverksatt = identdatoEngangstønad,
+                                tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
+                                opphørerFom = null
+                        ),
+                        grunnlag = listOf(
+                                Beregningsgrunnlag.Engangstønad(
+                                        identdato = identdatoEngangstønad,
+                                        periodeFom = fom,
+                                        periodeTom = tom,
+                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
+                                        vedtak = emptyList()
+                                )
+                        )
                 ),
-                Ytelse(
-                        kilde = Kilde.Infotrygd,
-                        tema = "FØ",
-                        fom = fom,
-                        tom = tom
-                ),
-                Ytelse(
-                        kilde = Kilde.Infotrygd,
-                        tema = "PN",
-                        fom = fom,
-                        tom = tom
+                InfotrygdSakOgGrunnlag(
+                        sak = InfotrygdSak(
+                                iverksatt = identdatoPleiepenger,
+                                tema = no.nav.helse.domene.ytelse.domain.Tema.PårørendeSykdom,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
+                                opphørerFom = null
+                        ),
+                        grunnlag = listOf(
+                                Beregningsgrunnlag.PårørendeSykdom(
+                                        identdato = identdatoPleiepenger,
+                                        periodeFom = fom,
+                                        periodeTom = tom,
+                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
+                                        vedtak = emptyList()
+                                )
+                        )
                 )
         )
         val actual = ytelseService.finnYtelser(aktørId, fom, tom)
 
         assertTrue(actual is Either.Right)
         actual as Either.Right
-        assertEquals(expected, actual.b)
+        assertEquals(expectedArena, actual.b.arena)
+        assertEquals(expectedInfotrygd, actual.b.infotrygd)
     }
 
     private fun ytelserFraArena(fom: LocalDate, tom: LocalDate) = FinnMeldekortUtbetalingsgrunnlagListeResponse().apply {
@@ -118,7 +189,47 @@ class YtelseServiceTest {
         }
     }.success()
 
-    private fun ytelserFraInfotrygd(fom: LocalDate, tom: LocalDate) = FinnGrunnlagListeResponse().apply {
+    private fun sakerFraInfotrygd(identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate) =
+            FinnSakListeResponse().apply {
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoSykepenger.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "SP"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "SP"
+                    }
+                })
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoForeldrepenger.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "FA"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "FØ"
+                    }
+                })
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoEngangstønad.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "FA"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "FE"
+                    }
+                })
+                this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.iverksatt = identdatoPleiepenger.toXmlGregorianCalendar()
+                    this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
+                        value = "BS"
+                    }
+                    this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
+                        value = "PN"
+                    }
+                })
+            }.success()
+
+    private fun ytelserFraInfotrygd(identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate, fom: LocalDate, tom: LocalDate) = FinnGrunnlagListeResponse().apply {
         with (foreldrepengerListe) {
             add(Foreldrepenger().apply {
                 periode = Periode().apply {
@@ -126,8 +237,9 @@ class YtelseServiceTest {
                     this.tom = tom.toXmlGregorianCalendar()
                 }
                 behandlingstema = Behandlingstema().apply {
-                    value = "FP"
+                    value = "FØ"
                 }
+                this.identdato = identdatoForeldrepenger.toXmlGregorianCalendar()
             })
         }
         with (sykepengerListe) {
@@ -139,6 +251,7 @@ class YtelseServiceTest {
                 behandlingstema = Behandlingstema().apply {
                     value = "SP"
                 }
+                this.identdato = identdatoSykepenger.toXmlGregorianCalendar()
             })
         }
         with (engangstoenadListe) {
@@ -148,8 +261,9 @@ class YtelseServiceTest {
                     this.tom = tom.toXmlGregorianCalendar()
                 }
                 behandlingstema = Behandlingstema().apply {
-                    value = "FØ"
+                    value = "FE"
                 }
+                this.identdato = identdatoEngangstønad.toXmlGregorianCalendar()
             })
         }
         with (paaroerendeSykdomListe) {
@@ -161,7 +275,8 @@ class YtelseServiceTest {
                 behandlingstema = Behandlingstema().apply {
                     value = "PN"
                 }
+                this.identdato = identdatoPleiepenger.toXmlGregorianCalendar()
             })
         }
-    }.right()
+    }.success()
 }
