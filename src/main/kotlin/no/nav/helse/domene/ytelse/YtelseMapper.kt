@@ -21,7 +21,7 @@ object YtelseMapper {
             Ytelse(
                     kilde = Kilde.Arena,
                     tema = sak.tema.value,
-                    fom = vedtak.vedtaksperiode.fom.toLocalDate(),
-                    tom = vedtak.vedtaksperiode.tom.toLocalDate()
+                    fom = vedtak.vedtaksperiode.fom?.toLocalDate(),
+                    tom = vedtak.vedtaksperiode.tom?.toLocalDate()
             )
 }
