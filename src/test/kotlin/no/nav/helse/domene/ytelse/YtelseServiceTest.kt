@@ -39,7 +39,8 @@ class YtelseServiceTest {
                 aktørregisterService = aktørregisterService,
                 infotrygdBeregningsgrunnlagListeClient = infotrygdBeregningsgrunnlagListeClient,
                 infotrygdSakClient = infotrygdSakClient,
-                meldekortUtbetalingsgrunnlagClient = meldekortUtbetalingsgrunnlagClient)
+                meldekortUtbetalingsgrunnlagClient = meldekortUtbetalingsgrunnlagClient,
+                probe = mockk(relaxed = true))
 
         val aktørId = AktørId("123456789")
         val fødselsnummer = Fødselsnummer("11111111111")

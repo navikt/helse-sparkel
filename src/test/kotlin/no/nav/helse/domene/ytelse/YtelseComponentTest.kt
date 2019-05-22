@@ -94,7 +94,8 @@ class YtelseComponentTest {
                         aktørregisterService = aktørregisterService,
                         infotrygdBeregningsgrunnlagListeClient = InfotrygdBeregningsgrunnlagListeClient(infotrygdBeregningsgrunnlagV1),
                         infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
-                        meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1)
+                        meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
+                        probe = mockk(relaxed = true)
                 )
                 )}) {
             handleRequest(HttpMethod.Get, "/api/ytelser/${aktørId.aktor}?fom=$fom&tom=$tom") {
