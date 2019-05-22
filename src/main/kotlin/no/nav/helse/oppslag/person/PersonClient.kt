@@ -12,7 +12,7 @@ class PersonClient(private val personV3: PersonV3) {
 
     fun personInfo(id: AktørId) =
             Try {
-                personV3.hentPerson(hentPersonRequest(id)).person
+                personV3.hentPerson(hentPersonRequest(id, listOf(Informasjonsbehov.ADRESSE))).person
             }
 
     fun geografiskTilknytning(id : AktørId) =
@@ -20,12 +20,17 @@ class PersonClient(private val personV3: PersonV3) {
                 personV3.hentGeografiskTilknytning(hentGeografiskTilknytningRequest(id))
             }
 
-    private fun hentPersonRequest(id: AktørId) =
+    fun familierelasjoner(id : AktørId) =
+            Try {
+                personV3.hentPerson(hentPersonRequest(id, listOf(Informasjonsbehov.FAMILIERELASJONER))).person.harFraRolleI.toList()
+            }
+
+    private fun hentPersonRequest(id: AktørId, informasjonsbehov : List<Informasjonsbehov>) =
             HentPersonRequest().apply {
                 aktoer = AktoerId().apply {
                     aktoerId = id.aktor
                 }
-                informasjonsbehov.add(Informasjonsbehov.ADRESSE)
+                withInformasjonsbehov(informasjonsbehov)
             }
 
     private fun hentGeografiskTilknytningRequest(id: AktørId) =

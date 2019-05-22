@@ -1,12 +1,15 @@
 package no.nav.helse.domene.person
 
+import arrow.core.Either
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
+import no.nav.helse.domene.person.domain.Person
 import no.nav.helse.oppslag.person.PersonClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningSikkerhetsbegrensing
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonSikkerhetsbegrensning
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
 import org.slf4j.LoggerFactory
 
 class PersonService(private val personClient: PersonClient) {
@@ -40,4 +43,34 @@ class PersonService(private val personClient: PersonClient) {
             }.map {
                 GeografiskTilknytningMapper.tilGeografiskTilknytning(it)
             }
+
+    fun barn(aktørId: AktørId) =
+        personClient.familierelasjoner(aktørId).toEither { error ->
+            log.error("Feil ved oppslag på familierelasjoner", error)
+            when (error) {
+                is HentPersonPersonIkkeFunnet -> Feilårsak.IkkeFunnet
+                is HentPersonSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
+                else -> Feilårsak.FeilFraTjeneste
+            }
+        }.map { familierelasjoner ->
+            /*
+                "tilPerson" som blir returnert som en del av Familierelasjon inneholder kun aktørId og navn.
+                Må gjøre oppslag på hvert enkelt barn for å kunne avgjøre status og disresjonskode
+             */
+            val barnAktørIder =  familierelasjoner
+                    .filter { "BARN" == it.tilRolle.value }
+                    .map { AktørId((it.tilPerson.aktoer as AktoerId).aktoerId) }
+
+            log.trace("Slår opp info på '${barnAktørIder.size}' barn.")
+
+            val barn = mutableListOf<Person>()
+            barnAktørIder.forEach { barnAktørId ->
+                val oppslagResult = personInfo(barnAktørId)
+                when (oppslagResult) {
+                    is Either.Right -> barn.add(oppslagResult.b)
+                    is Either.Left -> log.error("Feil ved oppslag på barn med AktørID '$barnAktørId'")
+                }
+            }
+            barn.toList()
+        }
 }
