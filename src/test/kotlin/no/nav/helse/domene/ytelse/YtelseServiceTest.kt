@@ -83,6 +83,7 @@ class YtelseServiceTest {
         val expectedInfotrygd = listOf(
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak(
+                                sakId = "1",
                                 iverksatt = identdatoSykepenger,
                                 tema = no.nav.helse.domene.ytelse.domain.Tema.Sykepenger,
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
@@ -100,6 +101,7 @@ class YtelseServiceTest {
                 ),
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak(
+                                sakId = "2",
                                 iverksatt = identdatoForeldrepenger,
                                 tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
@@ -117,6 +119,7 @@ class YtelseServiceTest {
                 ),
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak(
+                                sakId = "3",
                                 iverksatt = identdatoEngangstønad,
                                 tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
@@ -134,6 +137,7 @@ class YtelseServiceTest {
                 ),
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak(
+                                sakId = "4",
                                 iverksatt = identdatoPleiepenger,
                                 tema = no.nav.helse.domene.ytelse.domain.Tema.PårørendeSykdom,
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
@@ -192,6 +196,7 @@ class YtelseServiceTest {
     private fun sakerFraInfotrygd(identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate) =
             FinnSakListeResponse().apply {
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "1"
                     this.iverksatt = identdatoSykepenger.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "SP"
@@ -201,6 +206,7 @@ class YtelseServiceTest {
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "2"
                     this.iverksatt = identdatoForeldrepenger.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "FA"
@@ -210,6 +216,7 @@ class YtelseServiceTest {
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "3"
                     this.iverksatt = identdatoEngangstønad.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "FA"
@@ -219,6 +226,7 @@ class YtelseServiceTest {
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "4"
                     this.iverksatt = identdatoPleiepenger.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "BS"

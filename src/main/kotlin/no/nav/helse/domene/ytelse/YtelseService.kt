@@ -81,6 +81,12 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                             }
                         }
 
+                        sakerMedGrunnlag.filter { infotrygdSakOgGrunnlag ->
+                            infotrygdSakOgGrunnlag.grunnlag.isEmpty()
+                        }.forEach { sakUtenGrunnlag ->
+                            log.info("finner ikke grunnlag for sak med sakId=${sakUtenGrunnlag.sak.sakId}")
+                        }
+
                         sakerMedGrunnlag
                     }
                 }

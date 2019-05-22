@@ -18,6 +18,7 @@ class BeregningsgrunnlagTest {
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
                 vedtak = emptyList()
         ).hørerSammenMed(InfotrygdSak(
+                sakId = "1",
                 iverksatt = identdato,
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
@@ -36,6 +37,7 @@ class BeregningsgrunnlagTest {
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
                 vedtak = emptyList()
         ).hørerSammenMed(InfotrygdSak(
+                sakId = "1",
                 iverksatt = identdato.minusDays(1),
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
@@ -54,6 +56,7 @@ class BeregningsgrunnlagTest {
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
                 vedtak = emptyList()
         ).hørerSammenMed(InfotrygdSak(
+                sakId = "1",
                 iverksatt = identdato,
                 tema = Tema.Foreldrepenger,
                 behandlingstema = Behandlingstema.EngangstønadMedFødsel,
