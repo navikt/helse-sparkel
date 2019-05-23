@@ -10,11 +10,13 @@ import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningSik
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.metadata.Endringstyper
 import org.slf4j.LoggerFactory
 
 class PersonService(private val personClient: PersonClient) {
 
     companion object {
+        private val aktiveEndringstyper = listOf(Endringstyper.NY, Endringstyper.ENDRET, null)
         private val log = LoggerFactory.getLogger(PersonService::class.java)
     }
 
@@ -59,6 +61,7 @@ class PersonService(private val personClient: PersonClient) {
              */
             val barnAktørIder =  familierelasjoner
                     .filter { "BARN" == it.tilRolle.value }
+                    .filter { aktiveEndringstyper.contains(it.endringstype) }
                     .map { AktørId((it.tilPerson.aktoer as AktoerId).aktoerId) }
 
             log.trace("Slår opp info på '${barnAktørIder.size}' barn.")
