@@ -6,8 +6,11 @@ import no.nav.helse.domene.person.domain.Kjønn.KVINNE
 import no.nav.helse.domene.person.domain.Kjønn.MANN
 import no.nav.helse.domene.person.domain.Person
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Personstatus
 
 object PersonMapper {
+    private fun status(personstatus: Personstatus) = if ("DØDD" == personstatus.personstatus.value) "DØD" else personstatus.personstatus.value
+
     fun toPerson(person: no.nav.tjeneste.virksomhet.person.v3.informasjon.Person) =
             Person(
                     AktørId((person.aktoer as AktoerId).aktoerId),
@@ -17,7 +20,7 @@ object PersonMapper {
                     person.foedselsdato.foedselsdato.toLocalDate(),
                     if (person.kjoenn.kjoenn.value == "M") MANN else KVINNE,
                     person.statsborgerskap.land.value,
-                    person.personstatus.personstatus.value,
+                    status(person.personstatus),
                     person.bostedsadresse?.strukturertAdresse?.landkode?.value,
                     person.diskresjonskode?.value
             )
