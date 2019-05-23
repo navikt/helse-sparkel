@@ -208,6 +208,11 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     }
 
     fun inspiserInfotrygdSak(sak: InfotrygdSak) {
+        sjekkOmFeltErNull(sak, "sakId", sak.sakId)
+        sak.sakId?.let {
+            sjekkOmFeltErBlank(sak, "sakId", it)
+        }
+
         sjekkOmFeltErNull(sak, "type", sak.type?.value)
         sak.type?.value?.let {
             sjekkOmFeltErBlank(sak, "type", it)
