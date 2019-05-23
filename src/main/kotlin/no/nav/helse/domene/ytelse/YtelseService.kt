@@ -13,6 +13,7 @@ import no.nav.helse.domene.ytelse.domain.Ytelser
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
+import no.nav.helse.probe.DatakvalitetProbe
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeUgyldigInput
@@ -28,7 +29,8 @@ import java.time.LocalDate
 class YtelseService(private val aktørregisterService: AktørregisterService,
                     private val infotrygdBeregningsgrunnlagListeClient: InfotrygdBeregningsgrunnlagListeClient,
                     private val infotrygdSakClient: InfotrygdSakClient,
-                    private val meldekortUtbetalingsgrunnlagClient: MeldekortUtbetalingsgrunnlagClient) {
+                    private val meldekortUtbetalingsgrunnlagClient: MeldekortUtbetalingsgrunnlagClient,
+                    private val probe: DatakvalitetProbe) {
 
     companion object {
         private val log = LoggerFactory.getLogger(InfotrygdBeregningsgrunnlagService::class.java)
@@ -53,8 +55,12 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                         else -> Feilårsak.UkjentFeil
                     }
                 }.map { finnSakListeResponse ->
-                    finnSakListeResponse.sakListe.map(InfotrygdSakMapper::toSak)
-                            .plus(finnSakListeResponse.vedtakListe.map(InfotrygdSakMapper::toSak))
+                    finnSakListeResponse.sakListe
+                            .onEach(probe::inspiserInfotrygdSak)
+                            .map(InfotrygdSakMapper::toSak)
+                            .plus(finnSakListeResponse.vedtakListe
+                                    .onEach(probe::inspiserInfotrygdSak)
+                                    .map(InfotrygdSakMapper::toSak))
                 }.flatMap { saker ->
                     infotrygdBeregningsgrunnlagListeClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom).toEither { err ->
                         log.error("Error while doing infotrygdBeregningsgrunnlag lookup", err)
@@ -79,6 +85,12 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                             grunnlagUtenSak.forEach { grunnlag ->
                                 log.info("finner ikke sak for grunnlag $grunnlag")
                             }
+                        }
+
+                        sakerMedGrunnlag.filter { infotrygdSakOgGrunnlag ->
+                            infotrygdSakOgGrunnlag.grunnlag.isEmpty()
+                        }.forEach { sakUtenGrunnlag ->
+                            log.info("finner ikke grunnlag for sak med sakId=${sakUtenGrunnlag.sak.sakId}")
                         }
 
                         sakerMedGrunnlag

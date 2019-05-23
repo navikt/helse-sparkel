@@ -10,6 +10,7 @@ object InfotrygdSakMapper {
 
     fun toSak(sak: no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak) =
             InfotrygdSak(
+                    sakId = sak.sakId,
                     iverksatt = sak.iverksatt?.toLocalDate(),
                     tema = Tema.fraKode(sak.tema.value),
                     behandlingstema = Behandlingstema.fraKode(sak.behandlingstema.value),

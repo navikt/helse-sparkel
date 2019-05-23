@@ -94,7 +94,8 @@ class YtelseComponentTest {
                         aktørregisterService = aktørregisterService,
                         infotrygdBeregningsgrunnlagListeClient = InfotrygdBeregningsgrunnlagListeClient(infotrygdBeregningsgrunnlagV1),
                         infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
-                        meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1)
+                        meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
+                        probe = mockk(relaxed = true)
                 )
                 )}) {
             handleRequest(HttpMethod.Get, "/api/ytelser/${aktørId.aktor}?fom=$fom&tom=$tom") {
@@ -141,6 +142,7 @@ class YtelseComponentTest {
     private fun sakerFraInfotrygd(identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate) =
             FinnSakListeResponse().apply {
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "1"
                     this.iverksatt = identdatoSykepenger.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "SP"
@@ -150,6 +152,7 @@ class YtelseComponentTest {
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "2"
                     this.iverksatt = identdatoForeldrepenger.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "FA"
@@ -159,6 +162,7 @@ class YtelseComponentTest {
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "3"
                     this.iverksatt = identdatoEngangstønad.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "FA"
@@ -168,6 +172,7 @@ class YtelseComponentTest {
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
+                    this.sakId = "4"
                     this.iverksatt = identdatoPleiepenger.toXmlGregorianCalendar()
                     this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                         value = "BS"
@@ -249,6 +254,7 @@ private val expectedJson = """
   "infotrygd": [
       {
         "sak": {
+          "sakId": "1",
           "tema": "Sykepenger",
           "behandlingstema": "Sykepenger",
           "iverksatt": "2019-05-28"
@@ -266,6 +272,7 @@ private val expectedJson = """
       },
       {
         "sak": {
+          "sakId": "2",
           "tema": "Foreldrepenger",
           "behandlingstema": "ForeldrepengerMedFødsel",
           "iverksatt": "2019-05-14"
@@ -283,6 +290,7 @@ private val expectedJson = """
       },
       {
         "sak": {
+          "sakId": "3",
           "tema": "Foreldrepenger",
           "behandlingstema": "EngangstønadMedFødsel",
           "iverksatt": "2019-05-07"
@@ -300,6 +308,7 @@ private val expectedJson = """
       },
       {
         "sak": {
+          "sakId": "4",
           "tema": "PårørendeSykdom",
           "behandlingstema": "Pleiepenger",
           "iverksatt": "2019-05-01"

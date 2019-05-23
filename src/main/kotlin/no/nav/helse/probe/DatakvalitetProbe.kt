@@ -10,6 +10,7 @@ import no.nav.helse.domene.arbeid.domain.Permisjon
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
 import no.nav.helse.domene.utbetaling.domain.Virksomhet
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -204,6 +205,23 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
         sjekkOmFeltErBlank(arbeidsforhold, "yrke", arbeidsforhold.yrke)
         sjekkArbeidsgiver(arbeidsforhold)
+    }
+
+    fun inspiserInfotrygdSak(sak: InfotrygdSak) {
+        sjekkOmFeltErNull(sak, "type", sak.type?.value)
+        sak.type?.value?.let {
+            sjekkOmFeltErBlank(sak, "type", it)
+        }
+
+        sjekkOmFeltErNull(sak, "status", sak.status?.value)
+        sak.status?.value?.let {
+            sjekkOmFeltErBlank(sak, "status", it)
+        }
+
+        sjekkOmFeltErNull(sak, "resultat", sak.resultat?.value)
+        sak.resultat?.value?.let {
+            sjekkOmFeltErBlank(sak, "resultat", it)
+        }
     }
 
     private fun sjekkArbeidsgiver(arbeidsforhold: Arbeidsforhold) {

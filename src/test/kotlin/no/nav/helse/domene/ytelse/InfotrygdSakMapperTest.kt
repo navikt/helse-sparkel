@@ -18,6 +18,7 @@ class InfotrygdSakMapperTest {
         val behandlingstema = "SU"
 
         val given = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak().apply {
+            this.sakId = "1"
             this.iverksatt = iverksatt.toXmlGregorianCalendar()
             this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                 value = tema
@@ -28,6 +29,7 @@ class InfotrygdSakMapperTest {
         }
 
         val expected = InfotrygdSak(
+                sakId = "1",
                 iverksatt = iverksatt,
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
@@ -45,6 +47,7 @@ class InfotrygdSakMapperTest {
         val opphørerFom = LocalDate.now()
 
         val given = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak().apply {
+            this.sakId = "1"
             this.iverksatt = iverksatt.toXmlGregorianCalendar()
             this.tema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Tema().apply {
                 value = tema
@@ -56,6 +59,7 @@ class InfotrygdSakMapperTest {
         }
 
         val expected = InfotrygdSak(
+                sakId = "1",
                 iverksatt = iverksatt,
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,

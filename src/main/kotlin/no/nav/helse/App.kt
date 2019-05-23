@@ -125,7 +125,8 @@ fun main() {
                 aktørregisterService = aktørregisterService,
                 infotrygdBeregningsgrunnlagListeClient = infotrygdBeregningsgrunnlagListeClient,
                 infotrygdSakClient = wsClients.infotrygdSak(env.infotrygdSakEndpoint),
-                meldekortUtbetalingsgrunnlagClient = wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl))
+                meldekortUtbetalingsgrunnlagClient = wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl),
+                probe = datakvalitetProbe)
 
         sparkel(
                 env.jwtIssuer,
