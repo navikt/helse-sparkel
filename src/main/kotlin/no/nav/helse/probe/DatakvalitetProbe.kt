@@ -91,8 +91,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         DatoErIFremtiden,
         VerdiMangler,
         TomVerdi,
-        TomListe,
-        FlereGjeldendeArbeidsavtaler,
         FlereArbeidsforholdPerInntekt,
         ArbeidsforholdISammeVirksomhet,
         IngenArbeidsforholdForInntekt,
@@ -375,10 +373,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         frilansCounter.inc(arbeidsforholdliste.size.toDouble())
     }
 
-    private fun flereGjeldendeArbeidsavtaler(objekt: Any, felt: String, verdi: Int) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.FlereGjeldendeArbeidsavtaler, "det er $verdi gjeldende arbeidsavtaler")
-    }
-
     private fun sendDatakvalitetEvent(objekt: Any, felt: String, observasjonstype: Observasjonstype, beskrivelse: String) {
         log.info("objekt=${objekt.javaClass.name} felt=$felt feil=$observasjonstype: $beskrivelse")
         influxMetricReporter.sendDataPoint("datakvalitet.event",
@@ -390,12 +384,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
                         "felt" to felt,
                         "type" to observasjonstype.name
                 ))
-    }
-
-    private fun sjekkOmListeErTom(objekt: Any, felt: String, value: List<Any>) {
-        if (value.isEmpty()) {
-            sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomListe, "tom liste: $felt er tom")
-        }
     }
 
     private fun sjekkOmFeltErNull(objekt: Any, felt: String, value: Any?) {
