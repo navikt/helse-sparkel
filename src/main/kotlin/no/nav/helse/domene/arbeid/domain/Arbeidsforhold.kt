@@ -20,16 +20,10 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
         val gjeldendeArbeidsavtale: Arbeidsavtale.Gjeldende
 
         init {
-            if (arbeidsavtaler.isEmpty()) {
-                throw IllegalArgumentException("et arbeidsforhold må ha minst én arbeidsavtale")
-            }
-
             val antallGjeldendeArbeidsavtaler = arbeidsavtaler.filter { it is Arbeidsavtale.Gjeldende }.size
 
-            if (antallGjeldendeArbeidsavtaler == 0) {
-                throw IllegalArgumentException("et arbeidsforhold må ha én gjeldende arbeidsavtale")
-            } else if (antallGjeldendeArbeidsavtaler > 1) {
-                throw IllegalArgumentException("et arbeidsforhold kan ikke ha flere gjeldende arbeidsavtaler")
+            if (antallGjeldendeArbeidsavtaler != 1) {
+                throw IllegalArgumentException("et arbeidsforhold må ha én gjeldende arbeidsavtale: $antallGjeldendeArbeidsavtaler gjeldende avtaler er ikke mulig")
             }
 
             gjeldendeArbeidsavtale = arbeidsavtaler.first { it is Arbeidsavtale.Gjeldende } as Arbeidsavtale.Gjeldende
