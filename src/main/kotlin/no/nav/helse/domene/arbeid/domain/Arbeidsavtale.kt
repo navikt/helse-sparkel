@@ -53,7 +53,7 @@ sealed class Arbeidsavtale(val yrke: String,
         }
 
         override fun toString(): String {
-            return "Arbeidsavtale.Gjeldende(yrke='$yrke', stillingsprosent=$stillingsprosent, fom=$fom, tom=$tom)"
+            return "Arbeidsavtale.Historisk(yrke='$yrke', stillingsprosent=$stillingsprosent, fom=$fom, tom=$tom)"
         }
     }
 
