@@ -1,5 +1,6 @@
 package no.nav.helse.domene.ytelse
 
+import arrow.core.Either
 import arrow.core.flatMap
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
@@ -95,6 +96,10 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
 
                         sakerMedGrunnlag
                     }
+                }
+            }.also { either ->
+                if (either is Either.Right) {
+                    probe.inspiserInfotrygdSakerOgGrunnlag(either.b)
                 }
             }
 

@@ -73,4 +73,33 @@ class BehandlingstemaTest {
             assertEquals(kclass, fraKode(kodeverdi)::class)
         }
     }
+
+    @Test
+    fun `skal ha riktig string-representasjon`() {
+        val expected = mapOf(
+                "FP" to "Foreldrepenger(kode='FP', tema=Foreldrepenger)",
+                "FØ" to "ForeldrepengerMedFødsel(kode='FØ', tema=Foreldrepenger)",
+                "FU" to "ForeldrepengerMedFødselUtland(kode='FU', tema=Foreldrepenger)",
+                "AP" to "ForeldrepengerMedAdopsjon(kode='AP', tema=Foreldrepenger)",
+                "SV" to "Svangerskapspenger(kode='SV', tema=Foreldrepenger)",
+                "AE" to "EngangstønadMedAdopsjon(kode='AE', tema=Foreldrepenger)",
+                "FE" to "EngangstønadMedFødsel(kode='FE', tema=Foreldrepenger)",
+                "OM" to "Omsorgspenger(kode='OM', tema=PårørendeSykdom)",
+                "OP" to "Opplæringspenger(kode='OP', tema=PårørendeSykdom)",
+                "PB" to "PleiepengerSyktBarnFør2017_10_01(kode='PB', tema=PårørendeSykdom)",
+                "PI" to "PleiepengerFør2017_10_01(kode='PI', tema=PårørendeSykdom)",
+                "PP" to "PleiepengerPårørende(kode='PP', tema=PårørendeSykdom)",
+                "PN" to "Pleiepenger(kode='PN', tema=PårørendeSykdom)",
+                "SP" to "Sykepenger(kode='SP', tema=Sykepenger)",
+                "RS" to "SykepengerForsikringRisikoSykefravær(kode='RS', tema=Sykepenger)",
+                "RT" to "SykepengerReisetilskudd(kode='RT', tema=Sykepenger)",
+                "SU" to "SykepengerUtenlandsopphold(kode='SU', tema=Sykepenger)",
+                "OG" to "Overgangsstønad(kode='OG', tema=EnsligForsørger)",
+                "ZZ" to "Ukjent(kode='ZZ', tema=Ukjent(tema=??))"
+        )
+
+        expected.forEach { kodeverdi, string ->
+            assertEquals(string, fraKode(kodeverdi).toString())
+        }
+    }
 }

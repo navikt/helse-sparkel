@@ -24,7 +24,7 @@ sealed class Behandlingstema(val kode: String, val tema: Tema) {
 
     object Overgangsstønad: Behandlingstema("OG", Tema.EnsligForsørger)
 
-    class Ukjent(kode: String): Behandlingstema(kode, Tema.Ukjent)
+    class Ukjent(kode: String): Behandlingstema(kode, Tema.Ukjent("??"))
 
     fun name() = when (this) {
         is Foreldrepenger -> "Foreldrepenger"
