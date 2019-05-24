@@ -7,7 +7,7 @@ sealed class Tema {
     object Engangsstønad: Tema()
     object PårørendeSykdom: Tema()
     object EnsligForsørger: Tema()
-    object Ukjent: Tema()
+    data class Ukjent(val tema: String): Tema()
 
     fun name() = when (this) {
         is Sykepenger -> "Sykepenger"
@@ -29,7 +29,7 @@ sealed class Tema {
                     "FA" -> Tema.Foreldrepenger
                     "BS" -> Tema.PårørendeSykdom
                     "EF" -> Tema.EnsligForsørger
-                    else -> Tema.Ukjent
+                    else -> Tema.Ukjent(tema)
                 }
     }
 }
