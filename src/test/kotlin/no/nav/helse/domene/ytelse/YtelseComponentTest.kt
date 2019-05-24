@@ -19,7 +19,7 @@ import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
-import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
@@ -92,7 +92,7 @@ class YtelseComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 ytelseService = YtelseService(
                         aktørregisterService = aktørregisterService,
-                        infotrygdBeregningsgrunnlagListeClient = InfotrygdBeregningsgrunnlagListeClient(infotrygdBeregningsgrunnlagV1),
+                        infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
                         infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
                         meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
                         probe = mockk(relaxed = true)

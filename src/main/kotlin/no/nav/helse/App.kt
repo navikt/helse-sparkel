@@ -29,8 +29,6 @@ import no.nav.helse.domene.arbeid.ArbeidsgiverService
 import no.nav.helse.domene.arbeid.arbeidsforhold
 import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.domene.arbeidsfordeling.arbeidsfordeling
-import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
-import no.nav.helse.domene.infotrygd.infotrygdBeregningsgrunnlag
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.organisasjon.organisasjon
 import no.nav.helse.domene.person.PersonService
@@ -54,7 +52,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
-private val authorizedUsers = listOf("srvspinne", "srvspa", "srvpleiepengesokna", "srvpleiepenger-opp", "srvspinder", "srvspenn")
+private val authorizedUsers = listOf("srvspa", "srvpleiepengesokna", "srvpleiepenger-opp", "srvspenn")
 
 fun main() {
     val env = Environment()
@@ -113,17 +111,16 @@ fun main() {
 
         val sykepengegrunnlagService = SykepengegrunnlagService(inntektService, organisasjonService)
 
-        val infotrygdBeregningsgrunnlagListeClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl)
-        val infotrygdBeregningsgrunnlagService = InfotrygdBeregningsgrunnlagService(
-                infotrygdClient = infotrygdBeregningsgrunnlagListeClient,
+        val infotrygdBeregningsgrunnlagClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl)
+
+        val sykepengehistorikkService = SykepengehistorikkService(
+                infotrygdBeregningsgrunnlagClient = infotrygdBeregningsgrunnlagClient,
                 aktørregisterService = aktørregisterService
         )
 
-        val sykepengehistorikkService = SykepengehistorikkService(infotrygdBeregningsgrunnlagService)
-
         val ytelseService = YtelseService(
                 aktørregisterService = aktørregisterService,
-                infotrygdBeregningsgrunnlagListeClient = infotrygdBeregningsgrunnlagListeClient,
+                infotrygdBeregningsgrunnlagClient = infotrygdBeregningsgrunnlagClient,
                 infotrygdSakClient = wsClients.infotrygdSak(env.infotrygdSakEndpoint),
                 meldekortUtbetalingsgrunnlagClient = wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl),
                 probe = datakvalitetProbe)
@@ -138,7 +135,6 @@ fun main() {
                 organisasjonService,
                 personService,
                 sykepengegrunnlagService,
-                infotrygdBeregningsgrunnlagService,
                 aktørregisterService,
                 sykepengehistorikkService,
                 ytelseService
@@ -162,7 +158,6 @@ fun Application.sparkel(
         organisasjonService: OrganisasjonService,
         personService: PersonService,
         sykepengegrunnlagService: SykepengegrunnlagService,
-        infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService,
         aktørregisterService: AktørregisterService,
         sykepengehistorikkService: SykepengehistorikkService,
         ytelseService: YtelseService
@@ -227,8 +222,6 @@ fun Application.sparkel(
             sykepengegrunnlag(sykepengegrunnlagService)
 
             fnrForAktør(aktørregisterService)
-
-            infotrygdBeregningsgrunnlag(infotrygdBeregningsgrunnlagService)
 
             sykepengehistorikk(sykepengehistorikkService)
 

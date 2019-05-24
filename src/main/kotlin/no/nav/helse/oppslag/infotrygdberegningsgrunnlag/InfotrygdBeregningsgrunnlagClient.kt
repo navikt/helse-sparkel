@@ -8,7 +8,7 @@ import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnG
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
 import java.time.LocalDate
 
-class InfotrygdBeregningsgrunnlagListeClient(private val infotrygdBeregningsgrunnlag : InfotrygdBeregningsgrunnlagV1) {
+class InfotrygdBeregningsgrunnlagClient(private val infotrygdBeregningsgrunnlag : InfotrygdBeregningsgrunnlagV1) {
 
     fun finnGrunnlagListe(fnr: Fødselsnummer, fraOgMed: LocalDate, tilOgMed: LocalDate) =
             Try {

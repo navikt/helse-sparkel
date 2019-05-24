@@ -8,7 +8,6 @@ import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.domene.arbeid.ArbeidsforholdService
 import no.nav.helse.domene.arbeid.ArbeidsgiverService
 import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
-import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.person.PersonService
 import no.nav.helse.domene.sykepengegrunnlag.SykepengegrunnlagService
@@ -22,13 +21,12 @@ fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, 
                               organisasjonService: OrganisasjonService = mockk(),
                               personService: PersonService = mockk(),
                               sykepengegrunnlagService: SykepengegrunnlagService = mockk(),
-                              infotrygdBeregningsgrunnlagService: InfotrygdBeregningsgrunnlagService = mockk(),
                               aktørregisterService: AktørregisterService = mockk(),
                               sykepengehistorikkService: SykepengehistorikkService = mockk(),
                               ytelseService: YtelseService = mockk()
                               ) {
     return sparkel(jwtIssuer, jwkProvider, arbeidsfordelingService, arbeidsforholdService, arbeidsgiverService,
             arbeidInntektYtelseService, organisasjonService,
-            personService, sykepengegrunnlagService, infotrygdBeregningsgrunnlagService,
+            personService, sykepengegrunnlagService,
             aktørregisterService, sykepengehistorikkService, ytelseService)
 }
