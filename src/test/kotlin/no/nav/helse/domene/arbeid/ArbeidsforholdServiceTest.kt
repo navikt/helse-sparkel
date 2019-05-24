@@ -9,16 +9,14 @@ import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.arbeid.domain.Permisjon
-import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.Sikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.feil.UgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.*
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AapenPeriode
-import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.ArbeidsforholdFrilanser
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
@@ -180,11 +178,6 @@ private val arbeidsgiver_organisasjon_2 = Organisasjon().apply {
     navn = "MATBUTIKKEN AS"
 }
 
-private val frilans_arbeidsgiver_organisasjon_1 = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon().apply {
-    orgnummer = "889640782"
-}
-
-
 private val arbeidsforholdID_for_arbeidsforhold_1 = 1234L
 private val arbeidsforholdID_for_arbeidsforhold_2 = 5678L
 
@@ -241,7 +234,6 @@ private val permittering_for_avsluttet_arbeidsforhold_med_permittering get() = P
 
 private val avsluttet_arbeidsforhold_med_permittering_avtale get() = Arbeidsavtale().apply {
     fomGyldighetsperiode = LocalDate.parse("2017-01-01").toXmlGregorianCalendar()
-    tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
     yrke = Yrker().apply {
         value = "Butikkmedarbeider"
     }
@@ -320,29 +312,15 @@ private val arbeidsforhold_med_historisk_arbeidsgiver get() = Arbeidsforhold().a
     }
 }
 
-private val frilans_arbeidsforhold_1 = ArbeidsforholdFrilanser().apply {
-    arbeidsgiver = frilans_arbeidsgiver_organisasjon_1
-    frilansPeriode = AapenPeriode().apply {
-        fom = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
-        tom = LocalDate.parse("2019-01-31").toXmlGregorianCalendar()
-    }
-    yrke = no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Yrker().apply {
-        value = "Butikkmedarbeider"
-    }
-}
-
-private val frilans_arbeidsforhold = listOf(frilans_arbeidsforhold_1)
-
 private val forventet_arbeidsforhold_uten_sluttdato = no.nav.helse.domene.arbeid.domain.Arbeidsforhold.Arbeidstaker(
         arbeidsgiver = Virksomhet.Organisasjon(Organisasjonsnummer((arbeidsforhold_uten_sluttdato.arbeidsgiver as Organisasjon).orgnummer)),
         startdato = arbeidsforhold_uten_sluttdato.ansettelsesPeriode.periode.fom.toLocalDate(),
         arbeidsforholdId = arbeidsforholdID_for_arbeidsforhold_1,
         arbeidsavtaler = listOf(
-                no.nav.helse.domene.arbeid.domain.Arbeidsavtale(
+                no.nav.helse.domene.arbeid.domain.Arbeidsavtale.Gjeldende(
                         yrke = arbeidsforhold_uten_sluttdato.arbeidsavtale[0].yrke.value,
                         stillingsprosent = arbeidsforhold_uten_sluttdato.arbeidsavtale[0].stillingsprosent,
-                        fom = arbeidsforhold_uten_sluttdato.arbeidsavtale[0].fomGyldighetsperiode.toLocalDate(),
-                        tom = null)
+                        fom = arbeidsforhold_uten_sluttdato.arbeidsavtale[0].fomGyldighetsperiode.toLocalDate())
         ))
 
 private val forventet_avsluttet_arbeidsforhold_med_permittering = no.nav.helse.domene.arbeid.domain.Arbeidsforhold.Arbeidstaker(
@@ -351,17 +329,16 @@ private val forventet_avsluttet_arbeidsforhold_med_permittering = no.nav.helse.d
         sluttdato = avsluttet_arbeidsforhold_med_permittering.ansettelsesPeriode.periode.tom.toLocalDate(),
         arbeidsforholdId = arbeidsforholdID_for_arbeidsforhold_2,
         arbeidsavtaler = listOf(
-                no.nav.helse.domene.arbeid.domain.Arbeidsavtale(
+                no.nav.helse.domene.arbeid.domain.Arbeidsavtale.Gjeldende(
                         yrke = avsluttet_arbeidsforhold_med_permittering.arbeidsavtale[0].yrke.value,
                         stillingsprosent = avsluttet_arbeidsforhold_med_permittering.arbeidsavtale[0].stillingsprosent,
-                        fom = avsluttet_arbeidsforhold_med_permittering.arbeidsavtale[0].fomGyldighetsperiode.toLocalDate(),
-                        tom = avsluttet_arbeidsforhold_med_permittering.arbeidsavtale[0].tomGyldighetsperiode.toLocalDate()),
-                no.nav.helse.domene.arbeid.domain.Arbeidsavtale(
+                        fom = avsluttet_arbeidsforhold_med_permittering.arbeidsavtale[0].fomGyldighetsperiode.toLocalDate()),
+                no.nav.helse.domene.arbeid.domain.Arbeidsavtale.Historisk(
                         yrke = avsluttet_arbeidsforhold_med_permittering_avtaler[1].yrke.value,
                         stillingsprosent = avsluttet_arbeidsforhold_med_permittering_avtaler[1].stillingsprosent,
                         fom = avsluttet_arbeidsforhold_med_permittering_avtaler[1].fomGyldighetsperiode.toLocalDate(),
                         tom = avsluttet_arbeidsforhold_med_permittering_avtaler[1].tomGyldighetsperiode.toLocalDate()),
-                no.nav.helse.domene.arbeid.domain.Arbeidsavtale(
+                no.nav.helse.domene.arbeid.domain.Arbeidsavtale.Historisk(
                         yrke = avsluttet_arbeidsforhold_med_permittering_avtaler[2].yrke.value,
                         stillingsprosent = avsluttet_arbeidsforhold_med_permittering_avtaler[2].stillingsprosent,
                         fom = avsluttet_arbeidsforhold_med_permittering_avtaler[2].fomGyldighetsperiode.toLocalDate(),
@@ -383,16 +360,8 @@ private val forventet_arbeidsforhold_med_person_som_arbeidsgiver = no.nav.helse.
         startdato = arbeidsforhold_med_person_som_arbeidsgiver.ansettelsesPeriode.periode.fom.toLocalDate(),
         arbeidsforholdId = arbeidsforholdID_for_arbeidsforhold_1,
         arbeidsavtaler = listOf(
-                no.nav.helse.domene.arbeid.domain.Arbeidsavtale(
+                no.nav.helse.domene.arbeid.domain.Arbeidsavtale.Gjeldende(
                         yrke = arbeidsforhold_med_person_som_arbeidsgiver_avtaler[0].yrke.value,
                         stillingsprosent = arbeidsforhold_med_person_som_arbeidsgiver_avtaler[0].stillingsprosent,
-                        fom = arbeidsforhold_med_person_som_arbeidsgiver_avtaler[0].fomGyldighetsperiode.toLocalDate(),
-                        tom = null)
+                        fom = arbeidsforhold_med_person_som_arbeidsgiver_avtaler[0].fomGyldighetsperiode.toLocalDate())
         ))
-
-private val forventet_frilans_arbeidsforhold = no.nav.helse.domene.arbeid.domain.Arbeidsforhold.Frilans(
-        arbeidsgiver = Virksomhet.Organisasjon(Organisasjonsnummer((frilans_arbeidsforhold_1.arbeidsgiver as no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.Organisasjon).orgnummer)),
-        startdato = LocalDate.parse("2019-01-01"),
-        sluttdato = LocalDate.parse("2019-01-31"),
-        yrke = "Butikkmedarbeider"
-)

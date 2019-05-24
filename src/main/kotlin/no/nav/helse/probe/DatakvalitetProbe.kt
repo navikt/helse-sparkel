@@ -121,13 +121,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             inspiserPermisjon(permisjon)
         }
 
-        sjekkOmListeErTom(arbeidsforhold, "arbeidsavtaler", arbeidsforhold.arbeidsavtaler)
-
-        val gjeldendeArbeidsavtaler = arbeidsforhold.arbeidsavtaler.filter { it.tom == null }.size
-        if (gjeldendeArbeidsavtaler > 1) {
-            flereGjeldendeArbeidsavtaler(arbeidsforhold, "arbeidsavtaler", gjeldendeArbeidsavtaler)
-        }
-
         arbeidsforhold.arbeidsavtaler.forEach { arbeidsavtale ->
             inspiserArbeidsavtale(arbeidsavtale)
         }
@@ -303,7 +296,10 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             if (stillingsprosent != null) {
                 sjekkProsent(this, "stillingsprosent", stillingsprosent)
             }
-            sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(this, "fom,tom", fom, tom)
+
+            if (this is Arbeidsavtale.Historisk) {
+                sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(this, "fom,tom", fom, tom)
+            }
         }
     }
 

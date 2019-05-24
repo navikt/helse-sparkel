@@ -458,7 +458,7 @@ private val
         startdato = aktivt_arbeidstakerforhold_startdato,
         arbeidsforholdId = arbeidsforholdId1,
         arbeidsavtaler = listOf(
-                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_startdato, null)
+                Arbeidsavtale.Gjeldende("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_startdato)
         ))
 
 private val aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato = LocalDate.parse("2018-12-01")
@@ -467,7 +467,7 @@ private val aktivt_arbeidstakerforhold_i_samme_virksomhet = Arbeidsforhold.Arbei
         startdato = aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato,
         arbeidsforholdId = arbeidsforholdId2,
         arbeidsavtaler = listOf(
-                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato, null)
+                Arbeidsavtale.Gjeldende("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_i_samme_virksomhet_startdato)
         ))
 
 private val aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato = LocalDate.parse("2019-01-01")
@@ -476,7 +476,7 @@ private val aktivt_arbeidstakerforhold_i_annen_virksomhet = Arbeidsforhold.Arbei
         startdato = aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato,
         arbeidsforholdId = arbeidsforholdId2,
         arbeidsavtaler = listOf(
-                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato, null)
+                Arbeidsavtale.Gjeldende("Butikkmedarbeider", BigDecimal(100), aktivt_arbeidstakerforhold_i_annen_virksomhet_startdato)
         ))
 
 private val avsluttet_arbeidstakerforhold_startdato = LocalDate.parse("2018-01-01")
@@ -487,7 +487,7 @@ private val avsluttet_arbeidstakerforhold = Arbeidsforhold.Arbeidstaker(
         sluttdato = avsluttet_arbeidstakerforhold_sluttdato,
         arbeidsforholdId = arbeidsforholdId3,
         arbeidsavtaler = listOf(
-                Arbeidsavtale("Butikkmedarbeider", BigDecimal(100), avsluttet_arbeidstakerforhold_startdato, avsluttet_arbeidstakerforhold_sluttdato)
+                Arbeidsavtale.Gjeldende("Butikkmedarbeider", BigDecimal(100), avsluttet_arbeidstakerforhold_startdato)
         ))
 
 private val aktivt_frilansforhold_startdato = LocalDate.parse("2019-01-01")
@@ -511,7 +511,7 @@ private val aktivt_arbeidstakerforhold_privat = Arbeidsforhold.Arbeidstaker(
         arbeidsforholdId = arbeidsforholdId4,
         permisjon = emptyList(),
         arbeidsavtaler = listOf(
-                Arbeidsavtale("ALTMULIGMANN", null, LocalDate.now(), null)
+                Arbeidsavtale.Gjeldende("ALTMULIGMANN", null, LocalDate.now())
         )
 )
 

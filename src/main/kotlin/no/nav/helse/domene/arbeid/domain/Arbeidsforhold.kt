@@ -17,11 +17,25 @@ sealed class Arbeidsforhold(open val arbeidsgiver: Virksomhet, open val startdat
                             val permisjon: List<Permisjon> = emptyList(),
                             val arbeidsavtaler: List<Arbeidsavtale> = emptyList()): Arbeidsforhold(arbeidsgiver, startdato, sluttdato) {
 
-        fun yrke() = gjeldendeArbeidsavtale().yrke
+        val gjeldendeArbeidsavtale: Arbeidsavtale.Gjeldende
 
-        fun gjeldendeArbeidsavtale() = arbeidsavtaler.first {
-            it.tom == null
+        init {
+            if (arbeidsavtaler.isEmpty()) {
+                throw IllegalArgumentException("et arbeidsforhold må ha minst én arbeidsavtale")
+            }
+
+            val antallGjeldendeArbeidsavtaler = arbeidsavtaler.filter { it is Arbeidsavtale.Gjeldende }.size
+
+            if (antallGjeldendeArbeidsavtaler == 0) {
+                throw IllegalArgumentException("et arbeidsforhold må ha én gjeldende arbeidsavtale")
+            } else if (antallGjeldendeArbeidsavtaler > 1) {
+                throw IllegalArgumentException("et arbeidsforhold kan ikke ha flere gjeldende arbeidsavtaler")
+            }
+
+            gjeldendeArbeidsavtale = arbeidsavtaler.first { it is Arbeidsavtale.Gjeldende } as Arbeidsavtale.Gjeldende
         }
+
+        fun yrke() = gjeldendeArbeidsavtale.yrke
     }
 
     data class Frilans(
