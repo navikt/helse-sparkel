@@ -13,11 +13,15 @@ sealed class Arbeidsavtale(val yrke: String,
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
-            return true
+            if (!super.equals(other)) return false
+
+            return other is Gjeldende
         }
 
         override fun hashCode(): Int {
-            return javaClass.hashCode()
+            var result = super.hashCode()
+            result *= 31
+            return result
         }
 
         override fun toString(): String {
@@ -29,6 +33,25 @@ sealed class Arbeidsavtale(val yrke: String,
                     stillingsprosent: BigDecimal?,
                     fom: LocalDate,
                     val tom: LocalDate) : Arbeidsavtale(yrke, stillingsprosent, fom) {
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            if (!super.equals(other)) return false
+
+            other as Historisk
+
+            if (tom != other.tom) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + tom.hashCode()
+            return result
+        }
+
         override fun toString(): String {
             return "Arbeidsavtale.Gjeldende(yrke='$yrke', stillingsprosent=$stillingsprosent, fom=$fom, tom=$tom)"
         }
