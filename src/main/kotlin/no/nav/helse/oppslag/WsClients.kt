@@ -5,7 +5,7 @@ import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingClient
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
-import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.helse.oppslag.inntekt.InntektClient
 import no.nav.helse.oppslag.organisasjon.OrganisasjonClient
 import no.nav.helse.oppslag.person.PersonClient
@@ -85,7 +85,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
         return ArbeidsforholdClient(port)
     }
 
-    fun infotrygdBeregningsgrunnlag(endpointUrl: String): InfotrygdBeregningsgrunnlagListeClient {
+    fun infotrygdBeregningsgrunnlag(endpointUrl: String): InfotrygdBeregningsgrunnlagClient {
         val port = SoapPorts.InfotrygdBeregningsgrunnlagV1(endpointUrl).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
@@ -93,7 +93,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
                 stsClientWs.configureFor(this)
             }
         }
-        return InfotrygdBeregningsgrunnlagListeClient(port)
+        return InfotrygdBeregningsgrunnlagClient(port)
     }
 
     fun infotrygdSak(endpointUrl: String): InfotrygdSakClient {

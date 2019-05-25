@@ -6,14 +6,13 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
-import no.nav.helse.domene.infotrygd.InfotrygdBeregningsgrunnlagService
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
 import no.nav.helse.domene.ytelse.domain.InfotrygdSak
 import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
 import no.nav.helse.domene.ytelse.domain.Ytelser
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
-import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.helse.probe.DatakvalitetProbe
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
@@ -28,13 +27,13 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class YtelseService(private val aktørregisterService: AktørregisterService,
-                    private val infotrygdBeregningsgrunnlagListeClient: InfotrygdBeregningsgrunnlagListeClient,
+                    private val infotrygdBeregningsgrunnlagClient: InfotrygdBeregningsgrunnlagClient,
                     private val infotrygdSakClient: InfotrygdSakClient,
                     private val meldekortUtbetalingsgrunnlagClient: MeldekortUtbetalingsgrunnlagClient,
                     private val probe: DatakvalitetProbe) {
 
     companion object {
-        private val log = LoggerFactory.getLogger(InfotrygdBeregningsgrunnlagService::class.java)
+        private val log = LoggerFactory.getLogger(YtelseService::class.java)
     }
 
     fun finnYtelser(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -63,7 +62,7 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                                     .onEach(probe::inspiserInfotrygdSak)
                                     .map(InfotrygdSakMapper::toSak))
                 }.flatMap { saker ->
-                    infotrygdBeregningsgrunnlagListeClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom).toEither { err ->
+                    infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom).toEither { err ->
                         log.error("Error while doing infotrygdBeregningsgrunnlag lookup", err)
 
                         when (err) {

@@ -12,7 +12,7 @@ import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.domene.ytelse.domain.*
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
-import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagListeClient
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.Behandlingstema
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
@@ -31,13 +31,13 @@ class YtelseServiceTest {
     @Test
     fun `skal sammenstille ytelser fra arena og infotrygd`() {
         val aktørregisterService = mockk<AktørregisterService>()
-        val infotrygdBeregningsgrunnlagListeClient = mockk<InfotrygdBeregningsgrunnlagListeClient>()
+        val infotrygdBeregningsgrunnlagListeClient = mockk<InfotrygdBeregningsgrunnlagClient>()
         val infotrygdSakClient = mockk<InfotrygdSakClient>()
         val meldekortUtbetalingsgrunnlagClient = mockk<MeldekortUtbetalingsgrunnlagClient>()
 
         val ytelseService = YtelseService(
                 aktørregisterService = aktørregisterService,
-                infotrygdBeregningsgrunnlagListeClient = infotrygdBeregningsgrunnlagListeClient,
+                infotrygdBeregningsgrunnlagClient = infotrygdBeregningsgrunnlagListeClient,
                 infotrygdSakClient = infotrygdSakClient,
                 meldekortUtbetalingsgrunnlagClient = meldekortUtbetalingsgrunnlagClient,
                 probe = mockk(relaxed = true))
