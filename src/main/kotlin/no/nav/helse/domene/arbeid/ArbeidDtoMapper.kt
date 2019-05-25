@@ -38,7 +38,7 @@ object ArbeidDtoMapper {
                         yrke = arbeidsavtale.yrke,
                         stillingsprosent = arbeidsavtale.stillingsprosent,
                         fom = arbeidsavtale.fom,
-                        tom = arbeidsavtale.tom
+                        tom = if (arbeidsavtale is Arbeidsavtale.Historisk) arbeidsavtale.tom else null
                 )
             }
 

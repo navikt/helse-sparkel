@@ -4,8 +4,8 @@ import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
 import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
 import no.nav.helse.domene.arbeid.domain.Permisjon
-import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.domene.utbetaling.domain.Virksomhet
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Organisasjon
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Person
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.AktoerId
@@ -59,10 +59,18 @@ object ArbeidDomainMapper {
             }
 
     fun toArbeidsavtale(arbeidsavtale: no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale) =
-            Arbeidsavtale(
-                    yrke = arbeidsavtale.yrke.value,
-                    stillingsprosent = arbeidsavtale.stillingsprosent,
-                    fom = arbeidsavtale.fomGyldighetsperiode.toLocalDate(),
-                    tom = arbeidsavtale.tomGyldighetsperiode?.toLocalDate()
-            )
+            if (arbeidsavtale.tomGyldighetsperiode == null) {
+                Arbeidsavtale.Gjeldende(
+                        yrke = arbeidsavtale.yrke.value,
+                        stillingsprosent = arbeidsavtale.stillingsprosent,
+                        fom = arbeidsavtale.fomGyldighetsperiode.toLocalDate()
+                )
+            } else {
+                Arbeidsavtale.Historisk(
+                        yrke = arbeidsavtale.yrke.value,
+                        stillingsprosent = arbeidsavtale.stillingsprosent,
+                        fom = arbeidsavtale.fomGyldighetsperiode.toLocalDate(),
+                        tom = arbeidsavtale.tomGyldighetsperiode.toLocalDate()
+                )
+            }
 }
