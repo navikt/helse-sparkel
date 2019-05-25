@@ -85,6 +85,21 @@ class ArbeidsavtaleTest {
         assertNotEquals(avtale1.hashCode(), avtale5.hashCode())
     }
 
+    @Test
+    fun `test string-representasjon av gjeldende avtale`() {
+        val avtale = enGjeldendeArbeidsavtale()
+                .medFom(LocalDate.of(2019, 1, 1))
+        assertEquals("Arbeidsavtale.Gjeldende(yrke='BUTIKKMEDARBEIDER', stillingsprosent=100, fom=2019-01-01)", avtale.toString())
+    }
+
+    @Test
+    fun `test string-representasjon av historisk avtale`() {
+        val avtale = enHistoriskArbeidsavtale()
+                .medFom(LocalDate.of(2019, 1, 1))
+                .medTom(LocalDate.of(2019, 2, 1))
+        assertEquals("Arbeidsavtale.Historisk(yrke='BUTIKKMEDARBEIDER', stillingsprosent=100, fom=2019-01-01, tom=2019-02-01)", avtale.toString())
+    }
+
     private fun enGjeldendeArbeidsavtale() =
             Arbeidsavtale.Gjeldende(
                     yrke = "BUTIKKMEDARBEIDER",
@@ -145,6 +160,6 @@ class ArbeidsavtaleTest {
                     yrke = yrke,
                     stillingsprosent = stillingsprosent,
                     fom = fom,
-                    tom = fom
+                    tom = tom
             )
 }
