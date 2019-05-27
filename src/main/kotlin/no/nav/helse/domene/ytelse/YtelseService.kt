@@ -72,54 +72,62 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                             is FinnGrunnlagListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
                             else -> Feilårsak.UkjentFeil
                         }
-                    }.map { finnGrunnlagListeResponse ->
-                        with (finnGrunnlagListeResponse) {
-                            sykepengerListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }.plus(foreldrepengerListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }).plus(engangstoenadListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }).plus(paaroerendeSykdomListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }).mapNotNull {
-                                it.fold({ err ->
-                                    log.info("feil med beregningsgrunnlag, hopper over", err)
-                                    null
-                                }) {
-                                    it
-                                }
-                            }
-                        }
-                    }.map { grunnlagliste ->
-                        val (sakerMedGrunnlag, grunnlagUtenSak) = sammenstillSakerOgGrunnlag(saker, grunnlagliste)
-
-                        if (grunnlagUtenSak.isNotEmpty()) {
-                            grunnlagUtenSak.forEach { grunnlag ->
-                                log.info("finner ikke sak for grunnlag $grunnlag")
-                            }
-                        }
-
-                        sakerMedGrunnlag.filter { infotrygdSakOgGrunnlag ->
-                            infotrygdSakOgGrunnlag.grunnlag == null
-                        }.forEach { sakUtenGrunnlag ->
-                            log.info("finner ikke grunnlag for sak med sakId=${sakUtenGrunnlag.sak.sakId}")
-                        }
-
-                        sakerMedGrunnlag
+                    }.map {
+                        saker to it
                     }
-                }
-            }.also { either ->
-                if (either is Either.Right) {
-                    probe.inspiserInfotrygdSakerOgGrunnlag(either.b)
+                }.map { (saker, finnGrunnlagListeResponse) ->
+                    with (finnGrunnlagListeResponse) {
+                        sykepengerListe.map {
+                            Try {
+                                BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                            }
+                        }.plus(foreldrepengerListe.map {
+                            Try {
+                                BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                            }
+                        }).plus(engangstoenadListe.map {
+                            Try {
+                                BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                            }
+                        }).plus(paaroerendeSykdomListe.map {
+                            Try {
+                                BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                            }
+                        }).mapNotNull {
+                            it.fold({ err ->
+                                log.info("feil med beregningsgrunnlag, hopper over", err)
+                                null
+                            }) {
+                                it
+                            }
+                        }.let {
+                            saker to it
+                        }
+                    }
+                }.map { (saker, grunnlagliste) ->
+                    val (sakerMedGrunnlag, grunnlagUtenSak) = sammenstillSakerOgGrunnlag(saker, grunnlagliste)
+
+                    if (grunnlagUtenSak.isNotEmpty()) {
+                        grunnlagUtenSak.forEach { grunnlag ->
+                            log.info("finner ikke sak for grunnlag $grunnlag")
+                        }
+                    }
+
+                    sakerMedGrunnlag.filter { infotrygdSakOgGrunnlag ->
+                        infotrygdSakOgGrunnlag.grunnlag == null
+                    }.forEach { sakUtenGrunnlag ->
+                        log.info("finner ikke grunnlag for sak med sakId=${sakUtenGrunnlag.sak.sakId}")
+                    }
+
+                    sakerMedGrunnlag
+                }.also { either ->
+                    if (either is Either.Right) {
+                        probe.inspiserInfotrygdSakerOgGrunnlag(either.b)
+                    }
+                }.map { sakerMedGrunnlag ->
+                    sakerMedGrunnlag.filter {
+                        it.grunnlag != null
+                    }
                 }
             }
 
