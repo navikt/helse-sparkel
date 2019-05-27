@@ -10,10 +10,7 @@ import no.nav.helse.domene.arbeid.domain.Permisjon
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
 import no.nav.helse.domene.utbetaling.domain.Virksomhet
-import no.nav.helse.domene.ytelse.domain.Behandlingstema
-import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
-import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
-import no.nav.helse.domene.ytelse.domain.Tema
+import no.nav.helse.domene.ytelse.domain.*
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
@@ -107,7 +104,8 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         OrganisasjonErOrganisasjonsledd,
         FlereGrunnlag,
         UkjentTema,
-        UtbetalingsgradMangler
+        UtbetalingsgradMangler,
+        HullIAnvistPeriode
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -252,18 +250,33 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         if (grunnlag.behandlingstema is Behandlingstema.Ukjent) {
             sendDatakvalitetEvent(grunnlag, "behandlingstema", Observasjonstype.UkjentTema, "$grunnlag har ukjent behandlingstema")
         }
-        sjekkOmFeltErNull(grunnlag, "periodeFom", grunnlag.periodeFom)
-        sjekkOmFeltErNull(grunnlag, "periodeTom", grunnlag.periodeTom)
-        if (grunnlag.periodeFom != null) {
-            sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(grunnlag, "periodeFom,periodeTom", grunnlag.periodeFom, grunnlag.periodeTom)
-        }
+        sjekkOmFeltErNull(grunnlag, "utbetalingFom", grunnlag.utbetalingFom)
+        sjekkOmFeltErNull(grunnlag, "utbetalingTom", grunnlag.utbetalingTom)
 
-        if (grunnlag.vedtak.any { it.utbetalingsgrad == null }) {
-            sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.UtbetalingsgradMangler, "$grunnlag har vedtak med manglende utbetalingsgrad")
-        }
+        if (grunnlag.vedtak.isNotEmpty()) {
+            try {
+                if (grunnlag.vedtak[0].fom != grunnlag.utbetalingFom) {
+                    throw IllegalArgumentException("første vedtak begynner på ${grunnlag.vedtak[0].fom}, perioden begynner på ${grunnlag.utbetalingFom}")
+                }
 
-        grunnlag.vedtak.forEach { vedtak ->
-            sjekkOmFeltErNull(vedtak, "utbetalingsgrad", vedtak.utbetalingsgrad)
+                val last = grunnlag.vedtak.reduce { previous, current ->
+                    if (previous.tom.plusDays(1) != current.fom) {
+                        throw IllegalArgumentException("forrige vedtak slutter på ${previous.tom}, neste vedtak begynner på ${current.fom}")
+                    }
+
+                    current
+                }
+
+                if (last.tom != grunnlag.utbetalingTom) {
+                    throw IllegalArgumentException("siste vedtak slutter på ${last.tom}, perioden slutter på ${grunnlag.utbetalingTom}")
+                }
+            } catch (err: IllegalArgumentException) {
+                sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.HullIAnvistPeriode, "$grunnlag har hull i anvist periode: ${err.message}")
+            }
+
+            if (grunnlag.vedtak.any { it is Utbetalingsvedtak.SkalIkkeUtbetales }) {
+                sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.UtbetalingsgradMangler, "$grunnlag har ${grunnlag.vedtak.filter { it is Utbetalingsvedtak.SkalIkkeUtbetales }.size} vedtak med manglende utbetalingsgrad")
+            }
         }
     }
 

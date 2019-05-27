@@ -5,7 +5,7 @@ import no.nav.helse.domene.ytelse.BeregningsgrunnlagMapper.toBeregningsgrunnlag
 import no.nav.helse.domene.ytelse.BeregningsgrunnlagMapper.toVedtak
 import no.nav.helse.domene.ytelse.domain.Behandlingstema
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
-import no.nav.helse.domene.ytelse.domain.BeregningsgrunnlagVedtak
+import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -149,11 +149,36 @@ class BeregningsgrunnlagMapperTest {
         )
 
         val expected = listOf(
-                BeregningsgrunnlagVedtak(
-                    fom = fom,
-                    tom = tom,
-                    utbetalingsgrad = utbetalingsgrad
-            ))
+                Utbetalingsvedtak.SkalUtbetales(
+                        fom = fom,
+                        tom = tom,
+                        utbetalingsgrad = utbetalingsgrad
+                ))
+
+        assertEquals(expected, toVedtak(given))
+    }
+
+    @Test
+    fun `skal mappe vedtak uten utbetalingsgrad`() {
+        val fom = LocalDate.now().minusDays(14)
+        val tom = LocalDate.now()
+        val utbetalingsgrad = 100
+
+
+        val given = listOf(
+                Vedtak().apply {
+                    anvistPeriode = Periode().apply {
+                        this.fom = fom.toXmlGregorianCalendar()
+                        this.tom = tom.toXmlGregorianCalendar()
+                    }
+                }
+        )
+
+        val expected = listOf(
+                Utbetalingsvedtak.SkalIkkeUtbetales(
+                        fom = fom,
+                        tom = tom
+                ))
 
         assertEquals(expected, toVedtak(given))
     }
