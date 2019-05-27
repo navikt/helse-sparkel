@@ -53,5 +53,7 @@ object BeregningsgrunnlagMapper {
                         fom = vedtak.anvistPeriode.fom.toLocalDate(),
                         tom = vedtak.anvistPeriode.tom.toLocalDate()
                 )
+            }.sortedBy {
+                it.fom
             }
 }

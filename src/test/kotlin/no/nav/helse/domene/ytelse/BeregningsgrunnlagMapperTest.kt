@@ -137,7 +137,6 @@ class BeregningsgrunnlagMapperTest {
         val tom = LocalDate.now()
         val utbetalingsgrad = 100
 
-
         val given = listOf(
                 Vedtak().apply {
                     anvistPeriode = Periode().apply {
@@ -162,8 +161,6 @@ class BeregningsgrunnlagMapperTest {
     fun `skal mappe vedtak uten utbetalingsgrad`() {
         val fom = LocalDate.now().minusDays(14)
         val tom = LocalDate.now()
-        val utbetalingsgrad = 100
-
 
         val given = listOf(
                 Vedtak().apply {
@@ -178,6 +175,53 @@ class BeregningsgrunnlagMapperTest {
                 Utbetalingsvedtak.SkalIkkeUtbetales(
                         fom = fom,
                         tom = tom
+                ))
+
+        assertEquals(expected, toVedtak(given))
+    }
+
+    @Test
+    fun `skal sortere vedtak etter fom`() {
+        val fom = LocalDate.now().minusDays(14)
+        val tom = LocalDate.now()
+
+        val given = listOf(
+                Vedtak().apply {
+                    anvistPeriode = Periode().apply {
+                        this.fom = fom.minusMonths(4).toXmlGregorianCalendar()
+                        this.tom = tom.minusMonths(3).toXmlGregorianCalendar()
+                    }
+                    utbetalingsgrad = 100
+                },
+                Vedtak().apply {
+                    anvistPeriode = Periode().apply {
+                        this.fom = fom.toXmlGregorianCalendar()
+                        this.tom = tom.toXmlGregorianCalendar()
+                    }
+                    utbetalingsgrad = 100
+                },
+                Vedtak().apply {
+                    anvistPeriode = Periode().apply {
+                        this.fom = fom.minusMonths(2).toXmlGregorianCalendar()
+                        this.tom = tom.minusMonths(1).toXmlGregorianCalendar()
+                    }
+                }
+        )
+
+        val expected = listOf(
+                Utbetalingsvedtak.SkalUtbetales(
+                        fom = fom.minusMonths(4),
+                        tom = tom.minusMonths(3),
+                        utbetalingsgrad = 100
+                ),
+                Utbetalingsvedtak.SkalIkkeUtbetales(
+                        fom = fom.minusMonths(2),
+                        tom = tom.minusMonths(1)
+                ),
+                Utbetalingsvedtak.SkalUtbetales(
+                        fom = fom,
+                        tom = tom,
+                        utbetalingsgrad = 100
                 ))
 
         assertEquals(expected, toVedtak(given))
