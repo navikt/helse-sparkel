@@ -1,7 +1,8 @@
 package no.nav.helse.domene.person
 
-import arrow.core.Either
+import arrow.core.flatMap
 import no.nav.helse.Feilårsak
+import no.nav.helse.arrow.sequenceU
 import no.nav.helse.domene.AktørId
 import no.nav.helse.oppslag.person.PersonClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentGeografiskTilknytningPersonIkkeFunnet
@@ -58,7 +59,7 @@ class PersonService(private val personClient: PersonClient) {
                     .filter { "BARN" == it.tilRolle.value }
                     .filter { aktiveEndringstyper.contains(it.endringstype) }
                     .map { AktørId((it.tilPerson.aktoer as AktoerId).aktoerId) }
-        }.map { barnAktørIder ->
+        }.flatMap { barnAktørIder ->
             barnAktørIder.map { barnAktørId ->
                 personClient.person(barnAktørId).toEither { err ->
                     log.error("Feil ved oppslag på barn", err)
@@ -67,14 +68,9 @@ class PersonService(private val personClient: PersonClient) {
                         is HentGeografiskTilknytningSikkerhetsbegrensing -> Feilårsak.FeilFraTjeneste
                         else -> Feilårsak.FeilFraTjeneste
                     }
-                }.map {
-                    PersonMapper.toBarn(it)
                 }
-            }.mapNotNull {
-                when (it) {
-                    is Either.Right -> it.b
-                    else -> null
-                }
-            }
+            }.sequenceU()
+        }.map { barn ->
+            barn.map { PersonMapper.toBarn(it) }
         }
 }
