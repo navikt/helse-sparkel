@@ -6,6 +6,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.helse.HttpFeil
 import no.nav.helse.domene.AktørId
+import no.nav.helse.domene.ytelse.YtelseDtoMapper
 import no.nav.helse.respond
 import no.nav.helse.respondFeil
 import java.time.LocalDate
@@ -30,7 +31,12 @@ fun Route.sykepengehistorikk(sykepengehistorikkService: SykepengehistorikkServic
                 return@get
             }
 
-            sykepengehistorikkService.hentSykepengeHistorikk(AktørId(call.parameters["aktorId"]!!), fom, tom).respond(call)
+            sykepengehistorikkService.hentSykepengeHistorikk(AktørId(call.parameters["aktorId"]!!), fom, tom)
+                    .map {
+                        it.map {
+                            YtelseDtoMapper.toDto(it)
+                        }
+                    }.respond(call)
         }
     }
 }

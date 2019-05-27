@@ -1,6 +1,7 @@
 package no.nav.helse.domene.ytelse
 
 import arrow.core.Either
+import arrow.core.Try
 import arrow.core.flatMap
 import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
@@ -73,10 +74,30 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                         }
                     }.map { finnGrunnlagListeResponse ->
                         with (finnGrunnlagListeResponse) {
-                            sykepengerListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag)
-                                    .plus(foreldrepengerListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag))
-                                    .plus(engangstoenadListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag))
-                                    .plus(paaroerendeSykdomListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag))
+                            sykepengerListe.map {
+                                Try {
+                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                                }
+                            }.plus(foreldrepengerListe.map {
+                                Try {
+                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                                }
+                            }).plus(engangstoenadListe.map {
+                                Try {
+                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                                }
+                            }).plus(paaroerendeSykdomListe.map {
+                                Try {
+                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
+                                }
+                            }).mapNotNull {
+                                it.fold({ err ->
+                                    log.info("feil med beregningsgrunnlag, hopper over", err)
+                                    null
+                                }) {
+                                    it
+                                }
+                            }
                         }
                     }.map { grunnlagliste ->
                         val (sakerMedGrunnlag, grunnlagUtenSak) = sammenstillSakerOgGrunnlag(saker, grunnlagliste)

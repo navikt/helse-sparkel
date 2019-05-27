@@ -1,6 +1,8 @@
 package no.nav.helse.domene.ytelse
 
+import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
 import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
+import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.helse.domene.ytelse.domain.Ytelse
 import no.nav.helse.domene.ytelse.dto.*
 
@@ -23,21 +25,24 @@ object YtelseDtoMapper {
                             behandlingstema = sakOgGrunnlag.sak.behandlingstema.name(),
                             opphørerFom = sakOgGrunnlag.sak.opphørerFom
                     ),
-                    grunnlag = sakOgGrunnlag.grunnlag.map { beregningsgrunnlag ->
-                        BeregningsgrunnlagDto(
-                                type = beregningsgrunnlag.type(),
-                                identdato = beregningsgrunnlag.identdato,
-                                periodeFom = beregningsgrunnlag.periodeFom,
-                                periodeTom = beregningsgrunnlag.periodeTom,
-                                behandlingstema = beregningsgrunnlag.behandlingstema.name(),
-                                vedtak = beregningsgrunnlag.vedtak.map { beregningsgrunnlagVedtak ->
-                                    BeregningsgrunnlagVedtakDto(
-                                            fom = beregningsgrunnlagVedtak.fom,
-                                            tom = beregningsgrunnlagVedtak.tom,
-                                            utbetalingsgrad = beregningsgrunnlagVedtak.utbetalingsgrad
-                                    )
-                                }
-                        )
-                    }
+                    grunnlag = sakOgGrunnlag.grunnlag.map(::toDto)
             )
+
+    fun toDto(beregningsgrunnlag: Beregningsgrunnlag) =
+            BeregningsgrunnlagDto(
+                    type = beregningsgrunnlag.type(),
+                    identdato = beregningsgrunnlag.identdato,
+                    periodeFom = beregningsgrunnlag.utbetalingFom,
+                    periodeTom = beregningsgrunnlag.utbetalingTom,
+                    behandlingstema = beregningsgrunnlag.behandlingstema.name(),
+                    vedtak = beregningsgrunnlag.vedtak.map(::toDto)
+            )
+
+    fun toDto(utbetalingsvedtak: Utbetalingsvedtak) =
+            BeregningsgrunnlagVedtakDto(
+                    fom = utbetalingsvedtak.fom,
+                    tom = utbetalingsvedtak.tom,
+                    utbetalingsgrad = if (utbetalingsvedtak is Utbetalingsvedtak.SkalUtbetales) utbetalingsvedtak.utbetalingsgrad else null
+            )
+
 }

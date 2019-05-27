@@ -3,7 +3,7 @@ package no.nav.helse.domene.ytelse
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.ytelse.domain.Behandlingstema
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
-import no.nav.helse.domene.ytelse.domain.BeregningsgrunnlagVedtak
+import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 
 object BeregningsgrunnlagMapper {
@@ -43,10 +43,15 @@ object BeregningsgrunnlagMapper {
 
     fun toVedtak(vedtakliste: List<Vedtak>) =
             vedtakliste.map { vedtak ->
-                BeregningsgrunnlagVedtak(
+                vedtak.utbetalingsgrad?.let {
+                    Utbetalingsvedtak.SkalUtbetales(
+                            fom = vedtak.anvistPeriode.fom.toLocalDate(),
+                            tom = vedtak.anvistPeriode.tom.toLocalDate(),
+                            utbetalingsgrad = vedtak.utbetalingsgrad
+                    )
+                } ?: Utbetalingsvedtak.SkalIkkeUtbetales(
                         fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                        tom = vedtak.anvistPeriode.tom.toLocalDate(),
-                        utbetalingsgrad = vedtak.utbetalingsgrad
+                        tom = vedtak.anvistPeriode.tom.toLocalDate()
                 )
             }
 }
