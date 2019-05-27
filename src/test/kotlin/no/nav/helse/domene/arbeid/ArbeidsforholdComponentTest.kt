@@ -187,7 +187,6 @@ class ArbeidsforholdComponentTest {
                     with (arbeidsavtale) {
                         add(Arbeidsavtale().apply {
                             fomGyldighetsperiode = LocalDate.parse("2015-01-01").toXmlGregorianCalendar()
-                            tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                             yrke = Yrker().apply {
                                 value = "Butikkmedarbeider"
                             }
@@ -225,7 +224,6 @@ class ArbeidsforholdComponentTest {
                 with (arbeidsavtale) {
                     add(Arbeidsavtale().apply {
                         fomGyldighetsperiode = LocalDate.parse("2017-01-01").toXmlGregorianCalendar()
-                        tomGyldighetsperiode = LocalDate.parse("2019-01-01").toXmlGregorianCalendar()
                         yrke = Yrker().apply {
                             value = "Butikkmedarbeider"
                         }
@@ -573,7 +571,6 @@ private val expectedJson_arbeidsforhold = """
         "arbeidsavtaler": [
             {
                 "fom":"2017-01-01",
-                "tom":"2019-01-01",
                 "yrke":"Butikkmedarbeider",
                 "stillingsprosent":100
             },

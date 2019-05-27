@@ -10,6 +10,10 @@ import no.nav.helse.domene.arbeid.domain.Permisjon
 import no.nav.helse.domene.organisasjon.OrganisasjonService
 import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
 import no.nav.helse.domene.utbetaling.domain.Virksomhet
+import no.nav.helse.domene.ytelse.domain.Behandlingstema
+import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
+import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
+import no.nav.helse.domene.ytelse.domain.Tema
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
@@ -87,8 +91,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         DatoErIFremtiden,
         VerdiMangler,
         TomVerdi,
-        TomListe,
-        FlereGjeldendeArbeidsavtaler,
         FlereArbeidsforholdPerInntekt,
         ArbeidsforholdISammeVirksomhet,
         IngenArbeidsforholdForInntekt,
@@ -102,7 +104,10 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         VirksomhetErOrganisasjon,
         OrganisasjonErJuridiskEnhet,
         OrganisasjonErVirksomhet,
-        OrganisasjonErOrganisasjonsledd
+        OrganisasjonErOrganisasjonsledd,
+        FlereGrunnlag,
+        UkjentTema,
+        UtbetalingsgradMangler
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -112,13 +117,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
 
         arbeidsforhold.permisjon.forEach { permisjon ->
             inspiserPermisjon(permisjon)
-        }
-
-        sjekkOmListeErTom(arbeidsforhold, "arbeidsavtaler", arbeidsforhold.arbeidsavtaler)
-
-        val gjeldendeArbeidsavtaler = arbeidsforhold.arbeidsavtaler.filter { it.tom == null }.size
-        if (gjeldendeArbeidsavtaler > 1) {
-            flereGjeldendeArbeidsavtaler(arbeidsforhold, "arbeidsavtaler", gjeldendeArbeidsavtaler)
         }
 
         arbeidsforhold.arbeidsavtaler.forEach { arbeidsavtale ->
@@ -208,6 +206,11 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     }
 
     fun inspiserInfotrygdSak(sak: InfotrygdSak) {
+        sjekkOmFeltErNull(sak, "sakId", sak.sakId)
+        sak.sakId?.let {
+            sjekkOmFeltErBlank(sak, "sakId", it)
+        }
+
         sjekkOmFeltErNull(sak, "type", sak.type?.value)
         sak.type?.value?.let {
             sjekkOmFeltErBlank(sak, "type", it)
@@ -221,6 +224,46 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         sjekkOmFeltErNull(sak, "resultat", sak.resultat?.value)
         sak.resultat?.value?.let {
             sjekkOmFeltErBlank(sak, "resultat", it)
+        }
+    }
+
+    fun inspiserInfotrygdSakerOgGrunnlag(saker: List<InfotrygdSakOgGrunnlag>) {
+        saker.forEach { sakMedGrunnlag ->
+            inspiserSak(sakMedGrunnlag.sak)
+
+            if (sakMedGrunnlag.grunnlag.size > 1) {
+                sendDatakvalitetEvent(sakMedGrunnlag, "grunnlag", Observasjonstype.FlereGrunnlag, "${sakMedGrunnlag.sak} har ${sakMedGrunnlag.grunnlag.size} grunnlag")
+            }
+
+            sakMedGrunnlag.grunnlag.forEach(::inspiserGrunnlag)
+        }
+    }
+
+    private fun inspiserSak(sak: no.nav.helse.domene.ytelse.domain.InfotrygdSak) {
+        if (sak.behandlingstema is Behandlingstema.Ukjent) {
+            sendDatakvalitetEvent(sak, "behandlingstema", Observasjonstype.UkjentTema, "$sak har ukjent behandlingstema")
+        }
+        if (sak.tema is Tema.Ukjent) {
+            sendDatakvalitetEvent(sak, "tema", Observasjonstype.UkjentTema, "$sak har ukjent tema")
+        }
+    }
+
+    private fun inspiserGrunnlag(grunnlag: Beregningsgrunnlag) {
+        if (grunnlag.behandlingstema is Behandlingstema.Ukjent) {
+            sendDatakvalitetEvent(grunnlag, "behandlingstema", Observasjonstype.UkjentTema, "$grunnlag har ukjent behandlingstema")
+        }
+        sjekkOmFeltErNull(grunnlag, "periodeFom", grunnlag.periodeFom)
+        sjekkOmFeltErNull(grunnlag, "periodeTom", grunnlag.periodeTom)
+        if (grunnlag.periodeFom != null) {
+            sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(grunnlag, "periodeFom,periodeTom", grunnlag.periodeFom, grunnlag.periodeTom)
+        }
+
+        if (grunnlag.vedtak.any { it.utbetalingsgrad == null }) {
+            sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.UtbetalingsgradMangler, "$grunnlag har vedtak med manglende utbetalingsgrad")
+        }
+
+        grunnlag.vedtak.forEach { vedtak ->
+            sjekkOmFeltErNull(vedtak, "utbetalingsgrad", vedtak.utbetalingsgrad)
         }
     }
 
@@ -251,7 +294,10 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             if (stillingsprosent != null) {
                 sjekkProsent(this, "stillingsprosent", stillingsprosent)
             }
-            sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(this, "fom,tom", fom, tom)
+
+            if (this is Arbeidsavtale.Historisk) {
+                sjekkOmFraOgMedDatoErStørreEnnTilOgMedDato(this, "fom,tom", fom, tom)
+            }
         }
     }
 
@@ -327,10 +373,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         frilansCounter.inc(arbeidsforholdliste.size.toDouble())
     }
 
-    private fun flereGjeldendeArbeidsavtaler(objekt: Any, felt: String, verdi: Int) {
-        sendDatakvalitetEvent(objekt, felt, Observasjonstype.FlereGjeldendeArbeidsavtaler, "det er $verdi gjeldende arbeidsavtaler")
-    }
-
     private fun sendDatakvalitetEvent(objekt: Any, felt: String, observasjonstype: Observasjonstype, beskrivelse: String) {
         log.info("objekt=${objekt.javaClass.name} felt=$felt feil=$observasjonstype: $beskrivelse")
         influxMetricReporter.sendDataPoint("datakvalitet.event",
@@ -342,12 +384,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
                         "felt" to felt,
                         "type" to observasjonstype.name
                 ))
-    }
-
-    private fun sjekkOmListeErTom(objekt: Any, felt: String, value: List<Any>) {
-        if (value.isEmpty()) {
-            sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomListe, "tom liste: $felt er tom")
-        }
     }
 
     private fun sjekkOmFeltErNull(objekt: Any, felt: String, value: Any?) {
