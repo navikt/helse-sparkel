@@ -259,16 +259,14 @@ private val expectedJson = """
           "behandlingstema": "Sykepenger",
           "iverksatt": "2019-05-28"
         },
-        "grunnlag": [
-          {
-            "type": "Sykepenger",
-            "periodeTom": "2019-05-31",
-            "vedtak": [],
-            "behandlingstema": "Sykepenger",
-            "identdato": "2019-05-28",
-            "periodeFom": "2019-05-01"
-          }
-        ]
+        "grunnlag": {
+          "type": "Sykepenger",
+          "periodeTom": "2019-05-31",
+          "vedtak": [],
+          "behandlingstema": "Sykepenger",
+          "identdato": "2019-05-28",
+          "periodeFom": "2019-05-01"
+        }
       },
       {
         "sak": {
@@ -277,16 +275,14 @@ private val expectedJson = """
           "behandlingstema": "ForeldrepengerMedFødsel",
           "iverksatt": "2019-05-14"
         },
-        "grunnlag": [
-          {
-            "type": "Foreldrepenger",
-            "periodeTom": "2019-05-31",
-            "vedtak": [],
-            "behandlingstema": "ForeldrepengerMedFødsel",
-            "identdato": "2019-05-14",
-            "periodeFom": "2019-05-01"
-          }
-        ]
+        "grunnlag": {
+          "type": "Foreldrepenger",
+          "periodeTom": "2019-05-31",
+          "vedtak": [],
+          "behandlingstema": "ForeldrepengerMedFødsel",
+          "identdato": "2019-05-14",
+          "periodeFom": "2019-05-01"
+        }
       },
       {
         "sak": {
@@ -295,16 +291,14 @@ private val expectedJson = """
           "behandlingstema": "EngangstønadMedFødsel",
           "iverksatt": "2019-05-07"
         },
-        "grunnlag": [
-          {
-            "type": "Engangstønad",
-            "periodeTom": "2019-05-31",
-            "vedtak": [],
-            "behandlingstema": "EngangstønadMedFødsel",
-            "identdato": "2019-05-07",
-            "periodeFom": "2019-05-01"
-          }
-        ]
+        "grunnlag": {
+          "type": "Engangstønad",
+          "periodeTom": "2019-05-31",
+          "vedtak": [],
+          "behandlingstema": "EngangstønadMedFødsel",
+          "identdato": "2019-05-07",
+          "periodeFom": "2019-05-01"
+        }
       },
       {
         "sak": {
@@ -313,16 +307,14 @@ private val expectedJson = """
           "behandlingstema": "Pleiepenger",
           "iverksatt": "2019-05-01"
         },
-        "grunnlag": [
-          {
-            "type": "PårørendeSykdom",
-            "periodeTom": "2019-05-31",
-            "vedtak": [],
-            "behandlingstema": "Pleiepenger",
-            "identdato": "2019-05-01",
-            "periodeFom": "2019-05-01"
-          }
-        ]
+        "grunnlag": {
+          "type": "PårørendeSykdom",
+          "periodeTom": "2019-05-31",
+          "vedtak": [],
+          "behandlingstema": "Pleiepenger",
+          "identdato": "2019-05-01",
+          "periodeFom": "2019-05-01"
+        }
       }
     ]
 }
