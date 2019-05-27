@@ -9,7 +9,9 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
+import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.Behandlingstema
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.Periode
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.Sykepenger
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.Vedtak
@@ -43,12 +45,24 @@ class SykepengehistorikkServiceTest {
         } returns FinnGrunnlagListeResponse().apply {
             with (sykepengerListe) {
                 add(Sykepenger().apply {
+                    identdato = fom.toXmlGregorianCalendar()
+                    behandlingstema = Behandlingstema().apply {
+                        value = "SP"
+                    }
                     with (vedtakListe) {
                         add(Vedtak().apply {
                             utbetalingsgrad = null
+                            anvistPeriode = Periode().apply {
+                                this.fom = fom.toXmlGregorianCalendar()
+                                this.tom = tom.toXmlGregorianCalendar()
+                            }
                         })
                         add(Vedtak().apply {
                             utbetalingsgrad = 0
+                            anvistPeriode = Periode().apply {
+                                this.fom = fom.toXmlGregorianCalendar()
+                                this.tom = tom.toXmlGregorianCalendar()
+                            }
                         })
                         add(Vedtak().apply {
                             utbetalingsgrad = 100
@@ -63,7 +77,7 @@ class SykepengehistorikkServiceTest {
         }.success()
 
         val expected = Either.Right(listOf(
-                Tidsperiode(fom, tom)
+                Utbetalingsvedtak.SkalUtbetales(fom, tom, 100)
         ))
 
         assertEquals(expected, sykepengehistorikkService.hentSykepengeHistorikk(aktørId, fom, tom))
