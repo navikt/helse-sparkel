@@ -18,4 +18,6 @@ object PersonDtoMapper {
                     bostedsland = person.bostedsland,
                     diskresjonskode = person.diskresjonskode
             )
+
+    fun toDto(personer: List<Person>) = personer.map { toDto(it) }
 }

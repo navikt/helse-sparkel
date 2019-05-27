@@ -23,6 +23,14 @@ fun Route.person(personService: PersonService) {
         } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "An aktørid must be specified"))
     }
 
+    get("api/person/{aktør}/barn") {
+        call.parameters["aktør"]?.let { aktørid ->
+            personService.barn(AktørId(aktørid))
+                    .map(BarnDtoMapper::toDto)
+                    .respond(call)
+        } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "En Aktør ID må oppgis."))
+    }
+
     get("api/person/{aktør}/geografisk-tilknytning") {
         call.parameters["aktør"]?.let { aktoerId ->
             val lookupResult = personService.geografiskTilknytning(AktørId(aktoerId))

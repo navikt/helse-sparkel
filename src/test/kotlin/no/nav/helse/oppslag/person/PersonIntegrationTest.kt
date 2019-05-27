@@ -15,10 +15,12 @@ import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
+import no.nav.tjeneste.virksomhet.person.v3.informasjon.Familierelasjon
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.LocalDate
+import kotlin.test.assertNull
 
 class PersonIntegrationTest {
 
@@ -46,16 +48,16 @@ class PersonIntegrationTest {
     }
 
     @Test
-    fun `skal svare med gyldig person`() {
+    fun `skal svare med gyldig person med adresse`() {
         val aktørId = "1234567891011"
 
         personStub(
                 server = server,
-                scenario = "person_hent_gyldig_person",
+                scenario = "person_hent_gyldig_person_med_adresse",
                 request = hentPersonStub(aktørId),
-                response = WireMock.ok(hentPerson_response)
+                response = WireMock.ok(hentPersonMedAdresse_response)
         ) { personClient ->
-            val actual = personClient.personInfo(AktørId(aktørId))
+            val actual = personClient.person(AktørId(aktørId))
 
             when (actual) {
                 is Try.Success -> {
@@ -74,6 +76,34 @@ class PersonIntegrationTest {
     }
 
     @Test
+    fun `skal svare med gyldig person uten adresse`() {
+        val aktørId = "1234567812345"
+
+        personStub(
+                server = server,
+                scenario = "person_hent_gyldig_person_uten_adresse",
+                request = hentPersonStub(aktørId),
+                response = WireMock.ok(hentPersonUtenAdresse_response)
+        ) { personClient ->
+            val actual = personClient.personMedAdresse(AktørId(aktørId))
+
+            when (actual) {
+                is Try.Success -> {
+                    assertTrue(actual.value.aktoer is AktoerId)
+                    assertEquals(aktørId, (actual.value.aktoer as AktoerId).aktoerId)
+                    assertEquals("OLA", actual.value.personnavn.fornavn)
+                    assertEquals("ANDREAS", actual.value.personnavn.mellomnavn)
+                    assertEquals("ETTERNAVN", actual.value.personnavn.etternavn)
+                    assertEquals(LocalDate.of(1970, 8, 23), actual.value.foedselsdato.foedselsdato.toLocalDate())
+                    assertEquals("K", actual.value.kjoenn.kjoenn.value)
+                    assertNull(actual.value.bostedsadresse)
+                }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
+            }
+        }
+    }
+
+    @Test
     fun `skal svare med feil dersom personen ikke finnes`() {
         val aktørId = "1234567891011"
 
@@ -83,7 +113,7 @@ class PersonIntegrationTest {
                 request = hentPersonStub(aktørId),
                 response = WireMock.serverError().withBody(hentPerson_not_found_response)
         ) { personClient ->
-            val actual = personClient.personInfo(AktørId(aktørId))
+            val actual = personClient.personMedAdresse(AktørId(aktørId))
 
             when (actual) {
                 is Try.Failure -> {
@@ -96,7 +126,45 @@ class PersonIntegrationTest {
             }
         }
     }
+
+    @Test
+    fun `oppslag på familierelasjoner`() {
+        val aktørId = "1000000000000"
+
+        personStub(
+                server = server,
+                scenario = "person_hent_familierelasjoner",
+                request = hentPersonStub(aktørId),
+                response = WireMock.ok(hentPerson_med_familierelasjoner)
+        ) { personClient ->
+            val actual = personClient.familierelasjoner(AktørId(aktørId))
+
+            when (actual) {
+                is Try.Success -> {
+                    assertEquals(4, actual.value.size)
+                    assertTrue(actual.value.inneholderAktør(aktørId = "1000000000004", fornavn = "MOR", etternavn = "MORSEN", relasjon = "MORA"))
+                    assertTrue(actual.value.inneholderAktør(aktørId = "1000000000003", fornavn = "FAR", mellomnavn = "FAR", etternavn = "FARSEN", relasjon = "FARA"))
+                    assertTrue(actual.value.inneholderAktør(aktørId = "1000000000001", fornavn = "BARN", mellomnavn = "EN", etternavn = "BARNSEN", relasjon = "BARN"))
+                    assertTrue(actual.value.inneholderAktør(aktørId = "1000000000002", fornavn = "BARN", mellomnavn = "TO", etternavn = "BARNSEN", relasjon = "BARN"))
+                }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
+            }
+        }
+    }
 }
+
+private fun List<Familierelasjon>.inneholderAktør(
+        aktørId: String,
+        relasjon: String,
+        fornavn: String,
+        mellomnavn: String? = null,
+        etternavn: String
+) = filter { it.tilRolle.value == relasjon }
+        .filter { (it.tilPerson.aktoer as AktoerId).aktoerId == aktørId }
+        .filter { it.tilPerson.personnavn.fornavn == fornavn }
+        .filter { it.tilPerson.personnavn.mellomnavn == mellomnavn }
+        .filter { it.tilPerson.personnavn.etternavn == etternavn }
+        .size == 1
 
 fun personStub(server: WireMockServer, scenario: String, response: ResponseDefinitionBuilder, request: MappingBuilder, test: (PersonClient) -> Unit) {
     val stsUsername = "stsUsername"
@@ -137,7 +205,7 @@ fun personStub(server: WireMockServer, scenario: String, response: ResponseDefin
     }
 }
 
-private val hentPerson_response = """
+private val hentPersonMedAdresse_response = """
 <?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
     <soapenv:Body>
@@ -205,6 +273,159 @@ private val hentPerson_not_found_response = """
                 </ns2:hentPersonpersonIkkeFunnet>
             </detail>
         </soapenv:Fault>
+    </soapenv:Body>
+</soapenv:Envelope>
+""".trimIndent()
+
+private val hentPersonUtenAdresse_response = """
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <ns2:hentPersonResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
+            <response>
+                <person xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns3:Bruker">
+                    <sivilstand fomGyldighetsperiode="1989-11-10T00:00:00.000+01:00">
+                        <sivilstand>SKIL</sivilstand>
+                    </sivilstand>
+                    <statsborgerskap>
+                        <land>NOR</land>
+                    </statsborgerskap>
+                    <aktoer xsi:type="ns3:AktoerId">
+                        <aktoerId>1234567812345</aktoerId>
+                    </aktoer>
+                    <kjoenn>
+                        <kjoenn>K</kjoenn>
+                    </kjoenn>
+                    <personnavn>
+                        <etternavn>ETTERNAVN</etternavn>
+                        <fornavn>OLA</fornavn>
+                        <mellomnavn>ANDREAS</mellomnavn>
+                        <sammensattNavn>OLA ANDREAS ETTERNAVN</sammensattNavn>
+                    </personnavn>
+                    <personstatus>
+                        <personstatus>BOSA</personstatus>
+                    </personstatus>
+                    <foedselsdato>
+                        <foedselsdato>1970-08-23+01:00</foedselsdato>
+                    </foedselsdato>
+                    <geografiskTilknytning xsi:type="ns3:Kommune">
+                        <geografiskTilknytning>0219</geografiskTilknytning>
+                    </geografiskTilknytning>
+                </person>
+            </response>
+        </ns2:hentPersonResponse>
+    </soapenv:Body>
+</soapenv:Envelope>
+""".trimIndent()
+
+private val hentPerson_med_familierelasjoner = """
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <ns2:hentPersonResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
+            <response>
+                <person xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns3:Bruker">
+                    <sivilstand fomGyldighetsperiode="1989-11-10T00:00:00.000+01:00">
+                        <sivilstand>SKIL</sivilstand>
+                    </sivilstand>
+                    <statsborgerskap>
+                        <land>NOR</land>
+                    </statsborgerskap>
+                    <harFraRolleI>
+                        <harSammeBosted>false</harSammeBosted>
+                        <tilRolle>MORA</tilRolle>
+                        <tilPerson>
+                            <aktoer xsi:type="ns3:AktoerId">
+                                <aktoerId>1000000000004</aktoerId>
+                            </aktoer>
+                            <personnavn>
+                                <etternavn>MORSEN</etternavn>
+                                <fornavn>MOR</fornavn>
+                                <sammensattNavn>MOR MORSEN</sammensattNavn>
+                            </personnavn>
+                            <personstatus>
+                                <personstatus>DØD</personstatus>
+                            </personstatus>
+                            <doedsdato>
+                                <doedsdato>2005-03-08+01:00</doedsdato>
+                            </doedsdato>
+                        </tilPerson>
+                    </harFraRolleI>
+                    <harFraRolleI>
+                        <harSammeBosted>false</harSammeBosted>
+                        <tilRolle>FARA</tilRolle>
+                        <tilPerson>
+                            <aktoer xsi:type="ns3:AktoerId">
+                                <aktoerId>1000000000003</aktoerId>
+                            </aktoer>
+                            <personnavn>
+                                <etternavn>FARSEN</etternavn>
+                                <fornavn>FAR</fornavn>
+                                <mellomnavn>FAR</mellomnavn>
+                                <sammensattNavn>FAR FAR FARSEN</sammensattNavn>
+                            </personnavn>
+                            <personstatus>
+                                <personstatus>DØD</personstatus>
+                            </personstatus>
+                            <doedsdato>
+                                <doedsdato>1992-10-23+01:00</doedsdato>
+                            </doedsdato>
+                        </tilPerson>
+                    </harFraRolleI>
+                    <harFraRolleI>
+                        <harSammeBosted>false</harSammeBosted>
+                        <tilRolle>BARN</tilRolle>
+                        <tilPerson>
+                            <aktoer xsi:type="ns3:AktoerId">
+                                <aktoerId>1000000000001</aktoerId>
+                            </aktoer>
+                            <personnavn>
+                                <etternavn>BARNSEN</etternavn>
+                                <fornavn>BARN</fornavn>
+                                <mellomnavn>EN</mellomnavn>
+                                <sammensattNavn>BARN BARN BARNSEN</sammensattNavn>
+                            </personnavn>
+                        </tilPerson>
+                    </harFraRolleI>
+                    <harFraRolleI>
+                        <harSammeBosted>false</harSammeBosted>
+                        <tilRolle>BARN</tilRolle>
+                        <tilPerson>
+                            <aktoer xsi:type="ns3:AktoerId">
+                                <aktoerId>1000000000002</aktoerId>
+                            </aktoer>
+                            <personnavn>
+                                <etternavn>BARNSEN</etternavn>
+                                <fornavn>BARN</fornavn>
+                                <mellomnavn>TO</mellomnavn>
+                                <sammensattNavn>BARN TO BARNSEN</sammensattNavn>
+                            </personnavn>
+                        </tilPerson>
+                    </harFraRolleI>
+                    <aktoer xsi:type="ns3:AktoerId">
+                        <aktoerId>1000000000000</aktoerId>
+                    </aktoer>
+                    <kjoenn>
+                        <kjoenn>K</kjoenn>
+                    </kjoenn>
+                    <personnavn>
+                        <etternavn>KARISON</etternavn>
+                        <fornavn>KARI</fornavn>
+                        <mellomnavn>KARI</mellomnavn>
+                        <sammensattNavn>KARI KARI KARISON</sammensattNavn>
+                    </personnavn>
+                    <personstatus>
+                        <personstatus>BOSA</personstatus>
+                    </personstatus>
+                    <foedselsdato>
+                        <foedselsdato>1956-08-09+01:00</foedselsdato>
+                    </foedselsdato>
+                    <geografiskTilknytning xsi:type="ns3:Kommune">
+                        <geografiskTilknytning>0219</geografiskTilknytning>
+                    </geografiskTilknytning>
+                </person>
+            </response>
+        </ns2:hentPersonResponse>
     </soapenv:Body>
 </soapenv:Envelope>
 """.trimIndent()

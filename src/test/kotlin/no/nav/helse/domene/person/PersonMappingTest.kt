@@ -82,6 +82,38 @@ class PersonMappingTest {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun beggeDødStatuserMappesTilSamme() {
+        val dødTpsResponse = medPersonStatus("DØD", "1234567891011")
+        val døddTpsResponse = medPersonStatus("DØDD", "1234567891012")
+        val dødExpected = no.nav.helse.domene.person.domain.Person(
+                id = AktørId("1234567891011"),
+                fornavn = "Leonora",
+                mellomnavn = "Dorothea",
+                etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
+                kjønn = Kjønn.KVINNE,
+                statsborgerskap = "NOR",
+                status = "DØD",
+                bostedsland = null,
+                diskresjonskode = "UFB"
+        )
+        val døddExpected = no.nav.helse.domene.person.domain.Person(
+                id = AktørId("1234567891012"),
+                fornavn = "Leonora",
+                mellomnavn = "Dorothea",
+                etternavn = "Dahl",
+                fdato = LocalDate.of(2018, 11, 19),
+                kjønn = Kjønn.KVINNE,
+                statsborgerskap = "NOR",
+                status = "DØD",
+                bostedsland = null,
+                diskresjonskode = "UFB"
+        )
+        assertEquals(dødExpected, PersonMapper.toPerson(dødTpsResponse))
+        assertEquals(døddExpected, PersonMapper.toPerson(døddTpsResponse))
+    }
+
     private fun mannResponse(): Person {
         return Person().apply {
             personnavn = Personnavn().apply {
@@ -234,6 +266,42 @@ class PersonMappingTest {
                 personstatus = Personstatuser().apply {
                     value = "BOSA"
                 }
+            }
+        }
+    }
+
+    private fun medPersonStatus(personStatus: String, aktørId: String) = Person().apply {
+        personnavn = Personnavn().apply {
+            fornavn = "Leonora"
+            mellomnavn = "Dorothea"
+            etternavn = "Dahl"
+        }
+        kjoenn = Kjoenn().apply {
+            kjoenn = Kjoennstyper().apply {
+                value = "K"
+            }
+        }
+        aktoer = AktoerId().apply {
+            aktoerId = aktørId
+        }
+        foedselsdato = Foedselsdato().apply {
+            foedselsdato = DatatypeFactory.newInstance().newXMLGregorianCalendar().apply {
+                year = 2018
+                month = 11
+                day = 19
+            }
+        }
+        diskresjonskode = Diskresjonskoder().apply {
+            value = "UFB"
+        }
+        statsborgerskap = Statsborgerskap().apply {
+            land = Landkoder().apply {
+                value = "NOR"
+            }
+        }
+        personstatus = Personstatus().apply {
+            personstatus = Personstatuser().apply {
+                value = personStatus
             }
         }
     }
