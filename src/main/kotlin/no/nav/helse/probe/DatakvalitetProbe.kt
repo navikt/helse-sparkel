@@ -102,7 +102,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         OrganisasjonErJuridiskEnhet,
         OrganisasjonErVirksomhet,
         OrganisasjonErOrganisasjonsledd,
-        FlereGrunnlag,
         UkjentTema,
         UtbetalingsgradMangler,
         HullIAnvistPeriode
@@ -228,12 +227,7 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     fun inspiserInfotrygdSakerOgGrunnlag(saker: List<InfotrygdSakOgGrunnlag>) {
         saker.forEach { sakMedGrunnlag ->
             inspiserSak(sakMedGrunnlag.sak)
-
-            if (sakMedGrunnlag.grunnlag.size > 1) {
-                sendDatakvalitetEvent(sakMedGrunnlag, "grunnlag", Observasjonstype.FlereGrunnlag, "${sakMedGrunnlag.sak} har ${sakMedGrunnlag.grunnlag.size} grunnlag")
-            }
-
-            sakMedGrunnlag.grunnlag.forEach(::inspiserGrunnlag)
+            sakMedGrunnlag.grunnlag?.let(::inspiserGrunnlag)
         }
     }
 

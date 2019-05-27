@@ -25,7 +25,7 @@ object YtelseDtoMapper {
                             behandlingstema = sakOgGrunnlag.sak.behandlingstema.name(),
                             opphørerFom = sakOgGrunnlag.sak.opphørerFom
                     ),
-                    grunnlag = sakOgGrunnlag.grunnlag.map(::toDto)
+                    grunnlag = sakOgGrunnlag.grunnlag?.let(::toDto)
             )
 
     fun toDto(beregningsgrunnlag: Beregningsgrunnlag) =

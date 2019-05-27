@@ -90,14 +90,12 @@ class YtelseServiceTest {
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
                                 opphørerFom = null
                         ),
-                        grunnlag = listOf(
-                                Beregningsgrunnlag.Sykepenger(
-                                        identdato = identdatoSykepenger,
-                                        periodeFom = fom,
-                                        periodeTom = tom,
-                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
-                                        vedtak = emptyList()
-                                )
+                        grunnlag = Beregningsgrunnlag.Sykepenger(
+                                identdato = identdatoSykepenger,
+                                periodeFom = fom,
+                                periodeTom = tom,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
+                                vedtak = emptyList()
                         )
                 ),
                 InfotrygdSakOgGrunnlag(
@@ -108,14 +106,12 @@ class YtelseServiceTest {
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
                                 opphørerFom = null
                         ),
-                        grunnlag = listOf(
-                                Beregningsgrunnlag.Foreldrepenger(
-                                        identdato = identdatoForeldrepenger,
-                                        periodeFom = fom,
-                                        periodeTom = tom,
-                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
-                                        vedtak = emptyList()
-                                )
+                        grunnlag = Beregningsgrunnlag.Foreldrepenger(
+                                identdato = identdatoForeldrepenger,
+                                periodeFom = fom,
+                                periodeTom = tom,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
+                                vedtak = emptyList()
                         )
                 ),
                 InfotrygdSakOgGrunnlag(
@@ -126,14 +122,12 @@ class YtelseServiceTest {
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
                                 opphørerFom = null
                         ),
-                        grunnlag = listOf(
-                                Beregningsgrunnlag.Engangstønad(
-                                        identdato = identdatoEngangstønad,
-                                        periodeFom = fom,
-                                        periodeTom = tom,
-                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
-                                        vedtak = emptyList()
-                                )
+                        grunnlag = Beregningsgrunnlag.Engangstønad(
+                                identdato = identdatoEngangstønad,
+                                periodeFom = fom,
+                                periodeTom = tom,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
+                                vedtak = emptyList()
                         )
                 ),
                 InfotrygdSakOgGrunnlag(
@@ -144,14 +138,12 @@ class YtelseServiceTest {
                                 behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
                                 opphørerFom = null
                         ),
-                        grunnlag = listOf(
-                                Beregningsgrunnlag.PårørendeSykdom(
-                                        identdato = identdatoPleiepenger,
-                                        periodeFom = fom,
-                                        periodeTom = tom,
-                                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
-                                        vedtak = emptyList()
-                                )
+                        grunnlag = Beregningsgrunnlag.PårørendeSykdom(
+                                identdato = identdatoPleiepenger,
+                                periodeFom = fom,
+                                periodeTom = tom,
+                                behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
+                                vedtak = emptyList()
                         )
                 )
         )

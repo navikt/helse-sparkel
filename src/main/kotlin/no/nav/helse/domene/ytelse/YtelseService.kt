@@ -109,7 +109,7 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                         }
 
                         sakerMedGrunnlag.filter { infotrygdSakOgGrunnlag ->
-                            infotrygdSakOgGrunnlag.grunnlag.isEmpty()
+                            infotrygdSakOgGrunnlag.grunnlag == null
                         }.forEach { sakUtenGrunnlag ->
                             log.info("finner ikke grunnlag for sak med sakId=${sakUtenGrunnlag.sak.sakId}")
                         }
@@ -127,11 +127,11 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
         val grunnlagUtenSak = grunnlagliste.toMutableList()
 
         return saker.map { sak ->
-            val grunnlag = grunnlagUtenSak.filter { grunnlag ->
+            val grunnlag = grunnlagUtenSak.firstOrNull { grunnlag ->
                 grunnlag.hørerSammenMed(sak)
+            }?.also {
+                grunnlagUtenSak.remove(it)
             }
-
-            grunnlagUtenSak.removeAll(grunnlag)
 
             InfotrygdSakOgGrunnlag(sak, grunnlag)
         }.let { sakerMedGrunnlag ->
