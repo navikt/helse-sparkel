@@ -53,9 +53,9 @@ class PersonIntegrationTest {
 
         personStub(
                 server = server,
-                scenario = "person_hent_gyldig_person_uten_adresse",
+                scenario = "person_hent_gyldig_person_med_adresse",
                 request = hentPersonStub(aktørId),
-                response = WireMock.ok(hentPersonUtenAdresse_response)
+                response = WireMock.ok(hentPersonMedAdresse_response)
         ) { personClient ->
             val actual = personClient.person(AktørId(aktørId))
 
