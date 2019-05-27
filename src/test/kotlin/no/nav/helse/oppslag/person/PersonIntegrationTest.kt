@@ -56,7 +56,7 @@ class PersonIntegrationTest {
                 request = hentPersonStub(aktørId),
                 response = WireMock.ok(hentPerson_response)
         ) { personClient ->
-            val actual = personClient.personInfo(AktørId(aktørId))
+            val actual = personClient.personMedAdresse(AktørId(aktørId))
 
             when (actual) {
                 is Try.Success -> {
@@ -84,7 +84,7 @@ class PersonIntegrationTest {
                 request = hentPersonStub(aktørId),
                 response = WireMock.serverError().withBody(hentPerson_not_found_response)
         ) { personClient ->
-            val actual = personClient.personInfo(AktørId(aktørId))
+            val actual = personClient.personMedAdresse(AktørId(aktørId))
 
             when (actual) {
                 is Try.Failure -> {

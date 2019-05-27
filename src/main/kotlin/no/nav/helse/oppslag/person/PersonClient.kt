@@ -10,19 +10,24 @@ import no.nav.tjeneste.virksomhet.person.v3.meldinger.HentPersonRequest
 
 class PersonClient(private val personV3: PersonV3) {
 
-    fun personInfo(id: AktørId) =
+    fun person(id: AktørId) =
             Try {
-                personV3.hentPerson(hentPersonRequest(id, listOf(Informasjonsbehov.ADRESSE))).person
+                personV3.hentPerson(hentPersonRequest(id, listOf())).person
             }
 
-    fun geografiskTilknytning(id : AktørId) =
+    fun personMedAdresse(id: AktørId) =
             Try {
-                personV3.hentGeografiskTilknytning(hentGeografiskTilknytningRequest(id))
+                personV3.hentPerson(hentPersonRequest(id, listOf(Informasjonsbehov.ADRESSE))).person
             }
 
     fun familierelasjoner(id : AktørId) =
             Try {
                 personV3.hentPerson(hentPersonRequest(id, listOf(Informasjonsbehov.FAMILIERELASJONER))).person.harFraRolleI.toList()
+            }
+
+    fun geografiskTilknytning(id : AktørId) =
+            Try {
+                personV3.hentGeografiskTilknytning(hentGeografiskTilknytningRequest(id))
             }
 
     private fun hentPersonRequest(id: AktørId, informasjonsbehov : List<Informasjonsbehov>) =

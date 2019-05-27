@@ -25,11 +25,9 @@ fun Route.person(personService: PersonService) {
 
     get("api/person/{aktør}/barn") {
         call.parameters["aktør"]?.let { aktørid ->
-            val lookupResult = personService.barn(AktørId(aktørid))
-            when (lookupResult) {
-                is Either.Right -> call.respond(mapOf("barn" to PersonDtoMapper.toDto(lookupResult.b)))
-                is Either.Left -> call.respondFeil(lookupResult.a.toHttpFeil())
-            }
+            personService.barn(AktørId(aktørid))
+                    .map(BarnDtoMapper::toDto)
+                    .respond(call)
         } ?: call.respondFeil(HttpFeil(HttpStatusCode.BadRequest, "En Aktør ID må oppgis."))
     }
 

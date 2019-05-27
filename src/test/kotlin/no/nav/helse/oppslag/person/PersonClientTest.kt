@@ -28,7 +28,7 @@ class PersonClientTest {
         } throws(Exception("SOAP fault"))
 
         val personClient = PersonClient(personV3)
-        val result = personClient.personInfo(AktørId("123456789"))
+        val result = personClient.personMedAdresse(AktørId("123456789"))
 
         verify(exactly = 1) {
             personV3.hentPerson(any())
@@ -89,7 +89,7 @@ class PersonClientTest {
         }
 
         val personClient = PersonClient(personV3)
-        val result = personClient.personInfo(aktørId)
+        val result = personClient.personMedAdresse(aktørId)
 
         verify(exactly = 1) {
             personV3.hentPerson(any())

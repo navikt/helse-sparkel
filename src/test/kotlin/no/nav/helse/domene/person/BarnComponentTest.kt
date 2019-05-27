@@ -112,7 +112,6 @@ class BarnComponentTest {
     			"etternavn": "BARNSEN",
     			"mellomnavn": "EN",
     			"aktørId": "100000000001",
-    			"bostedsland": "NOR",
     			"fornavn": "BARN",
     			"kjønn": "KVINNE",
     			"status": "BOSA"
@@ -123,7 +122,6 @@ class BarnComponentTest {
     			"etternavn": "BARNSEN",
     			"mellomnavn": "TO",
     			"aktørId": "100000000002",
-    			"bostedsland": "NOR",
     			"fornavn": "BARN",
     			"kjønn": "KVINNE",
     			"status": "FØDR"
@@ -134,7 +132,6 @@ class BarnComponentTest {
     			"etternavn": "BARNSEN",
     			"mellomnavn": "TRE",
     			"aktørId": "100000000003",
-    			"bostedsland": "NOR",
     			"fornavn": "BARN",
     			"kjønn": "KVINNE",
     			"status": "DØD"
@@ -145,7 +142,6 @@ class BarnComponentTest {
     			"etternavn": "BARNSEN",
     			"mellomnavn": "FIRE",
     			"aktørId": "100000000004",
-    			"bostedsland": "NOR",
     			"fornavn": "BARN",
     			"kjønn": "KVINNE",
     			"status": "DØD"
