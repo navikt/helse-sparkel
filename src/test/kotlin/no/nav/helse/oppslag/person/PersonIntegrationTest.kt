@@ -20,6 +20,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.LocalDate
+import kotlin.test.assertNull
 
 class PersonIntegrationTest {
 
@@ -47,16 +48,16 @@ class PersonIntegrationTest {
     }
 
     @Test
-    fun `skal svare med gyldig person`() {
+    fun `skal svare med gyldig person med adresse`() {
         val aktørId = "1234567891011"
 
         personStub(
                 server = server,
-                scenario = "person_hent_gyldig_person",
+                scenario = "person_hent_gyldig_person_uten_adresse",
                 request = hentPersonStub(aktørId),
-                response = WireMock.ok(hentPerson_response)
+                response = WireMock.ok(hentPersonUtenAdresse_response)
         ) { personClient ->
-            val actual = personClient.personMedAdresse(AktørId(aktørId))
+            val actual = personClient.person(AktørId(aktørId))
 
             when (actual) {
                 is Try.Success -> {
@@ -68,6 +69,34 @@ class PersonIntegrationTest {
                     assertEquals(LocalDate.of(1984, 7, 8), actual.value.foedselsdato.foedselsdato.toLocalDate())
                     assertEquals("K", actual.value.kjoenn.kjoenn.value)
                     assertEquals("NOR", actual.value.bostedsadresse.strukturertAdresse.landkode.value)
+                }
+                is Try.Failure -> fail { "Expected Try.Success to be returned" }
+            }
+        }
+    }
+
+    @Test
+    fun `skal svare med gyldig person uten adresse`() {
+        val aktørId = "1234567812345"
+
+        personStub(
+                server = server,
+                scenario = "person_hent_gyldig_person_uten_adresse",
+                request = hentPersonStub(aktørId),
+                response = WireMock.ok(hentPersonUtenAdresse_response)
+        ) { personClient ->
+            val actual = personClient.personMedAdresse(AktørId(aktørId))
+
+            when (actual) {
+                is Try.Success -> {
+                    assertTrue(actual.value.aktoer is AktoerId)
+                    assertEquals(aktørId, (actual.value.aktoer as AktoerId).aktoerId)
+                    assertEquals("OLA", actual.value.personnavn.fornavn)
+                    assertEquals("ANDREAS", actual.value.personnavn.mellomnavn)
+                    assertEquals("ETTERNAVN", actual.value.personnavn.etternavn)
+                    assertEquals(LocalDate.of(1970, 8, 23), actual.value.foedselsdato.foedselsdato.toLocalDate())
+                    assertEquals("K", actual.value.kjoenn.kjoenn.value)
+                    assertNull(actual.value.bostedsadresse)
                 }
                 is Try.Failure -> fail { "Expected Try.Success to be returned" }
             }
@@ -176,7 +205,7 @@ fun personStub(server: WireMockServer, scenario: String, response: ResponseDefin
     }
 }
 
-private val hentPerson_response = """
+private val hentPersonMedAdresse_response = """
 <?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
     <soapenv:Body>
@@ -244,6 +273,47 @@ private val hentPerson_not_found_response = """
                 </ns2:hentPersonpersonIkkeFunnet>
             </detail>
         </soapenv:Fault>
+    </soapenv:Body>
+</soapenv:Envelope>
+""".trimIndent()
+
+private val hentPersonUtenAdresse_response = """
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <ns2:hentPersonResponse xmlns:ns2="http://nav.no/tjeneste/virksomhet/person/v3" xmlns:ns3="http://nav.no/tjeneste/virksomhet/person/v3/informasjon">
+            <response>
+                <person xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns3:Bruker">
+                    <sivilstand fomGyldighetsperiode="1989-11-10T00:00:00.000+01:00">
+                        <sivilstand>SKIL</sivilstand>
+                    </sivilstand>
+                    <statsborgerskap>
+                        <land>NOR</land>
+                    </statsborgerskap>
+                    <aktoer xsi:type="ns3:AktoerId">
+                        <aktoerId>1234567812345</aktoerId>
+                    </aktoer>
+                    <kjoenn>
+                        <kjoenn>K</kjoenn>
+                    </kjoenn>
+                    <personnavn>
+                        <etternavn>ETTERNAVN</etternavn>
+                        <fornavn>OLA</fornavn>
+                        <mellomnavn>ANDREAS</mellomnavn>
+                        <sammensattNavn>OLA ANDREAS ETTERNAVN</sammensattNavn>
+                    </personnavn>
+                    <personstatus>
+                        <personstatus>BOSA</personstatus>
+                    </personstatus>
+                    <foedselsdato>
+                        <foedselsdato>1970-08-23+01:00</foedselsdato>
+                    </foedselsdato>
+                    <geografiskTilknytning xsi:type="ns3:Kommune">
+                        <geografiskTilknytning>0219</geografiskTilknytning>
+                    </geografiskTilknytning>
+                </person>
+            </response>
+        </ns2:hentPersonResponse>
     </soapenv:Body>
 </soapenv:Envelope>
 """.trimIndent()

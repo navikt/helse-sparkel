@@ -172,13 +172,6 @@ class BarnComponentTest {
                     value = "K"
                 }
             }
-            bostedsadresse = Bostedsadresse().apply {
-                strukturertAdresse = Gateadresse().apply {
-                    landkode = Landkoder().apply {
-                        value = "NOR"
-                    }
-                }
-            }
             foedselsdato = Foedselsdato().apply {
                 foedselsdato = medFødselsdato.toXmlGregorianCalendar()
             }
