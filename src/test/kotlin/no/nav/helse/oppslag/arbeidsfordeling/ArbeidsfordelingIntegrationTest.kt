@@ -9,10 +9,10 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.sts.StsRestClient
-import no.nav.helse.oppslag.*
 import no.nav.helse.domene.person.domain.GeografiskTilknytning
+import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.sts.stsClient
+import no.nav.helse.sts.StsRestClient
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import org.junit.jupiter.api.*
@@ -129,7 +129,7 @@ fun arbeidsfordelingStub(server: WireMockServer, scenario: String, response: Res
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
                     tokenDigest, tokenSignature, tokenCertificate)
-            .withCallId("Sett inn call id her")
+            .withCallId()
             .willReturn(response)
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")

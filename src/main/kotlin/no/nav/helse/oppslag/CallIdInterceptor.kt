@@ -8,6 +8,7 @@ import org.apache.cxf.message.Message
 import org.apache.cxf.phase.AbstractPhaseInterceptor
 import org.apache.cxf.phase.Phase
 import org.slf4j.LoggerFactory
+import java.util.*
 import javax.xml.bind.JAXBException
 import javax.xml.namespace.QName
 
@@ -20,9 +21,17 @@ class CallIdInterceptor : AbstractPhaseInterceptor<Message>(Phase.PRE_STREAM) {
         when (message) {
             is SoapMessage ->
                 try {
-                    val qName = QName("uri:no.nav.applikasjonsrammeverk", "callId")
-                    val header = SoapHeader(qName, "Sett inn call id her", JAXBDataBinding(String::class.java))
-                    message.headers.add(header)
+                    UUID.randomUUID().toString().let { uuid ->
+                        val ep = message.exchange?.endpoint?.endpointInfo
+
+                        val service = ep?.service?.name?.localPart
+                        val operation = message.exchange?.bindingOperationInfo?.name?.localPart
+
+                        log.info("utgående kall til service=$service operation=$operation med callId=$uuid")
+                        val qName = QName("uri:no.nav.applikasjonsrammeverk", "callId")
+                        val header = SoapHeader(qName, uuid, JAXBDataBinding(String::class.java))
+                        message.headers.add(header)
+                    }
                 } catch (ex: JAXBException) {
                     log.warn("Error while setting CallId header", ex)
                 }

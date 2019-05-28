@@ -169,7 +169,7 @@ fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: Mappin
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
                     tokenDigest, tokenSignature, tokenCertificate)
-            .withCallId("Sett inn call id her")
+            .withCallId()
             .willReturn(response)
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")
@@ -208,7 +208,7 @@ fun arbeidsforholdHistorikkStub(server: WireMockServer, scenario: String, reques
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
                     tokenDigest, tokenSignature, tokenCertificate)
-            .withCallId("Sett inn call id her")
+            .withCallId()
             .willReturn(response)
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")
