@@ -21,6 +21,7 @@ sealed class Feilårsak {
     object FeilFraTjeneste: Feilårsak()
     object UkjentFeil: Feilårsak()
     object IkkeImplementert: Feilårsak()
+    object TjenesteErUtilgjengelig: Feilårsak()
 }
 
 fun Feilårsak.toHttpFeil() = when (this) {
@@ -29,4 +30,5 @@ fun Feilårsak.toHttpFeil() = when (this) {
     is Feilårsak.FeilFraTjeneste -> HttpFeil(HttpStatusCode.InternalServerError, "Error while contacting external service")
     is Feilårsak.UkjentFeil -> HttpFeil(HttpStatusCode.InternalServerError, "Unknown error")
     is Feilårsak.IkkeImplementert -> HttpFeil(HttpStatusCode.NotImplemented, "Not implemented")
+    is Feilårsak.TjenesteErUtilgjengelig -> HttpFeil(HttpStatusCode.ServiceUnavailable, "Service is unavailable")
 }
