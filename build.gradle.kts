@@ -52,7 +52,7 @@ dependencies {
 
     compile("no.nav.helse:cxf-prometheus-metrics:dd7d125")
 
-    compile("com.sun.xml.ws:jaxws-rt:2.3.0")
+    compile("com.sun.xml.ws:jaxws-rt:2.3.2")
     compile(tjenestespesifikasjon("arbeidsfordeling-v1-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("arbeidsforholdv3-tjenestespesifikasjon"))
     compile(tjenestespesifikasjon("nav-infotrygdBeregningsgrunnlag-v1-tjenestespesifikasjon"))
