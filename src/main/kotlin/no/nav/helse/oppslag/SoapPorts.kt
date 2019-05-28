@@ -16,6 +16,10 @@ import javax.xml.namespace.QName
 
 object SoapPorts {
 
+    init {
+        System.setProperty("javax.xml.soap.SAAJMetaFactory", "com.sun.xml.messaging.saaj.soap.SAAJMetaFactoryImpl")
+    }
+
     fun ArbeidsfordelingV1(serviceUrl: String): ArbeidsfordelingV1 {
         return createServicePort(serviceUrl,
                 serviceClazz = ArbeidsfordelingV1::class.java,
