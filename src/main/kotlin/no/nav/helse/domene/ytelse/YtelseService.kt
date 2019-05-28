@@ -7,6 +7,7 @@ import no.nav.helse.Feilårsak
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.sykepengehistorikk.DomainErrorMapper
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
 import no.nav.helse.domene.ytelse.domain.InfotrygdSak
 import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
@@ -15,9 +16,6 @@ import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.helse.probe.DatakvalitetProbe
-import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
-import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
-import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeUgyldigInput
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.FinnSakListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.FinnSakListeSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.FinnSakListeUgyldigInput
@@ -63,18 +61,11 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
                                     .onEach(probe::inspiserInfotrygdSak)
                                     .map(InfotrygdSakMapper::toSak))
                 }.flatMap { saker ->
-                    infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom).toEither { err ->
-                        log.error("Error while doing infotrygdBeregningsgrunnlag lookup", err)
-
-                        when (err) {
-                            is FinnGrunnlagListeSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
-                            is FinnGrunnlagListeUgyldigInput -> Feilårsak.FeilFraTjeneste
-                            is FinnGrunnlagListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
-                            else -> Feilårsak.UkjentFeil
-                        }
-                    }.map {
-                        saker to it
-                    }
+                    infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom)
+                            .toEither(DomainErrorMapper::mapToError)
+                            .map {
+                                saker to it
+                            }
                 }.map { (saker, finnGrunnlagListeResponse) ->
                     with (finnGrunnlagListeResponse) {
                         sykepengerListe.map {
