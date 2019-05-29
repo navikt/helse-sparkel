@@ -35,6 +35,10 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import javax.xml.namespace.QName
+import javax.xml.soap.SOAPConstants
+import javax.xml.soap.SOAPFactory
+import javax.xml.ws.soap.SOAPFaultException
 
 class YtelseComponentTest {
 
@@ -87,6 +91,66 @@ class YtelseComponentTest {
         val jwkStub = JwtStub("test issuer")
         val token = jwkStub.createTokenFor("srvpleiepengesokna")
 
+        withTestApplication({
+            mockedSparkel(
+                    jwtIssuer = "test issuer",
+                    jwkProvider = jwkStub.stubbedJwkProvider(),
+                    ytelseService = YtelseService(
+                            aktørregisterService = aktørregisterService,
+                            infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
+                            infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
+                            meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
+                            probe = mockk(relaxed = true)
+                    )
+            )
+        }) {
+            handleRequest(HttpMethod.Get, "/api/ytelser/${aktørId.aktor}?fom=$fom&tom=$tom") {
+                addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                addHeader(HttpHeaders.Authorization, "Bearer $token")
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+            }
+        }
+    }
+
+    @Test
+    fun `skal returnere 503 når infotrygd er utilgjengelig`() {
+        val infotrygdBeregningsgrunnlagV1 = mockk<InfotrygdBeregningsgrunnlagV1>()
+        val infotrygdSakV1 = mockk<InfotrygdSakV1>()
+        val meldekortUtbetalingsgrunnlagV1 = mockk<MeldekortUtbetalingsgrunnlagV1>()
+        val aktørregisterService = mockk<AktørregisterService>()
+
+        val fnr = Fødselsnummer("11111111111")
+        val aktørId = AktørId("123456789")
+        val fom = LocalDate.of(2019, 5, 1)
+        val tom = LocalDate.of(2019, 5, 31)
+
+        every {
+            aktørregisterService.fødselsnummerForAktør(aktørId)
+        } returns fnr.value.right()
+
+        every {
+            infotrygdSakV1.finnSakListe(match { request ->
+                request.personident == fnr.value
+                        && request.periode.fom.toLocalDate() == fom
+                        && request.periode.tom.toLocalDate() == tom
+            })
+        } throws SOAPFaultException(SOAPFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL).createFault("Basene i Infotrygd er ikke tilgjengelige", QName("nameSpaceURI", "ERROR")))
+
+        every {
+            meldekortUtbetalingsgrunnlagV1.finnMeldekortUtbetalingsgrunnlagListe(match { request ->
+                (request.ident as AktoerId).aktoerId == aktørId.aktor
+                        && request.periode.fom.toLocalDate() == fom
+                        && request.periode.tom.toLocalDate() == tom
+                        && request.temaListe.any { it.value == "DAG" }
+                        && request.temaListe.any { it.value == "AAP" }
+            })
+        } returns ytelserFraArena(fom, tom)
+
+        val jwkStub = JwtStub("test issuer")
+        val token = jwkStub.createTokenFor("srvpleiepengesokna")
+
         withTestApplication({mockedSparkel(
                 jwtIssuer = "test issuer",
                 jwkProvider = jwkStub.stubbedJwkProvider(),
@@ -97,13 +161,13 @@ class YtelseComponentTest {
                         meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
                         probe = mockk(relaxed = true)
                 )
-                )}) {
+        )}) {
             handleRequest(HttpMethod.Get, "/api/ytelser/${aktørId.aktor}?fom=$fom&tom=$tom") {
                 addHeader(HttpHeaders.Accept, ContentType.Application.Json.toString())
                 addHeader(HttpHeaders.Authorization, "Bearer $token")
             }.apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertJsonEquals(JSONObject(expectedJson), JSONObject(response.content))
+                assertEquals(HttpStatusCode.ServiceUnavailable, response.status())
+                assertJsonEquals(JSONObject(expectedJson_service_unavailable), JSONObject(response.content))
             }
         }
     }
@@ -234,6 +298,12 @@ class YtelseComponentTest {
         }
     }
 }
+
+private val expectedJson_service_unavailable = """
+{
+  "feilmelding": "Service is unavailable"
+}
+""".trimIndent()
 
 private val expectedJson = """
 {
