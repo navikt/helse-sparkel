@@ -19,7 +19,7 @@ object DomainErrorMapper {
                     is FinnGrunnlagListeSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
                     is FinnGrunnlagListeUgyldigInput -> Feilårsak.FeilFraTjeneste
                     is FinnGrunnlagListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
-                    is SOAPFaultException -> when (message) {
+                    is SOAPFaultException -> when (fault.faultString) {
                         "Basene i Infotrygd er ikke tilgjengelige" -> Feilårsak.TjenesteErUtilgjengelig
                         else -> Feilårsak.UkjentFeil
                     }
