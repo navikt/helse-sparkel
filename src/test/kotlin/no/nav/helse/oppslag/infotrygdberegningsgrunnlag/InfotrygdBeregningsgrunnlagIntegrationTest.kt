@@ -13,7 +13,6 @@ import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.sts.StsRestClient
-import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.LocalDate
@@ -59,10 +58,6 @@ class InfotrygdBeregningsgrunnlagIntegrationTest {
                 response = WireMock.okXml(basene_i_infotrygd_er_utilgjengelige),
                 request = request
         ) { infotrygdBeregningsgrunnlagClient ->
-            val expected = listOf(Organisasjonsenhet().apply {
-                this.enhetId = enhetId
-                this.enhetNavn = enhetNavn
-            })
             val actual = infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom)
 
             when (actual) {
