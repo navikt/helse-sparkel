@@ -4,12 +4,12 @@ import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
-import no.nav.helse.domene.arbeid.domain.Arbeidsavtale
-import no.nav.helse.domene.arbeid.domain.Arbeidsforhold
-import no.nav.helse.domene.arbeid.domain.Permisjon
-import no.nav.helse.domene.organisasjon.OrganisasjonService
-import no.nav.helse.domene.utbetaling.domain.UtbetalingEllerTrekk
-import no.nav.helse.domene.utbetaling.domain.Virksomhet
+import no.nav.helse.domene.aiy.domain.Arbeidsavtale
+import no.nav.helse.domene.aiy.domain.Arbeidsforhold
+import no.nav.helse.domene.aiy.domain.Permisjon
+import no.nav.helse.domene.aiy.organisasjon.OrganisasjonService
+import no.nav.helse.domene.aiy.domain.UtbetalingEllerTrekk
+import no.nav.helse.domene.aiy.domain.Virksomhet
 import no.nav.helse.domene.ytelse.domain.*
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
@@ -144,9 +144,9 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
                     log.info("feil ved henting av organisasjon ${(utbetalingEllerTrekk.virksomhet as Virksomhet.Organisasjon).organisasjonsnummer}: $feil")
                 }, { organisasjon ->
                     when (organisasjon) {
-                        is no.nav.helse.domene.organisasjon.domain.Organisasjon.JuridiskEnhet -> sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", Observasjonstype.OrganisasjonErJuridiskEnhet, "utbetaling er gjort av en juridisk enhet")
-                        is no.nav.helse.domene.organisasjon.domain.Organisasjon.Virksomhet -> sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", Observasjonstype.OrganisasjonErVirksomhet, "utbetaling er gjort av en virksomhet")
-                        is no.nav.helse.domene.organisasjon.domain.Organisasjon.Organisasjonsledd -> sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", Observasjonstype.OrganisasjonErOrganisasjonsledd, "utbetaling er gjort av et organisasjonsledd")
+                        is no.nav.helse.domene.aiy.organisasjon.domain.Organisasjon.JuridiskEnhet -> sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", Observasjonstype.OrganisasjonErJuridiskEnhet, "utbetaling er gjort av en juridisk enhet")
+                        is no.nav.helse.domene.aiy.organisasjon.domain.Organisasjon.Virksomhet -> sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", Observasjonstype.OrganisasjonErVirksomhet, "utbetaling er gjort av en virksomhet")
+                        is no.nav.helse.domene.aiy.organisasjon.domain.Organisasjon.Organisasjonsledd -> sendDatakvalitetEvent(utbetalingEllerTrekk, "virksomhet", Observasjonstype.OrganisasjonErOrganisasjonsledd, "utbetaling er gjort av et organisasjonsledd")
                     }
                 })
             }
@@ -285,9 +285,9 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
                     log.info("feil ved henting av organisasjon ${(arbeidsforhold.arbeidsgiver as Virksomhet.Organisasjon).organisasjonsnummer}: $feil")
                 }, { organisasjon ->
                     when (organisasjon) {
-                        is no.nav.helse.domene.organisasjon.domain.Organisasjon.JuridiskEnhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErJuridiskEnhet, "arbeidsgiver er en juridisk enhet")
-                        is no.nav.helse.domene.organisasjon.domain.Organisasjon.Virksomhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErVirksomhet, "arbeidsgiver er en virksomhet")
-                        is no.nav.helse.domene.organisasjon.domain.Organisasjon.Organisasjonsledd -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErOrganisasjonsledd, "arbeidsgiver er et organisasjonsledd")
+                        is no.nav.helse.domene.aiy.organisasjon.domain.Organisasjon.JuridiskEnhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErJuridiskEnhet, "arbeidsgiver er en juridisk enhet")
+                        is no.nav.helse.domene.aiy.organisasjon.domain.Organisasjon.Virksomhet -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErVirksomhet, "arbeidsgiver er en virksomhet")
+                        is no.nav.helse.domene.aiy.organisasjon.domain.Organisasjon.Organisasjonsledd -> sendDatakvalitetEvent(arbeidsforhold, "arbeidsgiver", Observasjonstype.OrganisasjonErOrganisasjonsledd, "arbeidsgiver er et organisasjonsledd")
                     }
                 })
             }

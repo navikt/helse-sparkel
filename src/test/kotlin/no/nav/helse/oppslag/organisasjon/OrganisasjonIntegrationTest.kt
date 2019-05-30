@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
+import no.nav.helse.domene.aiy.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.sts.StsRestClient
