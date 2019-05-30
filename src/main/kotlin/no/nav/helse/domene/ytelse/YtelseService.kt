@@ -16,9 +16,6 @@ import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.helse.probe.DatakvalitetProbe
-import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.FinnSakListePersonIkkeFunnet
-import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.FinnSakListeSikkerhetsbegrensning
-import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.FinnSakListeUgyldigInput
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.FinnMeldekortUtbetalingsgrunnlagListeAktoerIkkeFunnet
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.FinnMeldekortUtbetalingsgrunnlagListeSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.FinnMeldekortUtbetalingsgrunnlagListeUgyldigInput
@@ -44,16 +41,9 @@ class YtelseService(private val aktørregisterService: AktørregisterService,
 
     private fun finnYtelserFraInfotrygd(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
             aktørregisterService.fødselsnummerForAktør(aktørId).flatMap { fnr ->
-                infotrygdSakClient.finnSakListe(fnr, fom, tom).toEither { err ->
-                    log.error("Error while doing infotrygdSak lookup", err)
-
-                    when (err) {
-                        is FinnSakListeSikkerhetsbegrensning -> Feilårsak.FeilFraTjeneste
-                        is FinnSakListeUgyldigInput -> Feilårsak.FeilFraTjeneste
-                        is FinnSakListePersonIkkeFunnet -> Feilårsak.IkkeFunnet
-                        else -> Feilårsak.UkjentFeil
-                    }
-                }.map { finnSakListeResponse ->
+                infotrygdSakClient.finnSakListe(fnr, fom, tom)
+                        .toEither(InfotrygdErrorMapper::mapToError)
+                        .map { finnSakListeResponse ->
                     finnSakListeResponse.sakListe
                             .onEach(probe::inspiserInfotrygdSak)
                             .map(InfotrygdSakMapper::toSak)

@@ -2,6 +2,7 @@ package no.nav.helse.domene.sykepengehistorikk
 
 import no.nav.helse.Feilårsak.*
 import no.nav.helse.domene.sykepengehistorikk.DomainErrorMapper.mapToError
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.BaseneErUtilgjengeligeException
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeUgyldigInput
@@ -30,9 +31,9 @@ class DomainErrorMapperTest {
     }
 
     @Test
-    fun `skal mappe feilmelding til TjenesteErUtilgjengelig når Infotrygd er utilgjengelig`() {
+    fun `skal mappe BaseneErUtilgjengeligeException til TjenesteErUtilgjengelig`() {
         val fault = SOAPFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL).createFault("Basene i Infotrygd er ikke tilgjengelige", QName("nameSpaceURI", "ERROR"))
-        assertEquals(TjenesteErUtilgjengelig, mapToError(SOAPFaultException(fault)))
+        assertEquals(TjenesteErUtilgjengelig, mapToError(BaseneErUtilgjengeligeException(SOAPFaultException(fault))))
     }
 
     @Test
