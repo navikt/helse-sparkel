@@ -24,9 +24,7 @@ class OrganisasjonServiceTest {
         val orgNr = "889640782"
         val organisasjon = mockk<OrganisasjonClient>()
         every {
-            organisasjon.hentOrganisasjon(match {
-                it.value == orgNr
-            })
+            organisasjon.hentOrganisasjon(orgNr)
         } returns Try.Success(JuridiskEnhet().apply {
             orgnummer = orgNr
             navn = UstrukturertNavn().apply {
