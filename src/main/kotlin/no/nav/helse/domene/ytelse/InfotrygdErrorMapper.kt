@@ -19,6 +19,6 @@ object InfotrygdErrorMapper {
                 is BaseneErUtilgjengeligeException -> Feilårsak.TjenesteErUtilgjengelig
                 else -> Feilårsak.UkjentFeil
             }.also {
-                log.info("received error during lookup, mapping to $it", this)
+                log.info("received error during lookup, mapping to $it", err)
             }
 }
