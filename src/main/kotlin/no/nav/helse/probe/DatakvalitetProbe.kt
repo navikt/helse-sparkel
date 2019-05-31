@@ -204,33 +204,35 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     }
 
     fun inspiserInfotrygdSak(sak: InfotrygdSak) {
-        sjekkOmFeltErNull(sak, "sakId", sak.sakId)
+        val tema = Tema.fraKode(sak.tema.value)
+
+        sjekkOmFeltErNull(sak, "sakId ($tema)", sak.sakId)
         sak.sakId?.let {
-            sjekkOmFeltErBlank(sak, "sakId", it)
+            sjekkOmFeltErBlank(sak, "sakId ($tema)", it)
         }
 
-        sjekkOmFeltErNull(sak, "registrert", sak.registrert)
+        sjekkOmFeltErNull(sak, "registrert ($tema)", sak.registrert)
 
-        sjekkOmFeltErNull(sak, "type", sak.type?.value)
+        sjekkOmFeltErNull(sak, "type ($tema)", sak.type?.value)
         sak.type?.value?.let {
-            sjekkOmFeltErBlank(sak, "type", it)
+            sjekkOmFeltErBlank(sak, "type ($tema)", it)
         }
 
-        sjekkOmFeltErNull(sak, "status", sak.status?.value)
+        sjekkOmFeltErNull(sak, "status ($tema)", sak.status?.value)
         sak.status?.value?.let {
-            sjekkOmFeltErBlank(sak, "status", it)
+            sjekkOmFeltErBlank(sak, "status ($tema)", it)
         }
 
-        sjekkOmFeltErNull(sak, "resultat", sak.resultat?.value)
+        sjekkOmFeltErNull(sak, "resultat ($tema)", sak.resultat?.value)
         sak.resultat?.value?.let {
-            sjekkOmFeltErBlank(sak, "resultat", it)
+            sjekkOmFeltErBlank(sak, "resultat ($tema)", it)
         }
 
-        sjekkOmFeltErNull(sak, "iverksatt", sak.iverksatt)
-        sjekkOmFeltErNull(sak, "vedtatt", sak.vedtatt)
+        sjekkOmFeltErNull(sak, "iverksatt ($tema)", sak.iverksatt)
+        sjekkOmFeltErNull(sak, "vedtatt ($tema)", sak.vedtatt)
 
         if (sak is InfotrygdVedtak) {
-            sjekkOmFeltErNull(sak, "opphoerFom", sak.opphoerFom)
+            sjekkOmFeltErNull(sak, "opphoerFom ($tema)", sak.opphoerFom)
         }
     }
 
