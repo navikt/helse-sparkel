@@ -50,7 +50,6 @@ class InfotrygdServiceTest {
         val expected = listOf(
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak.Vedtak(
-                                sakId = "1",
                                 iverksatt = identdatoSykepenger,
                                 tema = Tema.Sykepenger,
                                 behandlingstema = Behandlingstema.Sykepenger,
@@ -66,7 +65,6 @@ class InfotrygdServiceTest {
                 ),
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak.Vedtak(
-                                sakId = "2",
                                 iverksatt = identdatoForeldrepenger,
                                 tema = Tema.Foreldrepenger,
                                 behandlingstema = Behandlingstema.ForeldrepengerMedFødsel,
@@ -82,7 +80,6 @@ class InfotrygdServiceTest {
                 ),
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak.Vedtak(
-                                sakId = "3",
                                 iverksatt = identdatoEngangstønad,
                                 tema = Tema.Foreldrepenger,
                                 behandlingstema = Behandlingstema.EngangstønadMedFødsel,
@@ -98,7 +95,6 @@ class InfotrygdServiceTest {
                 ),
                 InfotrygdSakOgGrunnlag(
                         sak = InfotrygdSak.Vedtak(
-                                sakId = "4",
                                 iverksatt = identdatoPleiepenger,
                                 tema = Tema.PårørendeSykdom,
                                 behandlingstema = Behandlingstema.Pleiepenger,

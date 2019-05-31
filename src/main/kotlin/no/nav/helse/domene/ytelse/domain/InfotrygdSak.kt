@@ -3,17 +3,15 @@ package no.nav.helse.domene.ytelse.domain
 import java.time.LocalDate
 import java.util.*
 
-sealed class InfotrygdSak(val sakId: String?,
-                          val tema: Tema,
+sealed class InfotrygdSak(val tema: Tema,
                           val behandlingstema: Behandlingstema,
                           val iverksatt: LocalDate?) {
 
-    class Åpen(sakId: String?,
-               tema: Tema,
+    class Åpen(tema: Tema,
                behandlingstema: Behandlingstema,
-               iverksatt: LocalDate?): InfotrygdSak(sakId, tema, behandlingstema, iverksatt) {
+               iverksatt: LocalDate?): InfotrygdSak(tema, behandlingstema, iverksatt) {
         override fun toString(): String {
-            return "InfotrygdSak.Åpen(sakId=$sakId, tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt)"
+            return "InfotrygdSak.Åpen(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt)"
         }
 
         override fun equals(other: Any?): Boolean {
@@ -28,13 +26,12 @@ sealed class InfotrygdSak(val sakId: String?,
         }
     }
 
-    class Vedtak(sakId: String?,
-                 tema: Tema,
+    class Vedtak(tema: Tema,
                  behandlingstema: Behandlingstema,
                  iverksatt: LocalDate?,
-                 val opphørerFom: LocalDate?): InfotrygdSak(sakId, tema, behandlingstema, iverksatt) {
+                 val opphørerFom: LocalDate?): InfotrygdSak(tema, behandlingstema, iverksatt) {
         override fun toString(): String {
-            return "InfotrygdSak.Vedtak(sakId=$sakId, tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt, opphørerFom=$opphørerFom)"
+            return "InfotrygdSak.Vedtak(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt, opphørerFom=$opphørerFom)"
         }
 
         override fun equals(other: Any?): Boolean {
@@ -58,7 +55,6 @@ sealed class InfotrygdSak(val sakId: String?,
 
         other as InfotrygdSak
 
-        if (sakId != other.sakId) return false
         if (tema != other.tema) return false
         if (behandlingstema != other.behandlingstema) return false
         if (iverksatt != other.iverksatt) return false
@@ -67,6 +63,6 @@ sealed class InfotrygdSak(val sakId: String?,
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(sakId, tema, behandlingstema, iverksatt)
+        return Objects.hash(tema, behandlingstema, iverksatt)
     }
 }

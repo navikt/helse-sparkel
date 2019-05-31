@@ -88,19 +88,18 @@ class InfotrygdSakTest {
         val vedtak = etInfotrygdVedtak()
                 .medIverksatt(LocalDate.of(2019, 1, 1))
                 .medOpphørerFom(LocalDate.of(2020, 1, 1))
-        assertEquals("InfotrygdSak.Vedtak(sakId=null, tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01, opphørerFom=2020-01-01)", vedtak.toString())
+        assertEquals("InfotrygdSak.Vedtak(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01, opphørerFom=2020-01-01)", vedtak.toString())
     }
 
     @Test
     fun `test string-representasjon av infotrygd sak`() {
         val sak = enInfotrygdSak()
                 .medIverksatt(LocalDate.of(2019, 1, 1))
-        assertEquals("InfotrygdSak.Åpen(sakId=null, tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01)", sak.toString())
+        assertEquals("InfotrygdSak.Åpen(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01)", sak.toString())
     }
 
     private fun etInfotrygdVedtak() =
             InfotrygdSak.Vedtak(
-                    sakId = null,
                     tema = Tema.Sykepenger,
                     behandlingstema = Behandlingstema.Sykepenger,
                     iverksatt = LocalDate.now(),
@@ -109,7 +108,6 @@ class InfotrygdSakTest {
 
     private fun enInfotrygdSak() =
             InfotrygdSak.Åpen(
-                    sakId = null,
                     tema = Tema.Sykepenger,
                     behandlingstema = Behandlingstema.Sykepenger,
                     iverksatt = LocalDate.now()
@@ -117,7 +115,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Vedtak.medTema(tema: Tema) =
             InfotrygdSak.Vedtak(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
@@ -126,7 +123,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Vedtak.medBehandlingstema(behandlingstema: Behandlingstema) =
             InfotrygdSak.Vedtak(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
@@ -135,7 +131,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Vedtak.medIverksatt(iverksatt: LocalDate) =
             InfotrygdSak.Vedtak(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
@@ -144,7 +139,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Vedtak.medOpphørerFom(opphørerFom: LocalDate) =
             InfotrygdSak.Vedtak(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
@@ -153,7 +147,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Åpen.medTema(tema: Tema) =
             InfotrygdSak.Åpen(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt
@@ -161,7 +154,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Åpen.medBehandlingstema(behandlingstema: Behandlingstema) =
             InfotrygdSak.Åpen(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt
@@ -169,7 +161,6 @@ class InfotrygdSakTest {
 
     private fun InfotrygdSak.Åpen.medIverksatt(iverksatt: LocalDate) =
             InfotrygdSak.Åpen(
-                    sakId = sakId,
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt

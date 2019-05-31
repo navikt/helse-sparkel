@@ -334,7 +334,6 @@ private val expectedJson = """
   "infotrygd": [
       {
         "sak": {
-          "sakId": "1",
           "tema": "Sykepenger",
           "behandlingstema": "Sykepenger",
           "iverksatt": "2019-05-28"
@@ -350,7 +349,6 @@ private val expectedJson = """
       },
       {
         "sak": {
-          "sakId": "2",
           "tema": "Foreldrepenger",
           "behandlingstema": "ForeldrepengerMedFødsel",
           "iverksatt": "2019-05-14"
@@ -366,7 +364,6 @@ private val expectedJson = """
       },
       {
         "sak": {
-          "sakId": "3",
           "tema": "Foreldrepenger",
           "behandlingstema": "EngangstønadMedFødsel",
           "iverksatt": "2019-05-07"
@@ -382,7 +379,6 @@ private val expectedJson = """
       },
       {
         "sak": {
-          "sakId": "4",
           "tema": "PårørendeSykdom",
           "behandlingstema": "Pleiepenger",
           "iverksatt": "2019-05-01"
