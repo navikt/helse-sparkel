@@ -3,7 +3,6 @@ package no.nav.helse.oppslag.organisasjon
 import arrow.core.Try
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.tjeneste.virksomhet.organisasjon.v5.binding.OrganisasjonV5
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Organisasjon
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
@@ -35,7 +34,7 @@ class OrganisasjonClientTest {
         }
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentOrganisasjon(Organisasjonsnummer(orgNr))
+        val actual = client.hentOrganisasjon(orgNr)
 
         when (actual) {
             is Try.Success -> assertEquals("STORTINGET", (actual.value.navn as UstrukturertNavn).navnelinje[0])
@@ -53,7 +52,7 @@ class OrganisasjonClientTest {
         } throws(Exception("SOAP fault"))
 
         val client = OrganisasjonClient(organisasjonV5)
-        val actual = client.hentOrganisasjon(Organisasjonsnummer(orgNr))
+        val actual = client.hentOrganisasjon(orgNr)
 
         when (actual) {
             is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)

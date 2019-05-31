@@ -21,23 +21,25 @@ import io.ktor.server.netty.Netty
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.domene.aiy.ArbeidInntektYtelseService
-import no.nav.helse.domene.aiy.arbeidInntektYtelse
+import no.nav.helse.domene.aiy.ArbeidsforholdService
+import no.nav.helse.domene.aiy.SykepengegrunnlagService
+import no.nav.helse.domene.aiy.aareg.ArbeidsgiverService
+import no.nav.helse.domene.aiy.aareg.ArbeidstakerService
+import no.nav.helse.domene.aiy.inntektskomponenten.FrilansArbeidsforholdService
+import no.nav.helse.domene.aiy.inntektskomponenten.UtbetalingOgTrekkService
+import no.nav.helse.domene.aiy.organisasjon.OrganisasjonService
+import no.nav.helse.domene.aiy.organisasjon.organisasjon
+import no.nav.helse.domene.aiy.web.arbeidInntektYtelse
+import no.nav.helse.domene.aiy.web.arbeidsforhold
+import no.nav.helse.domene.aiy.web.sykepengegrunnlag
 import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.domene.aktør.fnrForAktør
-import no.nav.helse.domene.arbeid.ArbeidsforholdService
-import no.nav.helse.domene.arbeid.ArbeidsgiverService
-import no.nav.helse.domene.arbeid.arbeidsforhold
 import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.domene.arbeidsfordeling.arbeidsfordeling
-import no.nav.helse.domene.organisasjon.OrganisasjonService
-import no.nav.helse.domene.organisasjon.organisasjon
 import no.nav.helse.domene.person.PersonService
 import no.nav.helse.domene.person.person
-import no.nav.helse.domene.sykepengegrunnlag.SykepengegrunnlagService
-import no.nav.helse.domene.sykepengegrunnlag.sykepengegrunnlag
 import no.nav.helse.domene.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.domene.sykepengehistorikk.sykepengehistorikk
-import no.nav.helse.domene.utbetaling.UtbetalingOgTrekkService
 import no.nav.helse.domene.ytelse.YtelseService
 import no.nav.helse.domene.ytelse.ytelse
 import no.nav.helse.nais.nais
@@ -89,10 +91,17 @@ fun main() {
 
         val arbeidsforholdClient = wsClients.arbeidsforhold(env.arbeidsforholdEndpointUrl)
 
-        val arbeidsforholdService = ArbeidsforholdService(
+        val arbeidstakerService = ArbeidstakerService(
                 arbeidsforholdClient = arbeidsforholdClient,
-                inntektClient = inntektClient,
                 datakvalitetProbe = datakvalitetProbe
+        )
+
+        val arbeidsforholdService = ArbeidsforholdService(
+                arbeidstakerService = arbeidstakerService,
+                frilansArbeidsforholdService = FrilansArbeidsforholdService(
+                    inntektClient = inntektClient,
+                    datakvalitetProbe = datakvalitetProbe
+                )
         )
 
         val arbeidsgiverService = ArbeidsgiverService(
@@ -129,7 +138,7 @@ fun main() {
                 env.jwtIssuer,
                 jwkProvider,
                 arbeidsfordelingService,
-                arbeidsforholdService,
+                arbeidstakerService,
                 arbeidsgiverService,
                 arbeidsforholdMedInntektService,
                 organisasjonService,
@@ -152,7 +161,7 @@ fun Application.sparkel(
         jwtIssuer: String,
         jwkProvider: JwkProvider,
         arbeidsfordelingService: ArbeidsfordelingService,
-        arbeidsforholdService: ArbeidsforholdService,
+        arbeidstakerService: ArbeidstakerService,
         arbeidsgiverService: ArbeidsgiverService,
         arbeidInntektYtelseService: ArbeidInntektYtelseService,
         organisasjonService: OrganisasjonService,
@@ -215,7 +224,7 @@ fun Application.sparkel(
 
             arbeidInntektYtelse(arbeidInntektYtelseService)
 
-            arbeidsforhold(arbeidsforholdService, arbeidsgiverService)
+            arbeidsforhold(arbeidstakerService, arbeidsgiverService)
 
             organisasjon(organisasjonService)
 

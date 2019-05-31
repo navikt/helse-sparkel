@@ -9,7 +9,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.domene.organisasjon.domain.Organisasjonsnummer
 import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.sts.StsRestClient
@@ -57,7 +56,7 @@ class OrganisasjonIntegrationTest {
                 request = requestStub,
                 response = WireMock.serverError().withBody(faultXml("SOAP fault"))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
+            val actual = organisasjonClient.hentOrganisasjon(orgNr)
 
             when (actual) {
                 is Try.Failure -> assertEquals("SOAP fault", actual.exception.message)
@@ -84,7 +83,7 @@ class OrganisasjonIntegrationTest {
                         navnLinje2 = "AVD SANNERGATA 2"
                 ))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
+            val actual = organisasjonClient.hentOrganisasjon(orgNr)
 
             when (actual) {
                 is Try.Success -> {
@@ -113,7 +112,7 @@ class OrganisasjonIntegrationTest {
                         orgNr = orgNr
                 ))
         ) { organisasjonClient ->
-            val actual = organisasjonClient.hentOrganisasjon(Organisasjonsnummer(orgNr))
+            val actual = organisasjonClient.hentOrganisasjon(orgNr)
 
             when (actual) {
                 is Try.Success -> {
