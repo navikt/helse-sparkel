@@ -10,7 +10,7 @@ sealed class Beregningsgrunnlag(val identdato: LocalDate,
 
     init {
         if (utbetalingFom != null && utbetalingTom != null && utbetalingFom > utbetalingTom) {
-            throw IllegalArgumentException("$utbetalingFom er nyere dato enn $utbetalingTom")
+            throw UgyldigBeregningsgrunnlagException("$utbetalingFom er nyere dato enn $utbetalingTom")
         }
     }
 

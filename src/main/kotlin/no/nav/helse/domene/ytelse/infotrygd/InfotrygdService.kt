@@ -1,7 +1,6 @@
 package no.nav.helse.domene.ytelse.infotrygd
 
 import arrow.core.Either
-import arrow.core.Try
 import arrow.core.flatMap
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
@@ -26,30 +25,11 @@ class InfotrygdService(private val infotrygdBeregningsgrunnlagClient: InfotrygdB
                     .toEither(InfotrygdBeregningsgrunnlagErrorMapper::mapToError)
                     .map { finnGrunnlagListeResponse ->
                         with (finnGrunnlagListeResponse) {
-                            sykepengerListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }.plus(foreldrepengerListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }).plus(engangstoenadListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }).plus(paaroerendeSykdomListe.map {
-                                Try {
-                                    BeregningsgrunnlagMapper.toBeregningsgrunnlag(it)
-                                }
-                            }).mapNotNull {
-                                it.fold({ err ->
-                                    log.info("feil med beregningsgrunnlag, hopper over", err)
-                                    null
-                                }) {
-                                    it
-                                }
-                            }
+                            sykepengerListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag)
+                                    .plus(foreldrepengerListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag))
+                                    .plus(engangstoenadListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag))
+                                    .plus(paaroerendeSykdomListe.map(BeregningsgrunnlagMapper::toBeregningsgrunnlag))
+                                    .filterNotNull()
                         }
                     }
 
