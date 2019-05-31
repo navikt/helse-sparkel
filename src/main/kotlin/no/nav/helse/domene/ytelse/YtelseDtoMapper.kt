@@ -21,6 +21,10 @@ object YtelseDtoMapper {
 
     fun toDto(sak: InfotrygdSak) =
             InfotrygdSakDto(
+                    type = when (sak) {
+                        is InfotrygdSak.Vedtak -> "Vedtak"
+                        is InfotrygdSak.Åpen -> "Sak"
+                    },
                     iverksatt = if (sak is InfotrygdSak.Vedtak) sak.iverksatt else null,
                     tema = sak.tema.name(),
                     behandlingstema = sak.behandlingstema.name(),
