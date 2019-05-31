@@ -79,8 +79,7 @@ class YtelseServiceTest {
     private fun sakerFraInfotrygd(fom: LocalDate, tom: LocalDate, identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate) =
             listOf(
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
-                                    sakId = "1",
+                            sak = InfotrygdSak.Vedtak(
                                     iverksatt = identdatoSykepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Sykepenger,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
@@ -95,8 +94,7 @@ class YtelseServiceTest {
                             )
                     ),
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
-                                    sakId = "2",
+                            sak = InfotrygdSak.Vedtak(
                                     iverksatt = identdatoForeldrepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
@@ -111,8 +109,7 @@ class YtelseServiceTest {
                             )
                     ),
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
-                                    sakId = "3",
+                            sak = InfotrygdSak.Vedtak(
                                     iverksatt = identdatoEngangstønad,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
@@ -127,8 +124,7 @@ class YtelseServiceTest {
                             )
                     ),
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
-                                    sakId = "4",
+                            sak = InfotrygdSak.Vedtak(
                                     iverksatt = identdatoPleiepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.PårørendeSykdom,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,

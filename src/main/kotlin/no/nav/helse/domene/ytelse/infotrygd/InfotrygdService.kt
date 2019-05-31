@@ -63,7 +63,7 @@ class InfotrygdService(private val infotrygdBeregningsgrunnlagClient: InfotrygdB
                         sakerMedGrunnlag.filter { infotrygdSakOgGrunnlag ->
                             infotrygdSakOgGrunnlag.grunnlag == null
                         }.forEach { sakUtenGrunnlag ->
-                            log.info("finner ikke grunnlag for sak med sakId=${sakUtenGrunnlag.sak.sakId}")
+                            log.info("finner ikke grunnlag for sak ${sakUtenGrunnlag.sak}")
                         }
 
                         sakerMedGrunnlag

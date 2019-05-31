@@ -1,10 +1,10 @@
 package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.domene.ytelse.infotrygd.InfotrygdSakMapper.toSak
 import no.nav.helse.domene.ytelse.domain.Behandlingstema
 import no.nav.helse.domene.ytelse.domain.InfotrygdSak
 import no.nav.helse.domene.ytelse.domain.Tema
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdSakMapper.toSak
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -28,12 +28,9 @@ class InfotrygdSakMapperTest {
             }
         }
 
-        val expected = InfotrygdSak(
-                sakId = "1",
-                iverksatt = iverksatt,
+        val expected = InfotrygdSak.Åpen(
                 tema = Tema.Sykepenger,
-                behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
-                opphørerFom = null
+                behandlingstema = Behandlingstema.SykepengerUtenlandsopphold
         )
 
         assertEquals(expected, toSak(given))
@@ -58,8 +55,7 @@ class InfotrygdSakMapperTest {
             this.opphoerFom = opphørerFom.toXmlGregorianCalendar()
         }
 
-        val expected = InfotrygdSak(
-                sakId = "1",
+        val expected = InfotrygdSak.Vedtak(
                 iverksatt = iverksatt,
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
