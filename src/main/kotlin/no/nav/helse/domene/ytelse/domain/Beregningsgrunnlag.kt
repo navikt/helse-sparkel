@@ -15,7 +15,7 @@ sealed class Beregningsgrunnlag(val identdato: LocalDate,
     }
 
     fun hørerSammenMed(sak: InfotrygdSak) =
-            identdato == sak.iverksatt && behandlingstema.tema == sak.tema
+            sak is InfotrygdSak.Vedtak && identdato == sak.iverksatt && behandlingstema.tema == sak.tema
 
     fun type() = when (this) {
         is Sykepenger -> "Sykepenger"

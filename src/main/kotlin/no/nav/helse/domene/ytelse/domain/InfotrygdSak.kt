@@ -4,14 +4,12 @@ import java.time.LocalDate
 import java.util.*
 
 sealed class InfotrygdSak(val tema: Tema,
-                          val behandlingstema: Behandlingstema,
-                          val iverksatt: LocalDate?) {
+                          val behandlingstema: Behandlingstema) {
 
     class Åpen(tema: Tema,
-               behandlingstema: Behandlingstema,
-               iverksatt: LocalDate?): InfotrygdSak(tema, behandlingstema, iverksatt) {
+               behandlingstema: Behandlingstema): InfotrygdSak(tema, behandlingstema) {
         override fun toString(): String {
-            return "InfotrygdSak.Åpen(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt)"
+            return "InfotrygdSak.Åpen(tema=$tema, behandlingstema=$behandlingstema)"
         }
 
         override fun equals(other: Any?): Boolean {
@@ -28,8 +26,8 @@ sealed class InfotrygdSak(val tema: Tema,
 
     class Vedtak(tema: Tema,
                  behandlingstema: Behandlingstema,
-                 iverksatt: LocalDate?,
-                 val opphørerFom: LocalDate?): InfotrygdSak(tema, behandlingstema, iverksatt) {
+                 val iverksatt: LocalDate?,
+                 val opphørerFom: LocalDate?): InfotrygdSak(tema, behandlingstema) {
         override fun toString(): String {
             return "InfotrygdSak.Vedtak(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt, opphørerFom=$opphørerFom)"
         }
@@ -41,11 +39,14 @@ sealed class InfotrygdSak(val tema: Tema,
 
             other as InfotrygdSak.Vedtak
 
+            if (iverksatt != other.iverksatt) return false
+
             return opphørerFom == other.opphørerFom
         }
 
         override fun hashCode(): Int {
-            return super.hashCode() * 31 + opphørerFom.hashCode()
+            var hash = 31 * super.hashCode() + Objects.hash(iverksatt)
+            return 31 * hash + Objects.hash(opphørerFom)
         }
     }
 
@@ -57,12 +58,11 @@ sealed class InfotrygdSak(val tema: Tema,
 
         if (tema != other.tema) return false
         if (behandlingstema != other.behandlingstema) return false
-        if (iverksatt != other.iverksatt) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return Objects.hash(tema, behandlingstema, iverksatt)
+        return Objects.hash(tema, behandlingstema)
     }
 }

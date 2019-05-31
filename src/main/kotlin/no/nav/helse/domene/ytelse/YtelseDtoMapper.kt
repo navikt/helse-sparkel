@@ -21,7 +21,7 @@ object YtelseDtoMapper {
 
     fun toDto(sak: InfotrygdSak) =
             InfotrygdSakDto(
-                    iverksatt = sak.iverksatt,
+                    iverksatt = if (sak is InfotrygdSak.Vedtak) sak.iverksatt else null,
                     tema = sak.tema.name(),
                     behandlingstema = sak.behandlingstema.name(),
                     opphørerFom = if (sak is InfotrygdSak.Vedtak) sak.opphørerFom else null

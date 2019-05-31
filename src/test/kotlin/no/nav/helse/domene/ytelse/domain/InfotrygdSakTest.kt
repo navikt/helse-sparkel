@@ -75,12 +75,6 @@ class InfotrygdSakTest {
 
         assertNotEquals(sak1, sak3)
         assertNotEquals(sak1.hashCode(), sak3.hashCode())
-
-        val sak4 = enInfotrygdSak()
-                .medIverksatt(LocalDate.now().minusDays(1))
-
-        assertNotEquals(sak1, sak4)
-        assertNotEquals(sak1.hashCode(), sak4.hashCode())
     }
 
     @Test
@@ -94,8 +88,7 @@ class InfotrygdSakTest {
     @Test
     fun `test string-representasjon av infotrygd sak`() {
         val sak = enInfotrygdSak()
-                .medIverksatt(LocalDate.of(2019, 1, 1))
-        assertEquals("InfotrygdSak.Åpen(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01)", sak.toString())
+        assertEquals("InfotrygdSak.Åpen(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger))", sak.toString())
     }
 
     private fun etInfotrygdVedtak() =
@@ -109,8 +102,7 @@ class InfotrygdSakTest {
     private fun enInfotrygdSak() =
             InfotrygdSak.Åpen(
                     tema = Tema.Sykepenger,
-                    behandlingstema = Behandlingstema.Sykepenger,
-                    iverksatt = LocalDate.now()
+                    behandlingstema = Behandlingstema.Sykepenger
             )
 
     private fun InfotrygdSak.Vedtak.medTema(tema: Tema) =
@@ -148,21 +140,12 @@ class InfotrygdSakTest {
     private fun InfotrygdSak.Åpen.medTema(tema: Tema) =
             InfotrygdSak.Åpen(
                     tema = tema,
-                    behandlingstema = behandlingstema,
-                    iverksatt = iverksatt
+                    behandlingstema = behandlingstema
             )
 
     private fun InfotrygdSak.Åpen.medBehandlingstema(behandlingstema: Behandlingstema) =
             InfotrygdSak.Åpen(
                     tema = tema,
-                    behandlingstema = behandlingstema,
-                    iverksatt = iverksatt
-            )
-
-    private fun InfotrygdSak.Åpen.medIverksatt(iverksatt: LocalDate) =
-            InfotrygdSak.Åpen(
-                    tema = tema,
-                    behandlingstema = behandlingstema,
-                    iverksatt = iverksatt
+                    behandlingstema = behandlingstema
             )
 }
