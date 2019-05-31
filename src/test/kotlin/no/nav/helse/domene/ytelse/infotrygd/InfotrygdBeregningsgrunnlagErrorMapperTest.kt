@@ -1,7 +1,7 @@
-package no.nav.helse.domene.sykepengehistorikk
+package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.Feilårsak.*
-import no.nav.helse.domene.sykepengehistorikk.DomainErrorMapper.mapToError
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdBeregningsgrunnlagErrorMapper.mapToError
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.BaseneErUtilgjengeligeException
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListePersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeSikkerhetsbegrensning
@@ -13,7 +13,7 @@ import javax.xml.soap.SOAPConstants
 import javax.xml.soap.SOAPFactory
 import javax.xml.ws.soap.SOAPFaultException
 
-class DomainErrorMapperTest {
+class InfotrygdBeregningsgrunnlagErrorMapperTest {
 
     @Test
     fun `skal mappe FinnGrunnlagListeSikkerhetsbegrensning til FeilFraTjeneste`() {

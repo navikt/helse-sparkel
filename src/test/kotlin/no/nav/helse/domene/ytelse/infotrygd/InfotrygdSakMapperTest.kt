@@ -1,7 +1,7 @@
-package no.nav.helse.domene.ytelse
+package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.domene.ytelse.InfotrygdSakMapper.toSak
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdSakMapper.toSak
 import no.nav.helse.domene.ytelse.domain.Behandlingstema
 import no.nav.helse.domene.ytelse.domain.InfotrygdSak
 import no.nav.helse.domene.ytelse.domain.Tema

@@ -1,4 +1,4 @@
-package no.nav.helse.domene.sykepengehistorikk
+package no.nav.helse.domene.ytelse.sykepengehistorikk
 
 import arrow.core.right
 import io.ktor.http.ContentType
@@ -15,6 +15,7 @@ import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
@@ -58,7 +59,11 @@ class SykepengehistorikkComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 sykepengehistorikkService = SykepengehistorikkService(
                         aktørregisterService = aktørregisterService,
-                        infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1)
+                        infotrygdService = InfotrygdService(
+                                infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
+                                infotrygdSakClient = mockk(),
+                                probe = mockk(relaxed = true)
+                        )
                 )
         )}) {
             handleRequest(HttpMethod.Get, "/api/sykepengehistorikk/${aktørId.aktor}?fom=$fom&tom=$tom") {

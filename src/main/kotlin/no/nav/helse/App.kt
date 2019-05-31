@@ -38,9 +38,11 @@ import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.domene.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.domene.person.PersonService
 import no.nav.helse.domene.person.person
-import no.nav.helse.domene.sykepengehistorikk.SykepengehistorikkService
-import no.nav.helse.domene.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.domene.ytelse.YtelseService
+import no.nav.helse.domene.ytelse.arena.ArenaService
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdService
+import no.nav.helse.domene.ytelse.sykepengehistorikk.SykepengehistorikkService
+import no.nav.helse.domene.ytelse.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.domene.ytelse.ytelse
 import no.nav.helse.nais.nais
 import no.nav.helse.oppslag.WsClients
@@ -120,19 +122,23 @@ fun main() {
 
         val sykepengegrunnlagService = SykepengegrunnlagService(inntektService, organisasjonService)
 
-        val infotrygdBeregningsgrunnlagClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl)
-
+        val infotrygdService = InfotrygdService(
+                infotrygdBeregningsgrunnlagClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl),
+                infotrygdSakClient = wsClients.infotrygdSak(env.infotrygdSakEndpoint),
+                probe = datakvalitetProbe
+        )
         val sykepengehistorikkService = SykepengehistorikkService(
-                infotrygdBeregningsgrunnlagClient = infotrygdBeregningsgrunnlagClient,
+                infotrygdService = infotrygdService,
                 aktørregisterService = aktørregisterService
         )
 
         val ytelseService = YtelseService(
                 aktørregisterService = aktørregisterService,
-                infotrygdBeregningsgrunnlagClient = infotrygdBeregningsgrunnlagClient,
-                infotrygdSakClient = wsClients.infotrygdSak(env.infotrygdSakEndpoint),
-                meldekortUtbetalingsgrunnlagClient = wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl),
-                probe = datakvalitetProbe)
+                infotrygdService = infotrygdService,
+                arenaService = ArenaService(
+                        meldekortUtbetalingsgrunnlagClient = wsClients.meldekortUtbetalingsgrunnlag(env.meldekortEndpointUrl)
+                )
+        )
 
         sparkel(
                 env.jwtIssuer,

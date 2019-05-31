@@ -1,4 +1,4 @@
-package no.nav.helse.domene.sykepengehistorikk
+package no.nav.helse.domene.ytelse.sykepengehistorikk
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode

@@ -3,7 +3,6 @@ package no.nav.helse.oppslag.infotrygdberegningsgrunnlag
 import arrow.core.Try
 import arrow.core.failure
 import no.nav.helse.common.toXmlGregorianCalendar
-import no.nav.helse.domene.Fødselsnummer
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.InfotrygdBeregningsgrunnlagV1
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeRequest
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
@@ -15,9 +14,9 @@ class InfotrygdBeregningsgrunnlagClient(private val infotrygdBeregningsgrunnlag 
     companion object {
         private val baseneErUtilgjengelige = "Basene i Infotrygd er ikke tilgjengelige"
     }
-    fun finnGrunnlagListe(fnr: Fødselsnummer, fraOgMed: LocalDate, tilOgMed: LocalDate) =
+    fun finnGrunnlagListe(fnr: String, fraOgMed: LocalDate, tilOgMed: LocalDate) =
             Try {
-                infotrygdBeregningsgrunnlag.finnGrunnlagListe(createFinnGrunnlagListeRequest(fnr.value, fraOgMed, tilOgMed)) ?:
+                infotrygdBeregningsgrunnlag.finnGrunnlagListe(createFinnGrunnlagListeRequest(fnr, fraOgMed, tilOgMed)) ?:
                         FinnGrunnlagListeResponse()
             }.let {
                 if (it is Try.Failure && it.exception is SOAPFaultException) {

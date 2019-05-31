@@ -1,4 +1,4 @@
-package no.nav.helse.domene.sykepengehistorikk
+package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.Feilårsak
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.BaseneErUtilgjengeligeException
@@ -7,9 +7,9 @@ import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGru
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.binding.FinnGrunnlagListeUgyldigInput
 import org.slf4j.LoggerFactory
 
-object DomainErrorMapper {
+object InfotrygdBeregningsgrunnlagErrorMapper {
 
-    private val log = LoggerFactory.getLogger(DomainErrorMapper::class.java)
+    private val log = LoggerFactory.getLogger(InfotrygdBeregningsgrunnlagErrorMapper::class.java)
 
     fun mapToError(err: Throwable) =
             when (err) {
