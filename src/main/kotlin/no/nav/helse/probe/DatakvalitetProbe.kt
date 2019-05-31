@@ -3,13 +3,8 @@ package no.nav.helse.probe
 import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
 import no.nav.helse.common.toLocalDate
-import no.nav.helse.domene.aiy.domain.ArbeidInntektYtelse
-import no.nav.helse.domene.aiy.domain.Arbeidsavtale
-import no.nav.helse.domene.aiy.domain.Arbeidsforhold
-import no.nav.helse.domene.aiy.domain.Permisjon
+import no.nav.helse.domene.aiy.domain.*
 import no.nav.helse.domene.aiy.organisasjon.OrganisasjonService
-import no.nav.helse.domene.aiy.domain.UtbetalingEllerTrekk
-import no.nav.helse.domene.aiy.domain.Virksomhet
 import no.nav.helse.domene.ytelse.domain.*
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
@@ -228,6 +223,8 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         saker.forEach { sakMedGrunnlag ->
             inspiserSak(sakMedGrunnlag.sak)
             sakMedGrunnlag.grunnlag?.let(::inspiserGrunnlag)
+
+            sjekkOmFeltErNull(sakMedGrunnlag, "grunnlag", sakMedGrunnlag.grunnlag)
         }
     }
 
@@ -237,6 +234,11 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         }
         if (sak.tema is Tema.Ukjent) {
             sendDatakvalitetEvent(sak, "tema", Observasjonstype.UkjentTema, "$sak har ukjent tema")
+        }
+
+        if (sak is no.nav.helse.domene.ytelse.domain.InfotrygdSak.Vedtak) {
+            sjekkOmFeltErNull(sak, "iverksatt", sak.iverksatt)
+            sjekkOmFeltErNull(sak, "opphørerFom", sak.opphørerFom)
         }
     }
 
