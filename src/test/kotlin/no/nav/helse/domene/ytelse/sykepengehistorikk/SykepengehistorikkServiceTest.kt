@@ -7,6 +7,7 @@ import io.mockk.mockk
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.ytelse.domain.Behandlingstema
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
 import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.helse.domene.ytelse.infotrygd.InfotrygdService
@@ -39,7 +40,7 @@ class SykepengehistorikkServiceTest {
         } returns listOf(
                 Beregningsgrunnlag.Sykepenger(
                         identdato = fom,
-                        behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.fraKode("SP"),
+                        behandlingstema = Behandlingstema.Sykepenger,
                         periodeFom = null,
                         periodeTom = null,
                         vedtak = listOf(
@@ -50,6 +51,19 @@ class SykepengehistorikkServiceTest {
                                 Utbetalingsvedtak.SkalUtbetales(
                                         fom = fom,
                                         tom = tom,
+                                        utbetalingsgrad = 100
+                                )
+                        )
+                ),
+                Beregningsgrunnlag.Foreldrepenger(
+                        identdato = fom,
+                        behandlingstema = Behandlingstema.ForeldrepengerMedFødsel,
+                        periodeFom = null,
+                        periodeTom = null,
+                        vedtak = listOf(
+                                Utbetalingsvedtak.SkalUtbetales(
+                                        fom = fom.minusMonths(2),
+                                        tom = tom.minusMonths(1),
                                         utbetalingsgrad = 100
                                 )
                         )
