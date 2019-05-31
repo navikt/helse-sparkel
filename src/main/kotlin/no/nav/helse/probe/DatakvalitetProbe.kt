@@ -103,7 +103,9 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         UkjentTema,
         UtbetalingsgradMangler,
         HullIAnvistPeriode,
-        AnvistPeriodeOk
+        AnvistPeriodeOk,
+        FinnerIkkeGrunnlag,
+        FinnerGrunnlag
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -237,7 +239,11 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             inspiserSak(sakMedGrunnlag.sak)
             sakMedGrunnlag.grunnlag?.let(::inspiserGrunnlag)
 
-            sjekkOmFeltErNull(sakMedGrunnlag, "grunnlag", sakMedGrunnlag.grunnlag)
+            if (sakMedGrunnlag.grunnlag == null) {
+                sendDatakvalitetEvent(sakMedGrunnlag, "grunnlag", Observasjonstype.FinnerIkkeGrunnlag, "finner ikke grunnlag for ${sakMedGrunnlag.sak}")
+            } else {
+                sendDatakvalitetEvent(sakMedGrunnlag, "grunnlag", Observasjonstype.FinnerGrunnlag, "finner grunnlag for ${sakMedGrunnlag.sak}")
+            }
         }
     }
 
