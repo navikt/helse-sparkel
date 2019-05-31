@@ -16,6 +16,8 @@ import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.ytelse.arena.ArenaService
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdService
 import no.nav.helse.mockedSparkel
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
@@ -97,10 +99,14 @@ class YtelseComponentTest {
                     jwkProvider = jwkStub.stubbedJwkProvider(),
                     ytelseService = YtelseService(
                             aktørregisterService = aktørregisterService,
-                            infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
-                            infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
-                            meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
-                            probe = mockk(relaxed = true)
+                            infotrygdService = InfotrygdService(
+                                    infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
+                                    infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
+                                    probe = mockk(relaxed = true)
+                            ),
+                            arenaService = ArenaService(
+                                    meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1)
+                            )
                     )
             )
         }) {
@@ -156,10 +162,14 @@ class YtelseComponentTest {
                 jwkProvider = jwkStub.stubbedJwkProvider(),
                 ytelseService = YtelseService(
                         aktørregisterService = aktørregisterService,
-                        infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
-                        infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
-                        meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1),
-                        probe = mockk(relaxed = true)
+                        infotrygdService = InfotrygdService(
+                                infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
+                                infotrygdSakClient = InfotrygdSakClient(infotrygdSakV1),
+                                probe = mockk(relaxed = true)
+                        ),
+                        arenaService = ArenaService(
+                                meldekortUtbetalingsgrunnlagClient = MeldekortUtbetalingsgrunnlagClient(meldekortUtbetalingsgrunnlagV1)
+                        )
                 )
         )}) {
             handleRequest(HttpMethod.Get, "/api/ytelser/${aktørId.aktor}?fom=$fom&tom=$tom") {

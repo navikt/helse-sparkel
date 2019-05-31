@@ -1,4 +1,4 @@
-package no.nav.helse.domene.ytelse
+package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.ytelse.domain.Behandlingstema

@@ -11,7 +11,7 @@ import no.nav.helse.domene.aiy.organisasjon.OrganisasjonService
 import no.nav.helse.domene.aktør.AktørregisterService
 import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.domene.person.PersonService
-import no.nav.helse.domene.sykepengehistorikk.SykepengehistorikkService
+import no.nav.helse.domene.ytelse.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.domene.ytelse.YtelseService
 
 fun Application.mockedSparkel(jwtIssuer: String = "", jwkProvider: JwkProvider, arbeidsfordelingService: ArbeidsfordelingService = mockk(),

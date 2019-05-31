@@ -1,4 +1,4 @@
-package no.nav.helse.domene.ytelse
+package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.Feilårsak
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.BaseneErUtilgjengeligeException
