@@ -22,7 +22,7 @@ class InfotrygdService(private val infotrygdBeregningsgrunnlagClient: InfotrygdB
     }
 
     fun finnGrunnlag(fødselsnummer: Fødselsnummer, fom: LocalDate, tom: LocalDate) =
-            infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(fødselsnummer, fom, tom)
+            infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(fødselsnummer.value, fom, tom)
                     .toEither(InfotrygdBeregningsgrunnlagErrorMapper::mapToError)
                     .map { finnGrunnlagListeResponse ->
                         with (finnGrunnlagListeResponse) {

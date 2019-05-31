@@ -44,7 +44,7 @@ class InfotrygdServiceTest {
         } returns saker(identdatoSykepenger, identdatoForeldrepenger, identdatoEngangstønad, identdatoPleiepenger)
 
         every {
-            infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(fødselsnummer, fom, tom)
+            infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(fødselsnummer.value, fom, tom)
         } returns beregningsgrunnlag(identdatoSykepenger, identdatoForeldrepenger, identdatoEngangstønad, identdatoPleiepenger, fom, tom)
 
         val expected = listOf(

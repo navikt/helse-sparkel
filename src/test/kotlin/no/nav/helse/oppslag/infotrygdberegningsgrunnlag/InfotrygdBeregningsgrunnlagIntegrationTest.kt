@@ -58,7 +58,7 @@ class InfotrygdBeregningsgrunnlagIntegrationTest {
                 response = WireMock.okXml(basene_i_infotrygd_er_utilgjengelige),
                 request = request
         ) { infotrygdBeregningsgrunnlagClient ->
-            val actual = infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(Fødselsnummer(fnr), fom, tom)
+            val actual = infotrygdBeregningsgrunnlagClient.finnGrunnlagListe(fnr, fom, tom)
 
             when (actual) {
                 is Try.Failure -> assertTrue(actual.exception is BaseneErUtilgjengeligeException)
