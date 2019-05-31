@@ -79,7 +79,7 @@ class YtelseServiceTest {
     private fun sakerFraInfotrygd(fom: LocalDate, tom: LocalDate, identdatoSykepenger: LocalDate, identdatoForeldrepenger: LocalDate, identdatoEngangstønad: LocalDate, identdatoPleiepenger: LocalDate) =
             listOf(
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
+                            sak = InfotrygdSak.Vedtak(
                                     sakId = "1",
                                     iverksatt = identdatoSykepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Sykepenger,
@@ -95,7 +95,7 @@ class YtelseServiceTest {
                             )
                     ),
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
+                            sak = InfotrygdSak.Vedtak(
                                     sakId = "2",
                                     iverksatt = identdatoForeldrepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
@@ -111,7 +111,7 @@ class YtelseServiceTest {
                             )
                     ),
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
+                            sak = InfotrygdSak.Vedtak(
                                     sakId = "3",
                                     iverksatt = identdatoEngangstønad,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
@@ -127,7 +127,7 @@ class YtelseServiceTest {
                             )
                     ),
                     InfotrygdSakOgGrunnlag(
-                            sak = InfotrygdSak(
+                            sak = InfotrygdSak.Vedtak(
                                     sakId = "4",
                                     iverksatt = identdatoPleiepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.PårørendeSykdom,

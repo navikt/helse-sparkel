@@ -1,9 +1,6 @@
 package no.nav.helse.domene.ytelse
 
-import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
-import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
-import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
-import no.nav.helse.domene.ytelse.domain.Ytelse
+import no.nav.helse.domene.ytelse.domain.*
 import no.nav.helse.domene.ytelse.dto.*
 
 object YtelseDtoMapper {
@@ -18,14 +15,17 @@ object YtelseDtoMapper {
 
     fun toDto(sakOgGrunnlag: InfotrygdSakOgGrunnlag) =
             InfotrygdSakOgGrunnlagDto(
-                    sak = InfotrygdSakDto(
-                            sakId = sakOgGrunnlag.sak.sakId,
-                            iverksatt = sakOgGrunnlag.sak.iverksatt,
-                            tema = sakOgGrunnlag.sak.tema.name(),
-                            behandlingstema = sakOgGrunnlag.sak.behandlingstema.name(),
-                            opphørerFom = sakOgGrunnlag.sak.opphørerFom
-                    ),
+                    sak = toDto(sakOgGrunnlag.sak),
                     grunnlag = sakOgGrunnlag.grunnlag?.let(::toDto)
+            )
+
+    fun toDto(sak: InfotrygdSak) =
+            InfotrygdSakDto(
+                    sakId = sak.sakId,
+                    iverksatt = sak.iverksatt,
+                    tema = sak.tema.name(),
+                    behandlingstema = sak.behandlingstema.name(),
+                    opphørerFom = if (sak is InfotrygdSak.Vedtak) sak.opphørerFom else null
             )
 
     fun toDto(beregningsgrunnlag: Beregningsgrunnlag) =

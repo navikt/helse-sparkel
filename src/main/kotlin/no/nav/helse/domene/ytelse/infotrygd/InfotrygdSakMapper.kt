@@ -9,11 +9,19 @@ import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
 object InfotrygdSakMapper {
 
     fun toSak(sak: no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak) =
-            InfotrygdSak(
-                    sakId = sak.sakId,
-                    iverksatt = sak.iverksatt?.toLocalDate(),
-                    tema = Tema.fraKode(sak.tema.value),
-                    behandlingstema = Behandlingstema.fraKode(sak.behandlingstema.value),
-                    opphørerFom = if (sak is InfotrygdVedtak) sak.opphoerFom?.toLocalDate() else null
-            )
+            when (sak) {
+                is InfotrygdVedtak -> InfotrygdSak.Vedtak(
+                        sakId = sak.sakId,
+                        iverksatt = sak.iverksatt?.toLocalDate(),
+                        tema = Tema.fraKode(sak.tema.value),
+                        behandlingstema = Behandlingstema.fraKode(sak.behandlingstema.value),
+                        opphørerFom = sak.opphoerFom?.toLocalDate()
+                )
+                else -> InfotrygdSak.Åpen(
+                        sakId = sak.sakId,
+                        iverksatt = sak.iverksatt?.toLocalDate(),
+                        tema = Tema.fraKode(sak.tema.value),
+                        behandlingstema = Behandlingstema.fraKode(sak.behandlingstema.value)
+                )
+            }
 }
