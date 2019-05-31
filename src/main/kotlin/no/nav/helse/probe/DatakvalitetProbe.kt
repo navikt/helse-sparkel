@@ -7,6 +7,7 @@ import no.nav.helse.domene.aiy.domain.*
 import no.nav.helse.domene.aiy.organisasjon.OrganisasjonService
 import no.nav.helse.domene.ytelse.domain.*
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -82,7 +83,9 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         StartdatoStørreEnnSluttdato,
         DatoErIFremtiden,
         VerdiMangler,
+        VerdiManglerIkke,
         TomVerdi,
+        HarVerdi,
         FlereArbeidsforholdPerInntekt,
         ArbeidsforholdISammeVirksomhet,
         IngenArbeidsforholdForInntekt,
@@ -99,7 +102,8 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         OrganisasjonErOrganisasjonsledd,
         UkjentTema,
         UtbetalingsgradMangler,
-        HullIAnvistPeriode
+        HullIAnvistPeriode,
+        AnvistPeriodeOk
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -203,6 +207,8 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
             sjekkOmFeltErBlank(sak, "sakId", it)
         }
 
+        sjekkOmFeltErNull(sak, "registrert", sak.registrert)
+
         sjekkOmFeltErNull(sak, "type", sak.type?.value)
         sak.type?.value?.let {
             sjekkOmFeltErBlank(sak, "type", it)
@@ -216,6 +222,13 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         sjekkOmFeltErNull(sak, "resultat", sak.resultat?.value)
         sak.resultat?.value?.let {
             sjekkOmFeltErBlank(sak, "resultat", it)
+        }
+
+        sjekkOmFeltErNull(sak, "iverksatt", sak.iverksatt)
+        sjekkOmFeltErNull(sak, "vedtatt", sak.vedtatt)
+
+        if (sak is InfotrygdVedtak) {
+            sjekkOmFeltErNull(sak, "opphoerFom", sak.opphoerFom)
         }
     }
 
@@ -266,6 +279,8 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
                 if (last.tom != grunnlag.utbetalingTom) {
                     throw IllegalArgumentException("siste vedtak slutter på ${last.tom}, perioden slutter på ${grunnlag.utbetalingTom}")
                 }
+
+                sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.AnvistPeriodeOk, "$grunnlag har en ok anvist periode")
             } catch (err: IllegalArgumentException) {
                 sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.HullIAnvistPeriode, "$grunnlag har hull i anvist periode: ${err.message}")
             }
@@ -398,12 +413,16 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     private fun sjekkOmFeltErNull(objekt: Any, felt: String, value: Any?) {
         if (value == null) {
             sendDatakvalitetEvent(objekt, felt, Observasjonstype.VerdiMangler, "felt manger: $felt er null")
+        } else {
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.VerdiManglerIkke, "$felt er ikke null")
         }
     }
 
     private fun sjekkOmFeltErBlank(objekt: Any, felt: String, value: String) {
         if (value.isBlank()) {
             sendDatakvalitetEvent(objekt, felt, Observasjonstype.TomVerdi, "tomt felt: $felt er tom, eller består bare av whitespace")
+        } else {
+            sendDatakvalitetEvent(objekt, felt, Observasjonstype.HarVerdi, "$felt har verdi")
         }
     }
 
