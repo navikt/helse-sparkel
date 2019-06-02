@@ -8,11 +8,11 @@ class UtbetalingsvedtakTest {
 
     @Test
     fun `fom kan ikke være nyere enn tom`() {
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(UgyldigUtbetalingsvedtakException::class.java) {
             skalIkkeUtbetales().medTom(LocalDate.now().minusMonths(1))
         }
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(UgyldigUtbetalingsvedtakException::class.java) {
             skalUtbetales().medTom(LocalDate.now().minusMonths(1))
         }
     }

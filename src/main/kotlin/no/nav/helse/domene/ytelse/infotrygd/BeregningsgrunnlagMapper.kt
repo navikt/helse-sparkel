@@ -1,10 +1,8 @@
 package no.nav.helse.domene.ytelse.infotrygd
 
 import no.nav.helse.common.toLocalDate
+import no.nav.helse.domene.ytelse.domain.*
 import no.nav.helse.domene.ytelse.domain.Behandlingstema
-import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
-import no.nav.helse.domene.ytelse.domain.UgyldigBeregningsgrunnlagException
-import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import org.slf4j.LoggerFactory
 
@@ -51,17 +49,22 @@ object BeregningsgrunnlagMapper {
             }
 
     fun toVedtak(vedtakliste: List<Vedtak>) =
-            vedtakliste.map { vedtak ->
-                vedtak.utbetalingsgrad?.let {
-                    Utbetalingsvedtak.SkalUtbetales(
+            vedtakliste.mapNotNull { vedtak ->
+                try {
+                    vedtak.utbetalingsgrad?.let {
+                        Utbetalingsvedtak.SkalUtbetales(
+                                fom = vedtak.anvistPeriode.fom.toLocalDate(),
+                                tom = vedtak.anvistPeriode.tom.toLocalDate(),
+                                utbetalingsgrad = vedtak.utbetalingsgrad
+                        )
+                    } ?: Utbetalingsvedtak.SkalIkkeUtbetales(
                             fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                            tom = vedtak.anvistPeriode.tom.toLocalDate(),
-                            utbetalingsgrad = vedtak.utbetalingsgrad
+                            tom = vedtak.anvistPeriode.tom.toLocalDate()
                     )
-                } ?: Utbetalingsvedtak.SkalIkkeUtbetales(
-                        fom = vedtak.anvistPeriode.fom.toLocalDate(),
-                        tom = vedtak.anvistPeriode.tom.toLocalDate()
-                )
+                } catch (err: UgyldigUtbetalingsvedtakException) {
+                    log.info("feil med utbetalingsvedtak, hopper over", err)
+                    null
+                }
             }.sortedBy {
                 it.fom
             }

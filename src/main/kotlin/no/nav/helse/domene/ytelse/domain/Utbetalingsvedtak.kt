@@ -7,7 +7,7 @@ sealed class Utbetalingsvedtak(val fom: LocalDate,
 
     init {
         if (fom > tom) {
-            throw IllegalArgumentException("$fom er nyere dato enn $tom")
+            throw UgyldigUtbetalingsvedtakException("$fom er nyere dato enn $tom")
         }
     }
 
