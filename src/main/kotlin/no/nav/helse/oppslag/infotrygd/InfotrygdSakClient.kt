@@ -21,7 +21,7 @@ class InfotrygdSakClient(private val port: InfotrygdSakV1) {
                 port.finnSakListe(finnSakListeRequest(fødselsnummer, fom, tom))
             }.let {
                 if (it is Try.Failure && it.exception is SOAPFaultException) {
-                    if ((it.exception as SOAPFaultException).message == baseneErUtilgjengelige) {
+                    if ((it.exception as SOAPFaultException).message!!.contains(baseneErUtilgjengelige)) {
                         return@let BaseneErUtilgjengeligeException(it.exception as SOAPFaultException)
                                 .failure()
                     }
