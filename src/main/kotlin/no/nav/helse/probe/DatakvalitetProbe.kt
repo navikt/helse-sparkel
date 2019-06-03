@@ -12,6 +12,7 @@ import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.*
 
 class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonService: OrganisasjonService) {
 
@@ -205,6 +206,19 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
 
     fun inspiserInfotrygdSak(sak: InfotrygdSak) {
         val tema = Tema.fraKode(sak.tema.value)
+
+        influxMetricReporter.sendDataPoint("infotrygd_saker.event",
+                mapOf(
+                        "uuid" to UUID.randomUUID()
+                ),
+                mapOf(
+                        "type" to if (sak is InfotrygdVedtak) "Vedtak" else "Sak",
+                        "tema" to sak.tema.value,
+                        "behandlingstema" to sak.behandlingstema.value,
+                        "sakstype" to (sak.type?.value ?: "IKKE_SATT"),
+                        "status" to sak.status.value,
+                        "resultat" to (sak.resultat?.value ?: "IKKE_SATT")
+                ))
 
         sjekkOmFeltErNull(sak, "sakId ($tema)", sak.sakId)
         sak.sakId?.let {
