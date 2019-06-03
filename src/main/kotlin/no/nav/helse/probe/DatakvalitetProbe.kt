@@ -206,13 +206,18 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
 
     fun inspiserInfotrygdSak(sak: InfotrygdSak) {
         val tema = Tema.fraKode(sak.tema.value)
+        val type = if (sak is InfotrygdVedtak) {
+            "Vedtak"
+        } else {
+            "Sak"
+        }
 
         influxMetricReporter.sendDataPoint("infotrygd.saker",
                 mapOf(
                         "uuid" to UUID.randomUUID().toString()
                 ),
                 mapOf(
-                        "type" to if (sak is InfotrygdVedtak) "Vedtak" else "Sak",
+                        "type" to type,
                         "tema" to sak.tema.value,
                         "behandlingstema" to sak.behandlingstema.value,
                         "sakstype" to (sak.type?.value ?: "IKKE_SATT"),
