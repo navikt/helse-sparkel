@@ -220,9 +220,9 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
                         "type" to type,
                         "tema" to sak.tema.value,
                         "behandlingstema" to sak.behandlingstema.value,
-                        "sakstype" to (sak.type?.value ?: "IKKE_SATT"),
+                        "sakstype" to sak.type?.value.orEmpty().ifEmpty { "IKKE_SATT" },
                         "status" to sak.status.value,
-                        "resultat" to (sak.resultat?.value ?: "IKKE_SATT")
+                        "resultat" to sak.resultat?.value.orEmpty().ifEmpty { "IKKE_SATT" }
                 ))
 
         sjekkOmFeltErNull(sak, "sakId ($tema)", sak.sakId)
