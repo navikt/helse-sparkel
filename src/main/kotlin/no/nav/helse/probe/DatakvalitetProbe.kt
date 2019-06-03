@@ -209,7 +209,7 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
 
         influxMetricReporter.sendDataPoint("infotrygd.saker",
                 mapOf(
-                        "uuid" to UUID.randomUUID()
+                        "uuid" to UUID.randomUUID().toString()
                 ),
                 mapOf(
                         "type" to if (sak is InfotrygdVedtak) "Vedtak" else "Sak",
