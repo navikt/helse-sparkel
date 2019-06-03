@@ -207,7 +207,7 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
     fun inspiserInfotrygdSak(sak: InfotrygdSak) {
         val tema = Tema.fraKode(sak.tema.value)
 
-        influxMetricReporter.sendDataPoint("infotrygd_saker.event",
+        influxMetricReporter.sendDataPoint("infotrygd.saker",
                 mapOf(
                         "uuid" to UUID.randomUUID()
                 ),
