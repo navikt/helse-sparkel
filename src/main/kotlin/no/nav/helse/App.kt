@@ -40,6 +40,7 @@ import no.nav.helse.domene.person.PersonService
 import no.nav.helse.domene.person.person
 import no.nav.helse.domene.ytelse.YtelseService
 import no.nav.helse.domene.ytelse.arena.ArenaService
+import no.nav.helse.domene.ytelse.infotrygd.InfotrygdProbe
 import no.nav.helse.domene.ytelse.infotrygd.InfotrygdService
 import no.nav.helse.domene.ytelse.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.domene.ytelse.sykepengehistorikk.sykepengehistorikk
@@ -48,6 +49,7 @@ import no.nav.helse.nais.nais
 import no.nav.helse.oppslag.WsClients
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.probe.DatakvalitetProbe
+import no.nav.helse.probe.InfluxMetricReporter
 import no.nav.helse.probe.SensuClient
 import no.nav.helse.sts.StsRestClient
 import org.slf4j.event.Level
@@ -125,7 +127,11 @@ fun main() {
         val infotrygdService = InfotrygdService(
                 infotrygdBeregningsgrunnlagClient = wsClients.infotrygdBeregningsgrunnlag(env.finnInfotrygdGrunnlagListeEndpointUrl),
                 infotrygdSakClient = wsClients.infotrygdSak(env.infotrygdSakEndpoint),
-                probe = datakvalitetProbe
+                probe = InfotrygdProbe(InfluxMetricReporter(sensuClient, "sparkel-events", mapOf(
+                        "application" to (System.getenv("NAIS_APP_NAME") ?: "sparkel"),
+                        "cluster" to (System.getenv("NAIS_CLUSTER_NAME") ?: "dev-fss"),
+                        "namespace" to (System.getenv("NAIS_NAMESPACE") ?: "default")
+                )))
         )
         val sykepengehistorikkService = SykepengehistorikkService(
                 infotrygdService = infotrygdService,

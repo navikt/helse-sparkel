@@ -5,14 +5,10 @@ import io.prometheus.client.Histogram
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.aiy.domain.*
 import no.nav.helse.domene.aiy.organisasjon.OrganisasjonService
-import no.nav.helse.domene.ytelse.domain.*
-import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdSak
-import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
 import no.nav.tjeneste.virksomhet.inntekt.v3.informasjon.inntekt.*
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonService: OrganisasjonService) {
 
@@ -100,13 +96,7 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         VirksomhetErOrganisasjon,
         OrganisasjonErJuridiskEnhet,
         OrganisasjonErVirksomhet,
-        OrganisasjonErOrganisasjonsledd,
-        UkjentTema,
-        UtbetalingsgradMangler,
-        HullIAnvistPeriode,
-        AnvistPeriodeOk,
-        FinnerIkkeGrunnlag,
-        FinnerGrunnlag
+        OrganisasjonErOrganisasjonsledd
     }
 
     fun inspiserArbeidstaker(arbeidsforhold: Arbeidsforhold.Arbeidstaker) {
@@ -202,120 +192,6 @@ class DatakvalitetProbe(sensuClient: SensuClient, private val organisasjonServic
         sjekkOmDatoErIFremtiden(arbeidsforhold, "sluttdato", arbeidsforhold.sluttdato)
         sjekkOmFeltErBlank(arbeidsforhold, "yrke", arbeidsforhold.yrke)
         sjekkArbeidsgiver(arbeidsforhold)
-    }
-
-    fun inspiserInfotrygdSak(sak: InfotrygdSak) {
-        val tema = Tema.fraKode(sak.tema.value)
-        val type = if (sak is InfotrygdVedtak) {
-            "Vedtak"
-        } else {
-            "Sak"
-        }
-
-        influxMetricReporter.sendDataPoint("infotrygd.saker",
-                mapOf(
-                        "uuid" to UUID.randomUUID().toString()
-                ),
-                mapOf(
-                        "type" to type,
-                        "tema" to sak.tema.value,
-                        "behandlingstema" to sak.behandlingstema.value,
-                        "sakstype" to (sak.type?.value ?: "IKKE_SATT").ifEmpty { "TOM_VERDI" },
-                        "status" to sak.status.value.ifEmpty { "TOM_VERDI" },
-                        "resultat" to (sak.resultat?.value ?: "IKKE_SATT").ifEmpty { "TOM_VERDI" }
-                ))
-
-        sjekkOmFeltErNull(sak, "sakId ($tema)", sak.sakId)
-        sak.sakId?.let {
-            sjekkOmFeltErBlank(sak, "sakId ($tema)", it)
-        }
-
-        sjekkOmFeltErNull(sak, "registrert ($tema)", sak.registrert)
-
-        sjekkOmFeltErNull(sak, "type ($tema)", sak.type?.value)
-        sak.type?.value?.let {
-            sjekkOmFeltErBlank(sak, "type ($tema)", it)
-        }
-
-        sjekkOmFeltErNull(sak, "status ($tema)", sak.status?.value)
-        sak.status?.value?.let {
-            sjekkOmFeltErBlank(sak, "status ($tema)", it)
-        }
-
-        sjekkOmFeltErNull(sak, "resultat ($tema)", sak.resultat?.value)
-        sak.resultat?.value?.let {
-            sjekkOmFeltErBlank(sak, "resultat ($tema)", it)
-        }
-
-        sjekkOmFeltErNull(sak, "iverksatt ($tema)", sak.iverksatt)
-        sjekkOmFeltErNull(sak, "vedtatt ($tema)", sak.vedtatt)
-
-        if (sak is InfotrygdVedtak) {
-            sjekkOmFeltErNull(sak, "opphoerFom ($tema)", sak.opphoerFom)
-        }
-    }
-
-    fun inspiserInfotrygdSakerOgGrunnlag(saker: List<InfotrygdSakOgGrunnlag>) {
-        saker.forEach { sakMedGrunnlag ->
-            inspiserSak(sakMedGrunnlag.sak)
-            sakMedGrunnlag.grunnlag?.let(::inspiserGrunnlag)
-
-            if (sakMedGrunnlag.grunnlag == null) {
-                sendDatakvalitetEvent(sakMedGrunnlag, "grunnlag", Observasjonstype.FinnerIkkeGrunnlag, "finner ikke grunnlag for ${sakMedGrunnlag.sak}")
-            } else {
-                sendDatakvalitetEvent(sakMedGrunnlag, "grunnlag", Observasjonstype.FinnerGrunnlag, "finner grunnlag for ${sakMedGrunnlag.sak}")
-            }
-        }
-    }
-
-    private fun inspiserSak(sak: no.nav.helse.domene.ytelse.domain.InfotrygdSak) {
-        if (sak.behandlingstema is Behandlingstema.Ukjent) {
-            sendDatakvalitetEvent(sak, "behandlingstema", Observasjonstype.UkjentTema, "$sak har ukjent behandlingstema")
-        }
-        if (sak.tema is Tema.Ukjent) {
-            sendDatakvalitetEvent(sak, "tema", Observasjonstype.UkjentTema, "$sak har ukjent tema")
-        }
-
-        if (sak is no.nav.helse.domene.ytelse.domain.InfotrygdSak.Vedtak) {
-            sjekkOmFeltErNull(sak, "iverksatt", sak.iverksatt)
-            sjekkOmFeltErNull(sak, "opphørerFom", sak.opphørerFom)
-        }
-    }
-
-    private fun inspiserGrunnlag(grunnlag: Beregningsgrunnlag) {
-        if (grunnlag.behandlingstema is Behandlingstema.Ukjent) {
-            sendDatakvalitetEvent(grunnlag, "behandlingstema", Observasjonstype.UkjentTema, "$grunnlag har ukjent behandlingstema")
-        }
-        sjekkOmFeltErNull(grunnlag, "utbetalingFom", grunnlag.utbetalingFom)
-        sjekkOmFeltErNull(grunnlag, "utbetalingTom", grunnlag.utbetalingTom)
-
-        if (grunnlag.vedtak.isNotEmpty()) {
-            try {
-                if (grunnlag.vedtak[0].fom != grunnlag.utbetalingFom) {
-                    throw IllegalArgumentException("første vedtak begynner på ${grunnlag.vedtak[0].fom}, perioden begynner på ${grunnlag.utbetalingFom}")
-                }
-
-                val last = grunnlag.vedtak.reduce { previous, current ->
-                    if (previous.tom.plusDays(1) != current.fom) {
-                        throw IllegalArgumentException("forrige vedtak slutter på ${previous.tom}, neste vedtak begynner på ${current.fom}")
-                    }
-
-                    current
-                }
-
-                if (last.tom != grunnlag.utbetalingTom) {
-                    throw IllegalArgumentException("siste vedtak slutter på ${last.tom}, perioden slutter på ${grunnlag.utbetalingTom}")
-                }
-
-                sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.AnvistPeriodeOk, "$grunnlag har en ok anvist periode")
-            } catch (err: IllegalArgumentException) {
-                sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.HullIAnvistPeriode, "$grunnlag har hull i anvist periode: ${err.message}")
-            }
-
-            if (grunnlag.vedtak.any { it is Utbetalingsvedtak.SkalIkkeUtbetales }) {
-                sendDatakvalitetEvent(grunnlag, "vedtak", Observasjonstype.UtbetalingsgradMangler, "$grunnlag har ${grunnlag.vedtak.filter { it is Utbetalingsvedtak.SkalIkkeUtbetales }.size} vedtak med manglende utbetalingsgrad")
-            }
-        }
     }
 
     private fun sjekkArbeidsgiver(arbeidsforhold: Arbeidsforhold) {

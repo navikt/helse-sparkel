@@ -8,13 +8,12 @@ import no.nav.helse.domene.ytelse.domain.InfotrygdSak
 import no.nav.helse.domene.ytelse.domain.InfotrygdSakOgGrunnlag
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
-import no.nav.helse.probe.DatakvalitetProbe
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class InfotrygdService(private val infotrygdBeregningsgrunnlagClient: InfotrygdBeregningsgrunnlagClient,
                        private val infotrygdSakClient: InfotrygdSakClient,
-                       private val probe: DatakvalitetProbe) {
+                       private val probe: InfotrygdProbe) {
 
     companion object {
         private val log = LoggerFactory.getLogger(InfotrygdService::class.java)
