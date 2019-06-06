@@ -9,7 +9,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
-import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.sts.StsRestClient
@@ -118,7 +117,7 @@ private val basene_i_infotrygd_er_utilgjengelige = """
     <soap:Body>
         <soap:Fault>
             <faultcode>soap:Client</faultcode>
-            <faultstring>Basene i Infotrygd er ikke tilgjengelige</faultstring>
+            <faultstring>Basene i Infotrygd er ikke tilgjengelige...</faultstring>
             <detail></detail>
         </soap:Fault>
     </soap:Body>
