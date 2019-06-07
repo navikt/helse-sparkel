@@ -23,7 +23,7 @@ object YtelseDtoMapper {
             InfotrygdSakDto(
                     type = when (sak) {
                         is InfotrygdSak.Vedtak -> "Vedtak"
-                        is InfotrygdSak.Åpen -> "Sak"
+                        is InfotrygdSak.Sak -> "Sak"
                     },
                     iverksatt = if (sak is InfotrygdSak.Vedtak) sak.iverksatt else null,
                     tema = sak.tema.name(),

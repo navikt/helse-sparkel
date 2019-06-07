@@ -6,10 +6,10 @@ import java.util.*
 sealed class InfotrygdSak(val tema: Tema,
                           val behandlingstema: Behandlingstema) {
 
-    class Åpen(tema: Tema,
-               behandlingstema: Behandlingstema): InfotrygdSak(tema, behandlingstema) {
+    class Sak(tema: Tema,
+              behandlingstema: Behandlingstema): InfotrygdSak(tema, behandlingstema) {
         override fun toString(): String {
-            return "InfotrygdSak.Åpen(tema=$tema, behandlingstema=$behandlingstema)"
+            return "InfotrygdSak.Sak(tema=$tema, behandlingstema=$behandlingstema)"
         }
 
         override fun equals(other: Any?): Boolean {

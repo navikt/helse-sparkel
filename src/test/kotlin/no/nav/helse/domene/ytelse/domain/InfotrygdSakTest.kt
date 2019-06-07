@@ -88,7 +88,7 @@ class InfotrygdSakTest {
     @Test
     fun `test string-representasjon av infotrygd sak`() {
         val sak = enInfotrygdSak()
-        assertEquals("InfotrygdSak.Åpen(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger))", sak.toString())
+        assertEquals("InfotrygdSak.Sak(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger))", sak.toString())
     }
 
     private fun etInfotrygdVedtak() =
@@ -100,7 +100,7 @@ class InfotrygdSakTest {
             )
 
     private fun enInfotrygdSak() =
-            InfotrygdSak.Åpen(
+            InfotrygdSak.Sak(
                     tema = Tema.Sykepenger,
                     behandlingstema = Behandlingstema.Sykepenger
             )
@@ -137,14 +137,14 @@ class InfotrygdSakTest {
                     opphørerFom = opphørerFom
             )
 
-    private fun InfotrygdSak.Åpen.medTema(tema: Tema) =
-            InfotrygdSak.Åpen(
+    private fun InfotrygdSak.Sak.medTema(tema: Tema) =
+            InfotrygdSak.Sak(
                     tema = tema,
                     behandlingstema = behandlingstema
             )
 
-    private fun InfotrygdSak.Åpen.medBehandlingstema(behandlingstema: Behandlingstema) =
-            InfotrygdSak.Åpen(
+    private fun InfotrygdSak.Sak.medBehandlingstema(behandlingstema: Behandlingstema) =
+            InfotrygdSak.Sak(
                     tema = tema,
                     behandlingstema = behandlingstema
             )

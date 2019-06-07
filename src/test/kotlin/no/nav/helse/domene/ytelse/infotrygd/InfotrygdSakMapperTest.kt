@@ -28,7 +28,7 @@ class InfotrygdSakMapperTest {
             }
         }
 
-        val expected = InfotrygdSak.Åpen(
+        val expected = InfotrygdSak.Sak(
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold
         )

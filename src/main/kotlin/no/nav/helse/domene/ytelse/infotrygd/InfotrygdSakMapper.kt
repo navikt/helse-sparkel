@@ -16,7 +16,7 @@ object InfotrygdSakMapper {
                         behandlingstema = Behandlingstema.fraKode(sak.behandlingstema.value),
                         opphørerFom = sak.opphoerFom?.toLocalDate()
                 )
-                else -> InfotrygdSak.Åpen(
+                else -> InfotrygdSak.Sak(
                         tema = Tema.fraKode(sak.tema.value),
                         behandlingstema = Behandlingstema.fraKode(sak.behandlingstema.value)
                 )
