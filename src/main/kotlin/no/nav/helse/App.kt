@@ -8,17 +8,21 @@ import io.ktor.auth.authenticate
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import io.ktor.features.CallId
-import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
-import io.ktor.features.callIdMdc
+import io.ktor.features.callId
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import io.ktor.request.httpMethod
-import io.ktor.request.path
 import io.ktor.request.uri
+import io.ktor.request.userAgent
+import io.ktor.response.ApplicationSendPipeline
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.Counter
+import io.prometheus.client.Histogram
 import io.prometheus.client.hotspot.DefaultExports
 import no.nav.helse.domene.aiy.ArbeidInntektYtelseService
 import no.nav.helse.domene.aiy.ArbeidsforholdService
@@ -52,13 +56,23 @@ import no.nav.helse.probe.DatakvalitetProbe
 import no.nav.helse.probe.InfluxMetricReporter
 import no.nav.helse.probe.SensuClient
 import no.nav.helse.sts.StsRestClient
-import org.slf4j.event.Level
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
 private val authorizedUsers = listOf("srvspa", "srvpleiepengesokna", "srvpleiepenger-opp", "srvspenn")
+
+private val httpRequestCounter = Counter.build("http_requests_total", "Counts the http requests")
+        .labelNames("method", "code")
+        .register()
+
+private val httpRequestDuration = Histogram.build("http_request_duration_seconds", "Distribution of http request duration")
+        .register()
+
+private val httpTraceLog = LoggerFactory.getLogger("HttpTraceLog")
 
 fun main() {
     val env = Environment()
@@ -190,20 +204,40 @@ fun Application.sparkel(
     }
 
     intercept(ApplicationCallPipeline.Monitoring) {
-        if (call.request.path() != "/isready"
-                && call.request.path() != "/isalive"
-                && call.request.path() != "/metrics") {
-            log.info("incoming ${call.request.httpMethod.value} ${call.request.uri}")
+        withCommonMDC(call) {
+            val timer = httpRequestDuration.startTimer()
+
+            httpTraceLog.info("incoming ${call.request.httpMethod.value} ${call.request.uri}")
+
+            try {
+                proceed()
+            } catch (err: Throwable) {
+                httpTraceLog.info("exception thrown during processing: ${err.message}", err)
+                throw err
+            } finally {
+                timer.observeDuration()
+            }
         }
     }
 
-    install(CallLogging) {
-        level = Level.INFO
-        callIdMdc("call_id")
-        filter {
-            it.request.path() != "/isready"
-                    && it.request.path() != "/isalive"
-                    && it.request.path() != "/metrics"
+    sendPipeline.intercept(ApplicationSendPipeline.Before) {
+        withCommonMDC(call) {
+            proceed()
+        }
+    }
+
+    sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
+        val status = call.response.status() ?: (when (message) {
+            is OutgoingContent -> message.status
+            is HttpStatusCode -> message
+            else -> null
+        } ?: HttpStatusCode.OK).also { status ->
+            call.response.status(status)
+        }
+
+        withCommonMDC(call) {
+            httpTraceLog.info("responding with ${status.value}")
+            httpRequestCounter.labels(call.request.httpMethod.value, "${status.value}").inc()
         }
     }
 
@@ -253,3 +287,31 @@ fun Application.sparkel(
     }
 }
 
+suspend fun withCommonMDC(call: ApplicationCall, block: suspend () -> Unit) {
+    withMDC {
+        MDC.put("call_id", call.callId)
+        MDC.put("scheme", call.request.local.scheme)
+        MDC.put("host", call.request.local.host)
+        MDC.put("remote_host", call.request.local.remoteHost)
+        MDC.put("port", "${call.request.local.port}")
+        MDC.put("request_method", call.request.httpMethod.value)
+        MDC.put("request_uri", call.request.uri)
+        call.request.userAgent()?.let { agent ->
+            MDC.put("user_agent", agent)
+        }
+        call.response.status()?.let { status ->
+            MDC.put("http_code", "${status.value}")
+        }
+
+        block()
+    }
+}
+
+suspend fun withMDC(block: suspend () -> Unit) {
+    val oldState = MDC.getCopyOfContextMap() ?: emptyMap()
+    try {
+        block()
+    } finally {
+        MDC.setContextMap(oldState)
+    }
+}

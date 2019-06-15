@@ -4,6 +4,10 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
     </appender>
 
+    <appender name="httpTraceLogAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+
     <appender name="secureLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/secure-logs/secure.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
@@ -19,6 +23,10 @@
 
     <logger name="org.apache.cxf.services" level="INFO" additivity="false">
         <appender-ref ref="secureLog" />
+    </logger>
+
+    <logger name="HttpTraceLog" level="INFO" additivity="false">
+        <appender-ref ref="httpTraceLogAppender" />
     </logger>
 
     <logger name="org.apache.cxf" level="WARN" />
