@@ -15,6 +15,7 @@ import no.nav.helse.sts.StsRestClient
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNull
+import java.util.*
 import kotlin.test.assertEquals
 
 class OrganisasjonIntegrationTest {
@@ -144,19 +145,22 @@ fun organisasjonStub(server: WireMockServer, scenario: String, request: MappingB
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("security_token_service_called"))
 
+    val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
+    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
+
+    val callId = UUID.randomUUID().toString()
+    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
+        callId
+    }
+
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
                     tokenDigest, tokenSignature, tokenCertificate)
-            .withCallId()
+            .withCallId(callId)
             .willReturn(response)
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("organisasjon_stub_called"))
-
-    val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
-    val wsClients = WsClients(stsClientWs, stsClientRest, true)
 
     test(wsClients.organisasjon(server.baseUrl().plus("/organisasjon")))
 

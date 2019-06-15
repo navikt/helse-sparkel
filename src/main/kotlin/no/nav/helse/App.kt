@@ -74,6 +74,10 @@ private val httpRequestDuration = Histogram.build("http_request_duration_seconds
 
 private val httpTraceLog = LoggerFactory.getLogger("HttpTraceLog")
 
+val callIdGenerator = ThreadLocal.withInitial {
+    UUID.randomUUID().toString()
+}
+
 fun main() {
     val env = Environment()
 
@@ -91,7 +95,11 @@ fun main() {
         val stsClientRest = StsRestClient(
                 env.stsRestUrl, env.securityTokenUsername, env.securityTokenPassword)
 
-        val wsClients = WsClients(stsClientWs, stsClientRest)
+        val wsClients = WsClients(
+                stsClientWs = stsClientWs,
+                stsClientRest = stsClientRest,
+                callIdGenerator = callIdGenerator::get
+        )
 
         val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
 
@@ -200,7 +208,13 @@ fun Application.sparkel(
     install(CallId) {
         header("Nav-Call-Id")
 
-        generate { UUID.randomUUID().toString() }
+        generate {
+            callIdGenerator.get()
+        }
+
+        reply { _, callId ->
+            callIdGenerator.set(callId)
+        }
     }
 
     intercept(ApplicationCallPipeline.Monitoring) {

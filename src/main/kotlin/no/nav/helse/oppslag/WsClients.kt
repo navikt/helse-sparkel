@@ -14,12 +14,15 @@ import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.sts.StsRestClient
 import org.apache.cxf.ws.security.trust.STSClient
 
-class WsClients(private val stsClientWs: STSClient, private val stsClientRest: StsRestClient, private val allowInsecureRequests: Boolean = false) {
+class WsClients(private val stsClientWs: STSClient,
+                private val stsClientRest: StsRestClient,
+                private val allowInsecureRequests: Boolean = false,
+                private val callIdGenerator: () -> String) {
 
     fun aktør(endpointUrl: String) = AktørregisterClient(endpointUrl, stsClientRest)
 
     fun meldekortUtbetalingsgrunnlag(endpointUrl: String): MeldekortUtbetalingsgrunnlagClient {
-        val port = SoapPorts.MeldekortUtbetalingsgrunnlagV1(endpointUrl).apply {
+        val port = SoapPorts.MeldekortUtbetalingsgrunnlagV1(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -30,7 +33,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun organisasjon(endpointUrl: String): OrganisasjonClient {
-        val port = SoapPorts.OrganisasjonV5(endpointUrl).apply {
+        val port = SoapPorts.OrganisasjonV5(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -41,7 +44,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun person(endpointUrl: String): PersonClient {
-        val port = SoapPorts.PersonV3(endpointUrl).apply {
+        val port = SoapPorts.PersonV3(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -52,7 +55,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun arbeidsfordeling(endpointUrl: String): ArbeidsfordelingClient {
-        val port = SoapPorts.ArbeidsfordelingV1(endpointUrl).apply {
+        val port = SoapPorts.ArbeidsfordelingV1(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -63,7 +66,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun inntekt(endpointUrl: String): InntektClient {
-        val port = SoapPorts.InntektV3(endpointUrl).apply {
+        val port = SoapPorts.InntektV3(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -74,7 +77,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun arbeidsforhold(endpointUrl: String): ArbeidsforholdClient {
-        val port = SoapPorts.ArbeidsforholdV3(endpointUrl).apply {
+        val port = SoapPorts.ArbeidsforholdV3(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -86,7 +89,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun infotrygdBeregningsgrunnlag(endpointUrl: String): InfotrygdBeregningsgrunnlagClient {
-        val port = SoapPorts.InfotrygdBeregningsgrunnlagV1(endpointUrl).apply {
+        val port = SoapPorts.InfotrygdBeregningsgrunnlagV1(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {
@@ -97,7 +100,7 @@ class WsClients(private val stsClientWs: STSClient, private val stsClientRest: S
     }
 
     fun infotrygdSak(endpointUrl: String): InfotrygdSakClient {
-        val port = SoapPorts.InfotrygdSakV1(endpointUrl).apply {
+        val port = SoapPorts.InfotrygdSakV1(endpointUrl, callIdGenerator).apply {
             if (allowInsecureRequests) {
                 stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
             } else {

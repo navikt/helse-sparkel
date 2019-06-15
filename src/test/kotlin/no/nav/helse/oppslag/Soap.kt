@@ -9,11 +9,11 @@ fun MappingBuilder.withSoapAction(action: String): MappingBuilder {
             .withHeader("SOAPAction", WireMock.equalTo("\"$action\""))
 }
 
-fun MappingBuilder.withCallId(): MappingBuilder {
+fun MappingBuilder.withCallId(callId: String): MappingBuilder {
     val namespace = mapOf(
             "soap" to "http://schemas.xmlsoap.org/soap/envelope/"
     )
-    return withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Header/*[local-name()='callId' and namespace-uri()='uri:no.nav.applikasjonsrammeverk']/text()", namespace, WireMock.matching("^[a-f0-9-]{36}$")))
+    return withRequestBody(MatchesXPathPattern("//soap:Envelope/soap:Header/*[local-name()='callId' and namespace-uri()='uri:no.nav.applikasjonsrammeverk']/text()", namespace, WireMock.equalTo(callId)))
 }
 
 fun MappingBuilder.withUsernamePasswordToken(username: String, password: String): MappingBuilder {

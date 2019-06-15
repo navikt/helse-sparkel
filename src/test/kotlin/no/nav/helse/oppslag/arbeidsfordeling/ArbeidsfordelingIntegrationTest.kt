@@ -17,6 +17,7 @@ import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnh
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import java.util.*
 
 class ArbeidsfordelingIntegrationTest {
 
@@ -126,19 +127,22 @@ fun arbeidsfordelingStub(server: WireMockServer, scenario: String, response: Res
             .whenScenarioStateIs(Scenario.STARTED)
             .willSetStateTo("security_token_service_called"))
 
+    val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
+    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
+
+    val callId = UUID.randomUUID().toString()
+    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
+        callId
+    }
+
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
                     tokenDigest, tokenSignature, tokenCertificate)
-            .withCallId()
+            .withCallId(callId)
             .willReturn(response)
             .inScenario(scenario)
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsfordeling_stub_called"))
-
-    val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
-    val wsClients = WsClients(stsClientWs, stsClientRest, true)
 
     test(wsClients.arbeidsfordeling(server.baseUrl().plus("/arbeidsfordeling")))
 

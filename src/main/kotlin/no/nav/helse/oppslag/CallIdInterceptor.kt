@@ -8,20 +8,19 @@ import org.apache.cxf.message.Message
 import org.apache.cxf.phase.AbstractPhaseInterceptor
 import org.apache.cxf.phase.Phase
 import org.slf4j.LoggerFactory
-import java.util.*
 import javax.xml.bind.JAXBException
 import javax.xml.namespace.QName
 
 private val log = LoggerFactory.getLogger(CallIdInterceptor::class.java)
 
-class CallIdInterceptor : AbstractPhaseInterceptor<Message>(Phase.PRE_STREAM) {
+class CallIdInterceptor(private val callIdGenerator: () -> String) : AbstractPhaseInterceptor<Message>(Phase.PRE_STREAM) {
 
     @Throws(Fault::class)
     override fun handleMessage(message: Message) {
         when (message) {
             is SoapMessage ->
                 try {
-                    UUID.randomUUID().toString().let { uuid ->
+                    callIdGenerator().let { uuid ->
                         val ep = message.exchange?.endpoint?.endpointInfo
 
                         val service = ep?.service?.name?.localPart
