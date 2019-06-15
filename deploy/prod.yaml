@@ -55,12 +55,6 @@ spec:
       value: https://modapp.adeo.no/aareg-core/ArbeidsforholdService/v3
     - name: ORGANISASJON_ENDPOINTURL
       value: https://modapp.adeo.no/ereg/ws/OrganisasjonService/v5
-    - name: SAK_OG_BEHANDLING_ENDPOINTURL
-      value: https://modapp.adeo.no/sakogbehandling/ws/SakOgBehandling_v1
-    - name: HENT_SYKEPENGER_ENDPOINTURL
-      value: https://modapp.adeo.no/infotrygd-ws/SykepengerService/v2
-    - name: HENT_SYKEPENGEPERIODER_ENDPOINTURL
-      value: https://infotrygd-sykepenger.nais.preprod.local/v1
     - name: MELDEKORT_UTBETALINGSGRUNNLAG_ENDPOINTURL
       value: https://arena.adeo.no/ail_ws/MeldekortUtbetalingsgrunnlag_v1
     - name: AKTORREGISTER_URL
