@@ -12,8 +12,9 @@ import no.nav.helse.common.toLocalDate
 import no.nav.helse.common.toXmlGregorianCalendar
 import no.nav.helse.domene.AktørId
 import no.nav.helse.oppslag.*
+import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.oppslag.sts.stsClient
-import no.nav.helse.sts.StsRestClient
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.binding.FinnArbeidsforholdPrArbeidstakerUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsavtale
 import no.nav.tjeneste.virksomhet.arbeidsforhold.v3.informasjon.arbeidsforhold.Arbeidsforhold
@@ -168,12 +169,7 @@ fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: Mappin
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -184,7 +180,11 @@ fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: Mappin
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsforhold_stub_called"))
 
-    test(wsClients.arbeidsforhold(server.baseUrl().plus("/aareg")))
+    test(ArbeidsforholdClient(ArbeidsforholdFactory.create(server.baseUrl().plus("/aareg"), WsClientFactory {
+        callId
+    }).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(RequestPatternBuilder.like(it.request))
@@ -210,12 +210,7 @@ fun arbeidsforholdHistorikkStub(server: WireMockServer, scenario: String, reques
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -226,7 +221,11 @@ fun arbeidsforholdHistorikkStub(server: WireMockServer, scenario: String, reques
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsforhold_historikk_stub_called"))
 
-    test(wsClients.arbeidsforhold(server.baseUrl().plus("/aareg")))
+    test(ArbeidsforholdClient(ArbeidsforholdFactory.create(server.baseUrl().plus("/aareg"), WsClientFactory {
+        callId
+    }).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(RequestPatternBuilder.like(it.request))

@@ -2,111 +2,88 @@ package no.nav.helse.oppslag
 
 import no.nav.helse.oppslag.aktør.AktørregisterClient
 import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingClient
+import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingFactory
 import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdClient
+import no.nav.helse.oppslag.arbeidsforhold.ArbeidsforholdFactory
 import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagClient
+import no.nav.helse.oppslag.arena.MeldekortUtbetalingsgrunnlagFactory
 import no.nav.helse.oppslag.infotrygd.InfotrygdSakClient
+import no.nav.helse.oppslag.infotrygd.InfotrygdSakFactory
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagClient
+import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunnlagFactory
 import no.nav.helse.oppslag.inntekt.InntektClient
+import no.nav.helse.oppslag.inntekt.InntektFactory
 import no.nav.helse.oppslag.organisasjon.OrganisasjonClient
+import no.nav.helse.oppslag.organisasjon.OrganisasjonFactory
 import no.nav.helse.oppslag.person.PersonClient
-import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.person.PersonFactory
 import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.sts.StsRestClient
 import org.apache.cxf.ws.security.trust.STSClient
 
 class WsClients(private val stsClientWs: STSClient,
                 private val stsClientRest: StsRestClient,
-                private val allowInsecureRequests: Boolean = false,
-                private val callIdGenerator: () -> String) {
+                private val wsClientFactory: WsClientFactory) {
 
-    fun aktør(endpointUrl: String) = AktørregisterClient(endpointUrl, stsClientRest)
-
-    fun meldekortUtbetalingsgrunnlag(endpointUrl: String): MeldekortUtbetalingsgrunnlagClient {
-        val port = SoapPorts.MeldekortUtbetalingsgrunnlagV1(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
+    companion object {
+        init {
+            System.setProperty("javax.xml.soap.SAAJMetaFactory", "com.sun.xml.messaging.saaj.soap.SAAJMetaFactoryImpl")
         }
-        return MeldekortUtbetalingsgrunnlagClient(port)
     }
 
-    fun organisasjon(endpointUrl: String): OrganisasjonClient {
-        val port = SoapPorts.OrganisasjonV5(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
+    private fun <ServicePort : Any> ServicePort.withSts() =
+            apply {
                 stsClientWs.configureFor(this)
             }
-        }
-        return OrganisasjonClient(port)
-    }
 
-    fun person(endpointUrl: String): PersonClient {
-        val port = SoapPorts.PersonV3(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
-        return PersonClient(port)
-    }
+    fun aktør(endpointUrl: String) =
+            AktørregisterClient(endpointUrl, stsClientRest)
 
-    fun arbeidsfordeling(endpointUrl: String): ArbeidsfordelingClient {
-        val port = SoapPorts.ArbeidsfordelingV1(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
-        return ArbeidsfordelingClient(port)
-    }
+    fun meldekortUtbetalingsgrunnlag(endpointUrl: String) =
+            MeldekortUtbetalingsgrunnlagFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        MeldekortUtbetalingsgrunnlagClient(port)
+                    }
 
-    fun inntekt(endpointUrl: String): InntektClient {
-        val port = SoapPorts.InntektV3(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
-        return InntektClient(port)
-    }
+    fun organisasjon(endpointUrl: String) =
+            OrganisasjonFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        OrganisasjonClient(port)
+                    }
 
-    fun arbeidsforhold(endpointUrl: String): ArbeidsforholdClient {
-        val port = SoapPorts.ArbeidsforholdV3(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
+    fun person(endpointUrl: String) =
+            PersonFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        PersonClient(port)
+                    }
 
-        return ArbeidsforholdClient(port)
-    }
+    fun arbeidsfordeling(endpointUrl: String) =
+            ArbeidsfordelingFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        ArbeidsfordelingClient(port)
+                    }
 
-    fun infotrygdBeregningsgrunnlag(endpointUrl: String): InfotrygdBeregningsgrunnlagClient {
-        val port = SoapPorts.InfotrygdBeregningsgrunnlagV1(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
-        return InfotrygdBeregningsgrunnlagClient(port)
-    }
+    fun inntekt(endpointUrl: String) =
+            InntektFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        InntektClient(port)
+                    }
 
-    fun infotrygdSak(endpointUrl: String): InfotrygdSakClient {
-        val port = SoapPorts.InfotrygdSakV1(endpointUrl, callIdGenerator).apply {
-            if (allowInsecureRequests) {
-                stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
-            } else {
-                stsClientWs.configureFor(this)
-            }
-        }
-        return InfotrygdSakClient(port)
-    }
+    fun arbeidsforhold(endpointUrl: String) =
+            ArbeidsforholdFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        ArbeidsforholdClient(port)
+                    }
+
+    fun infotrygdBeregningsgrunnlag(endpointUrl: String) =
+            InfotrygdBeregningsgrunnlagFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        InfotrygdBeregningsgrunnlagClient(port)
+                    }
+
+    fun infotrygdSak(endpointUrl: String) =
+            InfotrygdSakFactory.create(endpointUrl, wsClientFactory)
+                    .withSts().let { port ->
+                        InfotrygdSakClient(port)
+                    }
 }

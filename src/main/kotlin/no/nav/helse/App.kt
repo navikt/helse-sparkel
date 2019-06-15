@@ -50,6 +50,7 @@ import no.nav.helse.domene.ytelse.sykepengehistorikk.SykepengehistorikkService
 import no.nav.helse.domene.ytelse.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.domene.ytelse.ytelse
 import no.nav.helse.nais.nais
+import no.nav.helse.oppslag.WsClientFactory
 import no.nav.helse.oppslag.WsClients
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.probe.DatakvalitetProbe
@@ -98,7 +99,7 @@ fun main() {
         val wsClients = WsClients(
                 stsClientWs = stsClientWs,
                 stsClientRest = stsClientRest,
-                callIdGenerator = callIdGenerator::get
+                wsClientFactory = WsClientFactory(callIdGenerator::get)
         )
 
         val organisasjonService = OrganisasjonService(wsClients.organisasjon(env.organisasjonEndpointUrl))
