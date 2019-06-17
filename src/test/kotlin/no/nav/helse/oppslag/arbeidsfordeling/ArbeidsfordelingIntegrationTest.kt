@@ -140,9 +140,9 @@ fun arbeidsfordelingStub(server: WireMockServer, scenario: String, response: Res
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsfordeling_stub_called"))
 
-    test(ArbeidsfordelingClient(ArbeidsfordelingFactory.create(server.baseUrl().plus("/arbeidsfordeling"), WsClientFactory {
+    test(ArbeidsfordelingClient(ArbeidsfordelingFactory.create(server.baseUrl().plus("/arbeidsfordeling"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 

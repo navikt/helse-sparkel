@@ -1,5 +1,7 @@
 package no.nav.helse.oppslag
 
+import no.nav.cxf.metrics.MetricFeature
+import no.nav.helse.callIdGenerator
 import no.nav.helse.oppslag.aktør.AktørregisterClient
 import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingClient
 import no.nav.helse.oppslag.arbeidsfordeling.ArbeidsfordelingFactory
@@ -19,11 +21,16 @@ import no.nav.helse.oppslag.person.PersonClient
 import no.nav.helse.oppslag.person.PersonFactory
 import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.sts.StsRestClient
+import org.apache.cxf.ext.logging.LoggingFeature
+import org.apache.cxf.ws.addressing.WSAddressingFeature
 import org.apache.cxf.ws.security.trust.STSClient
 
 class WsClients(private val stsClientWs: STSClient,
                 private val stsClientRest: StsRestClient,
-                private val wsClientFactory: WsClientFactory) {
+                private val callIdGenerator: () -> String) {
+
+    private val features get() = listOf(WSAddressingFeature(), LoggingFeature(), MetricFeature())
+    private val outInterceptors get() = listOf(CallIdInterceptor(callIdGenerator))
 
     companion object {
         init {
@@ -40,49 +47,49 @@ class WsClients(private val stsClientWs: STSClient,
             AktørregisterClient(endpointUrl, stsClientRest)
 
     fun meldekortUtbetalingsgrunnlag(endpointUrl: String) =
-            MeldekortUtbetalingsgrunnlagFactory.create(endpointUrl, wsClientFactory)
+            MeldekortUtbetalingsgrunnlagFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         MeldekortUtbetalingsgrunnlagClient(port)
                     }
 
     fun organisasjon(endpointUrl: String) =
-            OrganisasjonFactory.create(endpointUrl, wsClientFactory)
+            OrganisasjonFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         OrganisasjonClient(port)
                     }
 
     fun person(endpointUrl: String) =
-            PersonFactory.create(endpointUrl, wsClientFactory)
+            PersonFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         PersonClient(port)
                     }
 
     fun arbeidsfordeling(endpointUrl: String) =
-            ArbeidsfordelingFactory.create(endpointUrl, wsClientFactory)
+            ArbeidsfordelingFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         ArbeidsfordelingClient(port)
                     }
 
     fun inntekt(endpointUrl: String) =
-            InntektFactory.create(endpointUrl, wsClientFactory)
+            InntektFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         InntektClient(port)
                     }
 
     fun arbeidsforhold(endpointUrl: String) =
-            ArbeidsforholdFactory.create(endpointUrl, wsClientFactory)
+            ArbeidsforholdFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         ArbeidsforholdClient(port)
                     }
 
     fun infotrygdBeregningsgrunnlag(endpointUrl: String) =
-            InfotrygdBeregningsgrunnlagFactory.create(endpointUrl, wsClientFactory)
+            InfotrygdBeregningsgrunnlagFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         InfotrygdBeregningsgrunnlagClient(port)
                     }
 
     fun infotrygdSak(endpointUrl: String) =
-            InfotrygdSakFactory.create(endpointUrl, wsClientFactory)
+            InfotrygdSakFactory.create(endpointUrl, features, outInterceptors)
                     .withSts().let { port ->
                         InfotrygdSakClient(port)
                     }

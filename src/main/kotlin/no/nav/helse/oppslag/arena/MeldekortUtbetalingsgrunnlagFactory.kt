@@ -1,7 +1,10 @@
 package no.nav.helse.oppslag.arena
 
-import no.nav.helse.oppslag.WsClientFactory
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
+import org.apache.cxf.feature.Feature
+import org.apache.cxf.interceptor.Interceptor
+import org.apache.cxf.jaxws.JaxWsProxyFactoryBean
+import org.apache.cxf.message.Message
 import javax.xml.namespace.QName
 
 object MeldekortUtbetalingsgrunnlagFactory {
@@ -12,6 +15,14 @@ object MeldekortUtbetalingsgrunnlagFactory {
     private val ServiceName = QName(Namespace, "MeldekortUtbetalingsgrunnlag_v1")
     private val EndpointName = QName(Namespace, "meldekortUtbetalingsgrunnlag_v1Port")
 
-    fun create(endpointUrl: String, wsClientFactory: WsClientFactory) =
-            wsClientFactory.create(ServiceClass, endpointUrl, Wsdl, ServiceName, EndpointName)
+    fun create(endpointUrl: String, features: List<Feature> = emptyList(), outInterceptors: List<Interceptor<Message>> = emptyList()) =
+            JaxWsProxyFactoryBean().apply {
+                address = endpointUrl
+                wsdlURL = Wsdl
+                serviceName = ServiceName
+                endpointName = EndpointName
+                serviceClass = ServiceClass
+                this.features.addAll(features)
+                this.outInterceptors.addAll(outInterceptors)
+            }.create(ServiceClass)
 }

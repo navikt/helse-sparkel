@@ -99,9 +99,9 @@ private fun infotrygdStub(server: WireMockServer, scenario: String, response: Re
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("infotrygd_stub_called"))
 
-    test(InfotrygdSakClient(InfotrygdSakFactory.create(server.baseUrl().plus("/infotrygd"), WsClientFactory {
+    test(InfotrygdSakClient(InfotrygdSakFactory.create(server.baseUrl().plus("/infotrygd"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 

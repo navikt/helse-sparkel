@@ -180,9 +180,9 @@ fun arbeidsforholdStub(server: WireMockServer, scenario: String, request: Mappin
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsforhold_stub_called"))
 
-    test(ArbeidsforholdClient(ArbeidsforholdFactory.create(server.baseUrl().plus("/aareg"), WsClientFactory {
+    test(ArbeidsforholdClient(ArbeidsforholdFactory.create(server.baseUrl().plus("/aareg"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 
@@ -221,9 +221,9 @@ fun arbeidsforholdHistorikkStub(server: WireMockServer, scenario: String, reques
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsforhold_historikk_stub_called"))
 
-    test(ArbeidsforholdClient(ArbeidsforholdFactory.create(server.baseUrl().plus("/aareg"), WsClientFactory {
+    test(ArbeidsforholdClient(ArbeidsforholdFactory.create(server.baseUrl().plus("/aareg"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 

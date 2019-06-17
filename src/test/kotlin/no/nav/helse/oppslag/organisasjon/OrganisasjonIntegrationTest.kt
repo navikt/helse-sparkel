@@ -158,9 +158,9 @@ fun organisasjonStub(server: WireMockServer, scenario: String, request: MappingB
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("organisasjon_stub_called"))
 
-    test(OrganisasjonClient(OrganisasjonFactory.create(server.baseUrl().plus("/organisasjon"), WsClientFactory {
+    test(OrganisasjonClient(OrganisasjonFactory.create(server.baseUrl().plus("/organisasjon"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 

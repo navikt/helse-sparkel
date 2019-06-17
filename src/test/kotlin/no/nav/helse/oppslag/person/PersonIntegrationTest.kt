@@ -198,9 +198,9 @@ fun personStub(server: WireMockServer, scenario: String, response: ResponseDefin
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("person_stub_called"))
 
-    test(PersonClient(PersonFactory.create(server.baseUrl().plus("/person"), WsClientFactory {
+    test(PersonClient(PersonFactory.create(server.baseUrl().plus("/person"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 

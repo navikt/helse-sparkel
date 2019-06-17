@@ -132,9 +132,9 @@ fun inntektStub(server: WireMockServer, scenario: String, request: MappingBuilde
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("inntektskomponenten_stub_called"))
 
-    test(InntektClient(InntektFactory.create(server.baseUrl().plus("/inntekt"), WsClientFactory {
+    test(InntektClient(InntektFactory.create(server.baseUrl().plus("/inntekt"), outInterceptors = listOf(CallIdInterceptor {
         callId
-    }).apply {
+    })).apply {
         stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
     }))
 
