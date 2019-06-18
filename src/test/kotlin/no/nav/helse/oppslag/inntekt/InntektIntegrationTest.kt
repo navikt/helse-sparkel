@@ -10,6 +10,8 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.domene.AktørId
 import no.nav.helse.oppslag.*
+import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.sts.StsRestClient
 import org.junit.jupiter.api.*
@@ -119,12 +121,7 @@ fun inntektStub(server: WireMockServer, scenario: String, request: MappingBuilde
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -135,7 +132,11 @@ fun inntektStub(server: WireMockServer, scenario: String, request: MappingBuilde
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("inntektskomponenten_stub_called"))
 
-    test(wsClients.inntekt(server.baseUrl().plus("/inntekt")))
+    test(InntektClient(InntektFactory.create(server.baseUrl().plus("/inntekt"), outInterceptors = listOf(CallIdInterceptor {
+        callId
+    })).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(RequestPatternBuilder.like(it.request))

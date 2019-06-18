@@ -11,8 +11,9 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.oppslag.*
 import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.BaseneErUtilgjengeligeException
+import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.oppslag.sts.stsClient
-import no.nav.helse.sts.StsRestClient
 import org.junit.jupiter.api.*
 import java.time.LocalDate
 import java.util.*
@@ -87,12 +88,7 @@ private fun infotrygdStub(server: WireMockServer, scenario: String, response: Re
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -103,7 +99,11 @@ private fun infotrygdStub(server: WireMockServer, scenario: String, response: Re
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("infotrygd_stub_called"))
 
-    test(wsClients.infotrygdSak(server.baseUrl().plus("/infotrygd")))
+    test(InfotrygdSakClient(InfotrygdSakFactory.create(server.baseUrl().plus("/infotrygd"), outInterceptors = listOf(CallIdInterceptor {
+        callId
+    })).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(RequestPatternBuilder.like(it.request))

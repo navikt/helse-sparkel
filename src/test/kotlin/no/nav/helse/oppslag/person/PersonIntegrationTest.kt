@@ -11,8 +11,9 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.common.toLocalDate
 import no.nav.helse.domene.AktørId
 import no.nav.helse.oppslag.*
+import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.oppslag.sts.stsClient
-import no.nav.helse.sts.StsRestClient
 import no.nav.tjeneste.virksomhet.person.v3.binding.HentPersonPersonIkkeFunnet
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.AktoerId
 import no.nav.tjeneste.virksomhet.person.v3.informasjon.Familierelasjon
@@ -186,12 +187,7 @@ fun personStub(server: WireMockServer, scenario: String, response: ResponseDefin
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -202,7 +198,11 @@ fun personStub(server: WireMockServer, scenario: String, response: ResponseDefin
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("person_stub_called"))
 
-    test(wsClients.person(server.baseUrl().plus("/person")))
+    test(PersonClient(PersonFactory.create(server.baseUrl().plus("/person"), outInterceptors = listOf(CallIdInterceptor {
+        callId
+    })).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(like(it.request))

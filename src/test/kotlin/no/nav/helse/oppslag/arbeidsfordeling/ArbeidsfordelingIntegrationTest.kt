@@ -11,8 +11,9 @@ import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.domene.person.domain.GeografiskTilknytning
 import no.nav.helse.oppslag.*
+import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.oppslag.sts.stsClient
-import no.nav.helse.sts.StsRestClient
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.binding.FinnBehandlendeEnhetListeUgyldigInput
 import no.nav.tjeneste.virksomhet.arbeidsfordeling.v1.informasjon.Organisasjonsenhet
 import org.junit.jupiter.api.*
@@ -128,12 +129,7 @@ fun arbeidsfordelingStub(server: WireMockServer, scenario: String, response: Res
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -144,7 +140,11 @@ fun arbeidsfordelingStub(server: WireMockServer, scenario: String, response: Res
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("arbeidsfordeling_stub_called"))
 
-    test(wsClients.arbeidsfordeling(server.baseUrl().plus("/arbeidsfordeling")))
+    test(ArbeidsfordelingClient(ArbeidsfordelingFactory.create(server.baseUrl().plus("/arbeidsfordeling"), outInterceptors = listOf(CallIdInterceptor {
+        callId
+    })).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(RequestPatternBuilder.like(it.request))

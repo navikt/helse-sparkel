@@ -10,8 +10,9 @@ import com.github.tomakehurst.wiremock.matching.ContainsPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import no.nav.helse.oppslag.*
+import no.nav.helse.oppslag.sts.STS_SAML_POLICY_NO_TRANSPORT_BINDING
+import no.nav.helse.oppslag.sts.configureFor
 import no.nav.helse.oppslag.sts.stsClient
-import no.nav.helse.sts.StsRestClient
 import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.UstrukturertNavn
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNull
@@ -146,12 +147,7 @@ fun organisasjonStub(server: WireMockServer, scenario: String, request: MappingB
             .willSetStateTo("security_token_service_called"))
 
     val stsClientWs = stsClient(server.baseUrl().plus("/sts"), stsUsername to stsPassword)
-    val stsClientRest = StsRestClient(server.baseUrl().plus("/sts"), stsUsername, stsPassword)
-
     val callId = UUID.randomUUID().toString()
-    val wsClients = WsClients(stsClientWs, stsClientRest, true) {
-        callId
-    }
 
     WireMock.stubFor(request
             .withSamlAssertion(tokenSubject, tokenIssuer, tokenIssuerName,
@@ -162,7 +158,11 @@ fun organisasjonStub(server: WireMockServer, scenario: String, request: MappingB
             .whenScenarioStateIs("security_token_service_called")
             .willSetStateTo("organisasjon_stub_called"))
 
-    test(wsClients.organisasjon(server.baseUrl().plus("/organisasjon")))
+    test(OrganisasjonClient(OrganisasjonFactory.create(server.baseUrl().plus("/organisasjon"), outInterceptors = listOf(CallIdInterceptor {
+        callId
+    })).apply {
+        stsClientWs.configureFor(this, STS_SAML_POLICY_NO_TRANSPORT_BINDING)
+    }))
 
     WireMock.listAllStubMappings().mappings.forEach {
         WireMock.verify(RequestPatternBuilder.like(it.request))
