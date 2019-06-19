@@ -26,7 +26,7 @@ sealed class InfotrygdSak(val tema: Tema,
 
     class Vedtak(tema: Tema,
                  behandlingstema: Behandlingstema,
-                 val iverksatt: LocalDate?,
+                 val iverksatt: LocalDate,
                  val opphørerFom: LocalDate?): InfotrygdSak(tema, behandlingstema) {
         override fun toString(): String {
             return "InfotrygdSak.Vedtak(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt, opphørerFom=$opphørerFom)"
