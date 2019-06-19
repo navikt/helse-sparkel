@@ -7,5 +7,6 @@ data class InfotrygdSakDto(
         val iverksatt: LocalDate?,
         val tema: String,
         val behandlingstema: String,
-        val opphørerFom: LocalDate?
+        val opphørerFom: LocalDate?,
+        val ikkeStartet: Boolean
 )

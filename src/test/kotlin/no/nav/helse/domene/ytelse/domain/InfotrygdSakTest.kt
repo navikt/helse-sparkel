@@ -50,6 +50,11 @@ class InfotrygdSakTest {
 
         assertNotEquals(vedtak1, vedtak5)
         assertNotEquals(vedtak1.hashCode(), vedtak5.hashCode())
+
+        val vedtak6 = etInfotrygdVedtak()
+                .medIkkeStartet(true)
+        assertNotEquals(vedtak1, vedtak6)
+        assertNotEquals(vedtak1.hashCode(), vedtak6.hashCode())
     }
 
     @Test
@@ -82,7 +87,7 @@ class InfotrygdSakTest {
         val vedtak = etInfotrygdVedtak()
                 .medIverksatt(LocalDate.of(2019, 1, 1))
                 .medOpphørerFom(LocalDate.of(2020, 1, 1))
-        assertEquals("InfotrygdSak.Vedtak(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01, opphørerFom=2020-01-01)", vedtak.toString())
+        assertEquals("InfotrygdSak.Vedtak(tema=Sykepenger, behandlingstema=Sykepenger(kode='SP', tema=Sykepenger), iverksatt=2019-01-01, opphørerFom=2020-01-01, ikkeStartet=false)", vedtak.toString())
     }
 
     @Test
@@ -96,7 +101,8 @@ class InfotrygdSakTest {
                     tema = Tema.Sykepenger,
                     behandlingstema = Behandlingstema.Sykepenger,
                     iverksatt = LocalDate.now(),
-                    opphørerFom = LocalDate.now().plusMonths(1)
+                    opphørerFom = LocalDate.now().plusMonths(1),
+                    ikkeStartet = false
             )
 
     private fun enInfotrygdSak() =
@@ -110,7 +116,8 @@ class InfotrygdSakTest {
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
-                    opphørerFom = opphørerFom
+                    opphørerFom = opphørerFom,
+                    ikkeStartet = ikkeStartet
             )
 
     private fun InfotrygdSak.Vedtak.medBehandlingstema(behandlingstema: Behandlingstema) =
@@ -118,7 +125,8 @@ class InfotrygdSakTest {
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
-                    opphørerFom = opphørerFom
+                    opphørerFom = opphørerFom,
+                    ikkeStartet = ikkeStartet
             )
 
     private fun InfotrygdSak.Vedtak.medIverksatt(iverksatt: LocalDate) =
@@ -126,7 +134,8 @@ class InfotrygdSakTest {
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
-                    opphørerFom = opphørerFom
+                    opphørerFom = opphørerFom,
+                    ikkeStartet = ikkeStartet
             )
 
     private fun InfotrygdSak.Vedtak.medOpphørerFom(opphørerFom: LocalDate) =
@@ -134,7 +143,17 @@ class InfotrygdSakTest {
                     tema = tema,
                     behandlingstema = behandlingstema,
                     iverksatt = iverksatt,
-                    opphørerFom = opphørerFom
+                    opphørerFom = opphørerFom,
+                    ikkeStartet = ikkeStartet
+            )
+
+    private fun InfotrygdSak.Vedtak.medIkkeStartet(ikkeStartet: Boolean) =
+            InfotrygdSak.Vedtak(
+                    tema = tema,
+                    behandlingstema = behandlingstema,
+                    iverksatt = iverksatt,
+                    opphørerFom = opphørerFom,
+                    ikkeStartet = ikkeStartet
             )
 
     private fun InfotrygdSak.Sak.medTema(tema: Tema) =

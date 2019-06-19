@@ -27,9 +27,10 @@ sealed class InfotrygdSak(val tema: Tema,
     class Vedtak(tema: Tema,
                  behandlingstema: Behandlingstema,
                  val iverksatt: LocalDate,
-                 val opphørerFom: LocalDate?): InfotrygdSak(tema, behandlingstema) {
+                 val opphørerFom: LocalDate?,
+                 val ikkeStartet: Boolean): InfotrygdSak(tema, behandlingstema) {
         override fun toString(): String {
-            return "InfotrygdSak.Vedtak(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt, opphørerFom=$opphørerFom)"
+            return "InfotrygdSak.Vedtak(tema=$tema, behandlingstema=$behandlingstema, iverksatt=$iverksatt, opphørerFom=$opphørerFom, ikkeStartet=$ikkeStartet)"
         }
 
         override fun equals(other: Any?): Boolean {
@@ -41,12 +42,15 @@ sealed class InfotrygdSak(val tema: Tema,
 
             if (iverksatt != other.iverksatt) return false
 
-            return opphørerFom == other.opphørerFom
+            if (opphørerFom != other.opphørerFom) return false
+
+            return ikkeStartet == other.ikkeStartet
         }
 
         override fun hashCode(): Int {
             var hash = 31 * super.hashCode() + Objects.hash(iverksatt)
-            return 31 * hash + Objects.hash(opphørerFom)
+            hash = 31 * hash + Objects.hash(opphørerFom)
+            return 31 * hash + Objects.hash(ikkeStartet)
         }
     }
 

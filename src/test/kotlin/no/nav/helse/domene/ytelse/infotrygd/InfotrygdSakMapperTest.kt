@@ -5,6 +5,7 @@ import no.nav.helse.domene.ytelse.domain.Behandlingstema
 import no.nav.helse.domene.ytelse.domain.InfotrygdSak
 import no.nav.helse.domene.ytelse.domain.Tema
 import no.nav.helse.domene.ytelse.infotrygd.InfotrygdSakMapper.toSak
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Status
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -53,13 +54,17 @@ class InfotrygdSakMapperTest {
                 value = behandlingstema
             }
             this.opphoerFom = opphørerFom.toXmlGregorianCalendar()
+            this.status = Status().apply {
+                value = "A"
+            }
         }
 
         val expected = InfotrygdSak.Vedtak(
                 iverksatt = iverksatt,
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
-                opphørerFom = opphørerFom
+                opphørerFom = opphørerFom,
+                ikkeStartet = false
         )
 
         assertEquals(expected, toSak(given))

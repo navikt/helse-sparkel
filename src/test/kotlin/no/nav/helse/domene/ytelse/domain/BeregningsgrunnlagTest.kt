@@ -21,7 +21,8 @@ class BeregningsgrunnlagTest {
                 iverksatt = identdato,
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
-                opphørerFom = null
+                opphørerFom = null,
+                ikkeStartet = false
         )))
     }
 
@@ -39,7 +40,8 @@ class BeregningsgrunnlagTest {
                 iverksatt = identdato.minusDays(1),
                 tema = Tema.Sykepenger,
                 behandlingstema = Behandlingstema.SykepengerUtenlandsopphold,
-                opphørerFom = null
+                opphørerFom = null,
+                ikkeStartet = false
         )))
     }
 
@@ -57,7 +59,8 @@ class BeregningsgrunnlagTest {
                 iverksatt = identdato,
                 tema = Tema.Foreldrepenger,
                 behandlingstema = Behandlingstema.EngangstønadMedFødsel,
-                opphørerFom = null
+                opphørerFom = null,
+                ikkeStartet = false
         )))
     }
 }

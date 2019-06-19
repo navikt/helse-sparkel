@@ -27,6 +27,7 @@ import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.binding.InfotrygdSakV1
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Status
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.meldinger.FinnSakListeResponse
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.binding.MeldekortUtbetalingsgrunnlagV1
 import no.nav.tjeneste.virksomhet.meldekortutbetalingsgrunnlag.v1.informasjon.AktoerId
@@ -224,6 +225,9 @@ class YtelseComponentTest {
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "SP"
                     }
+                    this.status = Status().apply {
+                        value = "I"
+                    }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
                     this.sakId = "2"
@@ -233,6 +237,9 @@ class YtelseComponentTest {
                     }
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "FØ"
+                    }
+                    this.status = Status().apply {
+                        value = "A"
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
@@ -244,6 +251,9 @@ class YtelseComponentTest {
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "FE"
                     }
+                    this.status = Status().apply {
+                        value = "A"
+                    }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
                     this.sakId = "4"
@@ -253,6 +263,9 @@ class YtelseComponentTest {
                     }
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "PN"
+                    }
+                    this.status = Status().apply {
+                        value = "A"
                     }
                 })
             }
@@ -337,7 +350,8 @@ private val expectedJson = """
           "type": "Vedtak",
           "tema": "Sykepenger",
           "behandlingstema": "Sykepenger",
-          "iverksatt": "2019-05-28"
+          "iverksatt": "2019-05-28",
+          "ikkeStartet": true
         },
         "grunnlag": {
           "type": "Sykepenger",
@@ -353,7 +367,8 @@ private val expectedJson = """
           "type": "Vedtak",
           "tema": "Foreldrepenger",
           "behandlingstema": "ForeldrepengerMedFødsel",
-          "iverksatt": "2019-05-14"
+          "iverksatt": "2019-05-14",
+          "ikkeStartet": false
         },
         "grunnlag": {
           "type": "Foreldrepenger",
@@ -369,7 +384,8 @@ private val expectedJson = """
           "type": "Vedtak",
           "tema": "Foreldrepenger",
           "behandlingstema": "EngangstønadMedFødsel",
-          "iverksatt": "2019-05-07"
+          "iverksatt": "2019-05-07",
+          "ikkeStartet": false
         },
         "grunnlag": {
           "type": "Engangstønad",
@@ -385,7 +401,8 @@ private val expectedJson = """
           "type": "Vedtak",
           "tema": "PårørendeSykdom",
           "behandlingstema": "Pleiepenger",
-          "iverksatt": "2019-05-01"
+          "iverksatt": "2019-05-01",
+          "ikkeStartet": false
         },
         "grunnlag": {
           "type": "PårørendeSykdom",

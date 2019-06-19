@@ -83,7 +83,8 @@ class YtelseServiceTest {
                                     iverksatt = identdatoSykepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Sykepenger,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Sykepenger,
-                                    opphørerFom = null
+                                    opphørerFom = null,
+                                    ikkeStartet = false
                             ),
                             grunnlag = Beregningsgrunnlag.Sykepenger(
                                     identdato = identdatoSykepenger,
@@ -98,7 +99,8 @@ class YtelseServiceTest {
                                     iverksatt = identdatoForeldrepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.ForeldrepengerMedFødsel,
-                                    opphørerFom = null
+                                    opphørerFom = null,
+                                    ikkeStartet = false
                             ),
                             grunnlag = Beregningsgrunnlag.Foreldrepenger(
                                     identdato = identdatoForeldrepenger,
@@ -113,7 +115,8 @@ class YtelseServiceTest {
                                     iverksatt = identdatoEngangstønad,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.Foreldrepenger,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.EngangstønadMedFødsel,
-                                    opphørerFom = null
+                                    opphørerFom = null,
+                                    ikkeStartet = false
                             ),
                             grunnlag = Beregningsgrunnlag.Engangstønad(
                                     identdato = identdatoEngangstønad,
@@ -128,7 +131,8 @@ class YtelseServiceTest {
                                     iverksatt = identdatoPleiepenger,
                                     tema = no.nav.helse.domene.ytelse.domain.Tema.PårørendeSykdom,
                                     behandlingstema = no.nav.helse.domene.ytelse.domain.Behandlingstema.Pleiepenger,
-                                    opphørerFom = null
+                                    opphørerFom = null,
+                                    ikkeStartet = false
                             ),
                             grunnlag = Beregningsgrunnlag.PårørendeSykdom(
                                     identdato = identdatoPleiepenger,

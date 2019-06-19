@@ -13,6 +13,7 @@ import no.nav.helse.oppslag.infotrygdberegningsgrunnlag.InfotrygdBeregningsgrunn
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.informasjon.*
 import no.nav.tjeneste.virksomhet.infotrygdberegningsgrunnlag.v1.meldinger.FinnGrunnlagListeResponse
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.InfotrygdVedtak
+import no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Status
 import no.nav.tjeneste.virksomhet.infotrygdsak.v1.meldinger.FinnSakListeResponse
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -53,7 +54,8 @@ class InfotrygdServiceTest {
                                 iverksatt = identdatoSykepenger,
                                 tema = Tema.Sykepenger,
                                 behandlingstema = Behandlingstema.Sykepenger,
-                                opphørerFom = null
+                                opphørerFom = null,
+                                ikkeStartet = false
                         ),
                         grunnlag = Beregningsgrunnlag.Sykepenger(
                                 identdato = identdatoSykepenger,
@@ -68,7 +70,8 @@ class InfotrygdServiceTest {
                                 iverksatt = identdatoForeldrepenger,
                                 tema = Tema.Foreldrepenger,
                                 behandlingstema = Behandlingstema.ForeldrepengerMedFødsel,
-                                opphørerFom = null
+                                opphørerFom = null,
+                                ikkeStartet = false
                         ),
                         grunnlag = Beregningsgrunnlag.Foreldrepenger(
                                 identdato = identdatoForeldrepenger,
@@ -83,7 +86,8 @@ class InfotrygdServiceTest {
                                 iverksatt = identdatoEngangstønad,
                                 tema = Tema.Foreldrepenger,
                                 behandlingstema = Behandlingstema.EngangstønadMedFødsel,
-                                opphørerFom = null
+                                opphørerFom = null,
+                                ikkeStartet = false
                         ),
                         grunnlag = Beregningsgrunnlag.Engangstønad(
                                 identdato = identdatoEngangstønad,
@@ -98,7 +102,8 @@ class InfotrygdServiceTest {
                                 iverksatt = identdatoPleiepenger,
                                 tema = Tema.PårørendeSykdom,
                                 behandlingstema = Behandlingstema.Pleiepenger,
-                                opphørerFom = null
+                                opphørerFom = null,
+                                ikkeStartet = false
                         ),
                         grunnlag = Beregningsgrunnlag.PårørendeSykdom(
                                 identdato = identdatoPleiepenger,
@@ -127,6 +132,9 @@ class InfotrygdServiceTest {
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "SP"
                     }
+                    this.status = Status().apply {
+                        value = "L"
+                    }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
                     this.sakId = "2"
@@ -136,6 +144,9 @@ class InfotrygdServiceTest {
                     }
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "FØ"
+                    }
+                    this.status = Status().apply {
+                        value = "A"
                     }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
@@ -147,6 +158,9 @@ class InfotrygdServiceTest {
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "FE"
                     }
+                    this.status = Status().apply {
+                        value = "A"
+                    }
                 })
                 this.vedtakListe.add(InfotrygdVedtak().apply {
                     this.sakId = "4"
@@ -156,6 +170,9 @@ class InfotrygdServiceTest {
                     }
                     this.behandlingstema = no.nav.tjeneste.virksomhet.infotrygdsak.v1.informasjon.Behandlingstema().apply {
                         value = "PN"
+                    }
+                    this.status = Status().apply {
+                        value = "A"
                     }
                 })
             }.success()
