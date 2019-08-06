@@ -63,7 +63,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val collectorRegistry = CollectorRegistry.defaultRegistry
-private val authorizedUsers = listOf("srvspa", "srvpleiepengesokna", "srvpleiepenger-opp", "srvspenn")
+private val authorizedUsers = listOf("srvspa", "srvpleiepengesokna", "srvpleiepenger-opp", "srvspenn", "srvspeil")
 
 private val httpRequestCounter = Counter.build("http_requests_total", "Counts the http requests")
         .labelNames("method", "code")
