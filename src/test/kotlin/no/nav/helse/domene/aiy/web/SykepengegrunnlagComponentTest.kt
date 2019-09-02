@@ -28,13 +28,11 @@ import no.nav.tjeneste.virksomhet.organisasjon.v5.informasjon.Virksomhet
 import no.nav.tjeneste.virksomhet.organisasjon.v5.meldinger.HentOrganisasjonResponse
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
-@Disabled
 class SykepengegrunnlagComponentTest {
 
     @Test

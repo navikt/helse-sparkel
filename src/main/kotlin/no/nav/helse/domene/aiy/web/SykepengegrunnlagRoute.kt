@@ -22,21 +22,16 @@ import java.time.format.DateTimeParseException
 fun Route.sykepengegrunnlag(sykepengegrunnlagService: SykepengegrunnlagService) {
 
     get("api/inntekt/{aktorId}/beregningsgrunnlag/{virksomhetsnummer}") {
-        call.respondFeil(HttpFeil(HttpStatusCode.ServiceUnavailable, "Ikke tilgjengelig."))
-        /*
         hentInntekt { aktørId, fom, tom ->
             sykepengegrunnlagService.hentBeregningsgrunnlag(aktørId, Organisasjonsnummer(call.parameters["virksomhetsnummer"]!!), fom, tom)
         }
-        */
     }
 
     get("api/inntekt/{aktorId}/sammenligningsgrunnlag") {
-        call.respondFeil(HttpFeil(HttpStatusCode.ServiceUnavailable, "Ikke tilgjengelig."))
-        /*
         hentInntekt { aktørId, fom, tom ->
             sykepengegrunnlagService.hentSammenligningsgrunnlag(aktørId, fom, tom)
         }
-        */
+
     }
 }
 
