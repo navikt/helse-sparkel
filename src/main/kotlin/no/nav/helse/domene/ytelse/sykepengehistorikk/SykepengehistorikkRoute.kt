@@ -35,7 +35,7 @@ fun Route.sykepengehistorikk(sykepengehistorikkService: SykepengehistorikkServic
                     .map {
                         it.map {
                             YtelseDtoMapper.toDto(it)
-                        }.distinct()
+                        }
                     }.respond(call)
         }
     }
