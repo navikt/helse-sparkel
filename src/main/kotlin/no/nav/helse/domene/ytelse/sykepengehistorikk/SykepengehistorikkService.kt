@@ -22,7 +22,7 @@ class SykepengehistorikkService(private val infotrygdService: InfotrygdService,
                         it.vedtak
                     }.filter {
                         it is Utbetalingsvedtak.SkalUtbetales && it.utbetalingsgrad > 0
-                    }
+                    }.distinct()
                 }
             }
 }
