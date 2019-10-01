@@ -55,18 +55,15 @@ class HttpRequestMetricTest {
     private fun assertThatRequestCounterIncrease(method: HttpMethod, path: String, expectedStatusCode: HttpStatusCode) {
         testServer {
             val requestCounterBefore = getCounterValue("http_requests_total", listOf(method.value, "${expectedStatusCode.value}"))
-            val requestHistogramBefore = getCounterValue("http_request_duration_seconds_count")
 
             handleRequest(method, path, {
                 setRequestProperty(HttpHeaders.Accept, ContentType.Application.Json.toString())
             }) { responseStatus ->
                 assertEquals(expectedStatusCode, responseStatus)
 
-                val requestHistogramAfter = getCounterValue("http_request_duration_seconds_count")
                 val requestCounterAfter = getCounterValue("http_requests_total", listOf(method.value, "${expectedStatusCode.value}"))
 
                 assertEquals(1, requestCounterAfter - requestCounterBefore)
-                assertEquals(1, requestHistogramAfter - requestHistogramBefore)
             }
         }
     }
