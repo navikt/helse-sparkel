@@ -39,4 +39,13 @@ fun Route.sykepengehistorikk(sykepengehistorikkService: SykepengehistorikkServic
                     }.respond(call)
         }
     }
+
+    get("api/v2/sykepengehistorikk/{aktorId}") {
+        sykepengehistorikkService.hentSykepengehistorikkFraSpole(AktørId(call.parameters["aktorId"]!!))
+                .map { perioder ->
+                    perioder.map { periode ->
+                        SykdomsperiodeMapper.toDto(periode)
+                    }
+                }.respond(call)
+    }
 }

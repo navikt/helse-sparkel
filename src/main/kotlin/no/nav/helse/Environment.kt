@@ -1,5 +1,8 @@
 package no.nav.helse
 
+import java.io.File
+import java.io.FileNotFoundException
+
 data class Environment(val map: Map<String, String> = System.getenv()) {
 
     val securityTokenServiceEndpointUrl: String = envVar("SECURITY_TOKEN_SERVICE_URL")
@@ -19,7 +22,20 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     val stsRestUrl: String = envVar("SECURITY_TOKEN_SERVICE_REST_URL")
 
+    val spoleUrl = envVar("SPOLE_URL", "http://spole")
+    val azureTenantId = envVar("AZURE_TENANT_ID")
+    val azureClientId = "/azuread/data/dev/creds/sparkel/client_id".readFile() ?: envVar("AZURE_CLIENT_ID")
+    val azureClientSecret = "/azuread/data/dev/creds/sparkel/client_secret".readFile() ?: envVar("AZURE_CLIENT_SECRET")
+    val spoleScope = envVar("SPOLE_SCOPE")
+
     private fun envVar(key: String, defaultValue: String? = null): String {
         return map[key] ?: defaultValue ?: throw RuntimeException("Missing required variable \"$key\"")
     }
+
+    private fun String.readFile() =
+            try {
+                File(this).readText(Charsets.UTF_8)
+            } catch (err: FileNotFoundException) {
+                null
+            }
 }

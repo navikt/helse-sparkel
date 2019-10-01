@@ -42,6 +42,7 @@ import no.nav.helse.domene.arbeidsfordeling.ArbeidsfordelingService
 import no.nav.helse.domene.arbeidsfordeling.arbeidsfordeling
 import no.nav.helse.domene.person.PersonService
 import no.nav.helse.domene.person.person
+import no.nav.helse.domene.ytelse.SpoleService
 import no.nav.helse.domene.ytelse.YtelseService
 import no.nav.helse.domene.ytelse.arena.ArenaService
 import no.nav.helse.domene.ytelse.infotrygd.InfotrygdProbe
@@ -51,6 +52,8 @@ import no.nav.helse.domene.ytelse.sykepengehistorikk.sykepengehistorikk
 import no.nav.helse.domene.ytelse.ytelse
 import no.nav.helse.nais.nais
 import no.nav.helse.oppslag.WsClients
+import no.nav.helse.oppslag.spole.AzureClient
+import no.nav.helse.oppslag.spole.SpoleClient
 import no.nav.helse.oppslag.sts.stsClient
 import no.nav.helse.probe.DatakvalitetProbe
 import no.nav.helse.probe.InfluxMetricReporter
@@ -157,7 +160,15 @@ fun main() {
         )
         val sykepengehistorikkService = SykepengehistorikkService(
                 infotrygdService = infotrygdService,
-                aktørregisterService = aktørregisterService
+                aktørregisterService = aktørregisterService,
+                spoleService = SpoleService(
+                        spoleClient = SpoleClient(env.spoleUrl, AzureClient(
+                                tenantId = env.azureTenantId,
+                                clientId = env.azureClientId,
+                                clientSecret = env.azureClientSecret,
+                                scope = env.spoleScope
+                        ))
+                )
         )
 
         val ytelseService = YtelseService(

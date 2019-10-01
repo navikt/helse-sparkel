@@ -36,6 +36,11 @@ spec:
     path: /metrics
   vault:
     enabled: true
+    paths:
+      - mountPath: /var/run/secrets/nais.io/vault
+        kvPath: /kv/prod/fss/sparkel/default
+      - mountPath: /var/run/secrets/nais.io/azure
+        kvPath: /azuread/data/prod/creds/sparkel
   secureLogs:
     enabled: true
   env:
@@ -65,3 +70,7 @@ spec:
       value: https://modapp.adeo.no/infotrygd-ws/InfotrygdBeregningsgrunnlag/v1
     - name: INFOTRYGD_SAK_ENDPOINTURL
       value: https://modapp.adeo.no/infotrygd-ws/InfotrygdSak/v1
+    - name: AZURE_TENANT_ID
+      value: 62366534-1ec3-4962-8869-9b5535279d0b
+    - name: SPOLE_SCOPE
+      value: https://nav.no/helsespole

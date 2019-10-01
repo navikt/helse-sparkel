@@ -63,7 +63,8 @@ class SykepengehistorikkComponentTest {
                                 infotrygdBeregningsgrunnlagClient = InfotrygdBeregningsgrunnlagClient(infotrygdBeregningsgrunnlagV1),
                                 infotrygdSakClient = mockk(),
                                 probe = mockk(relaxed = true)
-                        )
+                        ),
+                        spoleService = mockk()
                 )
         )}) {
             handleRequest(HttpMethod.Get, "/api/sykepengehistorikk/${aktørId.aktor}?fom=$fom&tom=$tom") {

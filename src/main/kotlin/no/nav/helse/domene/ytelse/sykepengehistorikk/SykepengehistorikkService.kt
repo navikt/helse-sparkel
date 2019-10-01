@@ -4,6 +4,7 @@ import arrow.core.flatMap
 import no.nav.helse.domene.AktørId
 import no.nav.helse.domene.Fødselsnummer
 import no.nav.helse.domene.aktør.AktørregisterService
+import no.nav.helse.domene.ytelse.SpoleService
 import no.nav.helse.domene.ytelse.domain.Beregningsgrunnlag
 import no.nav.helse.domene.ytelse.domain.Utbetalingsvedtak
 import no.nav.helse.domene.ytelse.infotrygd.InfotrygdService
@@ -11,6 +12,7 @@ import java.time.LocalDate
 
 
 class SykepengehistorikkService(private val infotrygdService: InfotrygdService,
+                                private val spoleService: SpoleService,
                                 private val aktørregisterService: AktørregisterService) {
 
     fun hentSykepengeHistorikk(aktørId: AktørId, fom: LocalDate, tom: LocalDate) =
@@ -25,4 +27,7 @@ class SykepengehistorikkService(private val infotrygdService: InfotrygdService,
                     }.distinct()
                 }
             }
+
+    fun hentSykepengehistorikkFraSpole(aktørId: AktørId) =
+            spoleService.hentSykepengeperioder(aktørId)
 }

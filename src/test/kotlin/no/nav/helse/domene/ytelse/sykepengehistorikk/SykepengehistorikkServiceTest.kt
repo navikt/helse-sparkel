@@ -23,7 +23,8 @@ class SykepengehistorikkServiceTest {
         val aktørregisterService = mockk<AktørregisterService>()
         val sykepengehistorikkService = SykepengehistorikkService(
                 infotrygdService = infotrygdService,
-                aktørregisterService = aktørregisterService
+                aktørregisterService = aktørregisterService,
+                spoleService = mockk()
         )
 
         val aktørId = AktørId("123456789")
