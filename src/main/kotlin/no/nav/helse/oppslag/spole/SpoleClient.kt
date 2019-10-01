@@ -23,7 +23,7 @@ class SpoleClient(private val baseUrl: String, private val azureClient: AzureCli
             val response = JSONObject(result.get())
 
             Sykepengeperioder(
-                    aktørId = response.getString("aktørId"),
+                    aktørId = response.getString("aktør_id"),
                     perioder = response.getJSONArray("perioder").map { it ->
                         it as JSONObject
                     }.map { periodeJson ->

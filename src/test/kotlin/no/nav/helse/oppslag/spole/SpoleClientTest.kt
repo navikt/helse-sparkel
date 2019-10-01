@@ -80,7 +80,7 @@ private val spoleRequestMapping = WireMock.get(WireMock.urlPathEqualTo("/sykepen
 
 private val ok_sykepengeperioder_response = """
 {
-    "aktørId": "$aktørId",
+    "aktør_id": "$aktørId",
     "perioder": [
         {
             "fom": "2019-01-01",
