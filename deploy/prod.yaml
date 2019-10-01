@@ -46,13 +46,13 @@ spec:
   webproxy: true
   env:
     - name: JWKS_URL
-      value: http://security-token-service/rest/v1/sts/jwks
+      value: http://security-token-service.default.svc.nais.local/rest/v1/sts/jwks
     - name: JWT_ISSUER
       value: https://security-token-service.nais.adeo.no
     - name: SECURITY_TOKEN_SERVICE_URL
       value: https://sts.adeo.no/SecurityTokenServiceProvider/
     - name: SECURITY_TOKEN_SERVICE_REST_URL
-      value: http://security-token-service
+      value: http://security-token-service.default.svc.nais.local
     - name: PERSON_ENDPOINTURL
       value: https://wasapp.adeo.no/tpsws/ws/Person/v3
     - name: INNTEKT_ENDPOINTURL

@@ -28,7 +28,7 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     val stsRestUrl: String = envVar("SECURITY_TOKEN_SERVICE_REST_URL")
 
-    val spoleUrl = envVar("SPOLE_URL", "http://spole")
+    val spoleUrl = envVar("SPOLE_URL", "http://spole.default.svc.nais.local")
     val azureTenantId = envVar("AZURE_TENANT_ID")
     val azureClientId = "/var/run/secrets/nais.io/azure/client_id".readFile() ?: envVar("AZURE_CLIENT_ID")
     val azureClientSecret = "/var/run/secrets/nais.io/azure/client_secret".readFile() ?: envVar("AZURE_CLIENT_SECRET")
