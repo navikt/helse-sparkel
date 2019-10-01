@@ -3,8 +3,10 @@ package no.nav.helse.oppslag.spole
 import arrow.core.Try
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
+import no.nav.helse.Environment
 import no.nav.helse.domene.AktørId
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 class SpoleClient(private val baseUrl: String, private val azureClient: AzureClient) {
@@ -41,6 +43,10 @@ data class Periode(val fom: LocalDate, val tom: LocalDate, val grad: String)
 
 class AzureClient(private val tenantId: String, private val clientId: String, private val clientSecret: String, private val scope: String) {
 
+    companion object  {
+        private val log = LoggerFactory.getLogger(AzureClient::class.java)
+    }
+
     fun fetchToken(): Token {
         val (_, _, result) = "https://login.microsoftonline.com/$tenantId/oauth2/v2.0/token".httpPost(
                 listOf(
@@ -52,6 +58,11 @@ class AzureClient(private val tenantId: String, private val clientId: String, pr
         ).response()
 
         val response = JSONObject(result.get())
+
+        if (response.has("error")) {
+            log.error("${response.getString("error_description")}: ${response.toString(2)}")
+            throw RuntimeException("error from the azure token endpoint: ${response.getString("error_description")}")
+        }
 
         return Token(
                 tokenType = response.getString("token_type"),
