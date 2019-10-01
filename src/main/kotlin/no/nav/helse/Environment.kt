@@ -1,9 +1,15 @@
 package no.nav.helse
 
+import no.nav.helse.domene.ytelse.SpoleService
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
 
 data class Environment(val map: Map<String, String> = System.getenv()) {
+
+    companion object  {
+        private val log = LoggerFactory.getLogger(Environment::class.java)
+    }
 
     val securityTokenServiceEndpointUrl: String = envVar("SECURITY_TOKEN_SERVICE_URL")
     val securityTokenUsername: String = envVar("SECURITY_TOKEN_SERVICE_USERNAME")
@@ -24,8 +30,8 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     val spoleUrl = envVar("SPOLE_URL", "http://spole")
     val azureTenantId = envVar("AZURE_TENANT_ID")
-    val azureClientId = "/azuread/data/dev/creds/sparkel/client_id".readFile() ?: envVar("AZURE_CLIENT_ID")
-    val azureClientSecret = "/azuread/data/dev/creds/sparkel/client_secret".readFile() ?: envVar("AZURE_CLIENT_SECRET")
+    val azureClientId = "/var/run/secrets/nais.io/azure/client_id".readFile() ?: envVar("AZURE_CLIENT_ID")
+    val azureClientSecret = "/var/run/secrets/nais.io/azure/client_secret".readFile() ?: envVar("AZURE_CLIENT_SECRET")
     val spoleScope = envVar("SPOLE_SCOPE")
 
     private fun envVar(key: String, defaultValue: String? = null): String {
@@ -34,8 +40,10 @@ data class Environment(val map: Map<String, String> = System.getenv()) {
 
     private fun String.readFile() =
             try {
+                log.info("trying to read secret from $this")
                 File(this).readText(Charsets.UTF_8)
             } catch (err: FileNotFoundException) {
+                log.info("file not found", err)
                 null
             }
 }
