@@ -142,8 +142,8 @@ class HttpRequestMetricTest {
 
         con.builder()
 
-        con.connectTimeout = 1000
-        con.readTimeout = 1000
+        con.connectTimeout = 5000
+        con.readTimeout = 5000
 
         test(HttpStatusCode.fromValue(con.responseCode))
     }
