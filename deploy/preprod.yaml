@@ -4,9 +4,9 @@ metadata:
   name: sparkel
   namespace: default
   labels:
-    team: tbd
+    team: {{team}}
 spec:
-  image: is_set_from_pipeline
+  image: {{image}}:{{tag}}
   port: 8080
   liveness:
     path: isalive
