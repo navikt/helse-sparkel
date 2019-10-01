@@ -43,6 +43,7 @@ spec:
         kvPath: /azuread/data/prod/creds/sparkel
   secureLogs:
     enabled: true
+  webproxy: true
   env:
     - name: JWKS_URL
       value: http://security-token-service/rest/v1/sts/jwks
