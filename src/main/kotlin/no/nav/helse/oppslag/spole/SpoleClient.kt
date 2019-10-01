@@ -56,22 +56,28 @@ class AzureClient(private val tenantId: String, private val clientId: String, pr
                         "scope" to scope,
                         "grant_type" to "client_credentials"
                 )
-        ).response()
+        ).responseString()
 
-        val response = JSONObject(result.get())
+        val (jsonString, error) = result
 
-        tjenestekallLog.info(response.toString(2))
+        jsonString?.also { response ->
+            tjenestekallLog.info(response)
+        }?.let { response ->
+            JSONObject(response)
+        }?.also { jsonObject ->
+            if (jsonObject.has("error")) {
+                log.error("${jsonObject.getString("error_description")}: ${jsonObject.toString(2)}")
+                throw RuntimeException("error from the azure token endpoint: ${jsonObject.getString("error_description")}")
+            }
 
-        if (response.has("error")) {
-            log.error("${response.getString("error_description")}: ${response.toString(2)}")
-            throw RuntimeException("error from the azure token endpoint: ${response.getString("error_description")}")
+            return Token(
+                    tokenType = jsonObject.getString("token_type"),
+                    expiresIn = jsonObject.getLong("expires_in"),
+                    accessToken = jsonObject.getString("access_token")
+            )
         }
 
-        return Token(
-                tokenType = response.getString("token_type"),
-                expiresIn = response.getLong("expires_in"),
-                accessToken = response.getString("access_token")
-        )
+        throw error?.exception ?: RuntimeException("unexpected error")
     }
 
     data class Token(val tokenType: String, val expiresIn: Long, val accessToken: String)
