@@ -29,12 +29,12 @@ jobs:
         docker push $(cat .docker_image):$(cat .docker_tag)
       env:
         GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_ACCESS_TOKEN }}
-    - name: deploy to preprod
+    - name: deploy to dev
       uses: navikt/deployment-cli/action@0.4.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        cluster: preprod-fss
+        cluster: dev-fss
         team: tbd
         resources: deploy/preprod.yaml
     - name: deploy to prod
