@@ -45,6 +45,7 @@ class AzureClient(private val tenantId: String, private val clientId: String, pr
 
     companion object  {
         private val log = LoggerFactory.getLogger(AzureClient::class.java)
+        private val tjenestekallLog = LoggerFactory.getLogger("tjenestekall")
     }
 
     fun fetchToken(): Token {
@@ -58,6 +59,8 @@ class AzureClient(private val tenantId: String, private val clientId: String, pr
         ).response()
 
         val response = JSONObject(result.get())
+
+        tjenestekallLog.info(response.toString(2))
 
         if (response.has("error")) {
             log.error("${response.getString("error_description")}: ${response.toString(2)}")
