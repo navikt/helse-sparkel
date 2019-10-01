@@ -75,4 +75,4 @@ spec:
     - name: AZURE_TENANT_ID
       value: 966ac572-f5b7-4bbe-aa88-c76419c0f851
     - name: SPOLE_SCOPE
-      value: https://trygdeetaten.no/helsespole
+      value: https://trygdeetaten.no/helsespole/.default
