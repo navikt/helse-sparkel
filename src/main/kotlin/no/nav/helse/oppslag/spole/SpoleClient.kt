@@ -46,7 +46,7 @@ class AzureClient(private val tenantId: String, private val clientId: String, pr
                 listOf(
                         "client_id" to clientId,
                         "client_secret" to clientSecret,
-                        "resource" to scope,
+                        "scope" to scope,
                         "grant_type" to "client_credentials"
                 )
         ).response()
