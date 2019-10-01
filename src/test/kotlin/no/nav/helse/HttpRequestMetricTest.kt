@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
+import java.net.ServerSocket
 import java.net.URL
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 class HttpRequestMetricTest {
 
@@ -88,7 +88,11 @@ class HttpRequestMetricTest {
                         metricFamily.samples
                     }
 
-    private fun testServer(test: ApplicationEngine.() -> Unit) = embeddedServer(Netty, Random.nextInt(1000, 9999)) {
+    private fun randomPort(): Int = ServerSocket(0).use {
+        it.localPort
+    }
+
+    private fun testServer(test: ApplicationEngine.() -> Unit) = embeddedServer(Netty, randomPort()) {
         mockedSparkel(
                 jwkProvider = JwtStub("test issuer").stubbedJwkProvider()
         )
