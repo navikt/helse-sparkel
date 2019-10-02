@@ -162,11 +162,10 @@ fun main() {
                 infotrygdService = infotrygdService,
                 aktørregisterService = aktørregisterService,
                 spoleService = SpoleService(
-                        spoleClient = SpoleClient(env.spoleUrl, AzureClient(
-                                tenantId = env.azureTenantId,
+                        spoleClient = SpoleClient(env.spoleUrl, env.spoleScope, AzureClient(
+                                tenantUrl = "https://login.microsoftonline.com/" + env.azureTenantId,
                                 clientId = env.azureClientId,
-                                clientSecret = env.azureClientSecret,
-                                scope = env.spoleScope
+                                clientSecret = env.azureClientSecret
                         ))
                 )
         )

@@ -38,14 +38,14 @@ internal class SpoleClientTest {
     init {
         val azureClientMock = mockk<AzureClient>()
         every {
-            azureClientMock.fetchToken()
+            azureClientMock.getToken("scope")
         } returns AzureClient.Token(
                 tokenType = "Bearer",
                 expiresIn = 3600,
                 accessToken = "foobar"
         )
 
-        spoleClient = SpoleClient(baseUrl = server.baseUrl(), azureClient = azureClientMock)
+        spoleClient = SpoleClient(baseUrl = server.baseUrl(), accesstokenScope = "scope", azureClient = azureClientMock)
     }
 
     @BeforeEach
