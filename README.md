@@ -1,8 +1,7 @@
 Sparkel
 =======
 
-[![CircleCI](https://circleci.com/gh/navikt/helse-sparkel.svg?style=svg)](https://circleci.com/gh/navikt/helse-sparkel)
-
+[![Actions Status](https://github.com/navikt/helse-sparkel/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel/actions)
 Oppslagstjeneste for ulike registre og tjenester.
 
 # Henvendelser
