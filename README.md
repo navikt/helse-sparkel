@@ -3,7 +3,7 @@ Sparkel
 
 [![Actions Status](https://github.com/navikt/helse-sparkel/workflows/master/badge.svg)](https://github.com/navikt/helse-sparkel/actions)
 
-Oppslagstjeneste for ulike registre og tjenester.
+Oppslagstjeneste for ulike registre og tjenester..
 
 # Henvendelser
 
